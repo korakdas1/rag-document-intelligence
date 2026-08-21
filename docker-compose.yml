@@ -1,0 +1,38 @@
+# Local stack: API + optional Qdrant *server*.
+# Default application code still uses embedded Qdrant on a bind-mounted directory.
+# Ollama is expected on the host (http://host.docker.internal:11434/v1).
+#
+#   docker compose up --build
+#   docker compose down
+#
+# Persist SQLite, uploads, and the local Qdrant path via ./data.
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      APP_ENV: production
+      API_HOST: 0.0.0.0
+      API_PORT: "8000"
+      RESEARCH_ASSISTANT_CORS_ORIGINS: "http://127.0.0.1:8000,http://localhost:8000"
+      RESEARCH_ASSISTANT_LLM_BASE_URL: "http://host.docker.internal:11434/v1"
+      RESEARCH_ASSISTANT_DATABASE_PATH: /app/data/processed/research_assistant.db
+      RESEARCH_ASSISTANT_UPLOAD_DIR: /app/data/uploads
+      RESEARCH_ASSISTANT_VECTOR_INDEX_PATH: /app/data/indexes/qdrant
+    volumes:
+      - ./data/processed:/app/data/processed
+      - ./data/uploads:/app/data/uploads
+      - ./data/indexes:/app/data/indexes
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  qdrant:
+    image: qdrant/qdrant:v1.13.4
+    ports:
+      - "6333:6333"
+    volumes:
+      - ./data/indexes/qdrant-server:/qdrant/storage

@@ -1,0 +1,6 @@
+First paragraph mentions café and naïve Unicode.
+
+Second paragraph is wrapped
+across two lines on purpose.
+
+第三段落 includes CJK characters.

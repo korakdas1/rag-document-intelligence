@@ -1,0 +1,102 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+.eggs/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage/
+web/coverage/
+.tox/
+.nox/
+.hypothesis/
+*.pyo
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# --- Secrets and local env ---
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# --- Model and Hugging Face caches ---
+.cache/
+models/
+*.bin
+*.onnx
+*.pt
+*.safetensors
+huggingface/
+.huggingface/
+
+# --- Generated / local data ---
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+data/indexes/*
+!data/indexes/.gitkeep
+data/evaluation/
+evaluation/cache/
+evaluation/results/
+data/uploads/*
+!data/uploads/.gitkeep
+
+# Frontend
+node_modules/
+web/node_modules/
+web/dist/
+.vite/
+
+# Local databases and vector stores
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+qdrant_storage/
+chroma/
+*.faiss
+*.index
+
+# --- Logs / scratch ---
+logs/
+*.log
+tmp/
+temp/
+
+# --- IDE / editor ---
+.idea/
+.vscode/
+.cursor/
+agent-transcripts/
+*.swp
+*.swo
+*~
+.~lock.*
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Tooling ---
+.ipynb_checkpoints/
+.python-version
+uv.lock
+# Keep pyproject.toml; ignore local tool env
+.pdm-python
+.pdm.toml
