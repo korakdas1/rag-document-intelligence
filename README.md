@@ -68,7 +68,7 @@ Python 3.11+, FastAPI, SQLite, embedded Qdrant, sentence-transformers (`BAAI/bge
 
 ## Quick start
 
-**Requirements:** Python 3.11+, Node 20+, [Ollama](https://ollama.com) with `qwen2.5-coder:7b` to **answer** questions. Embedding and reranker weights download from Hugging Face on first use unless already cached. CPU inference works; a GPU is faster but not required. Tests do not need Ollama, GPU, or network.
+**Requirements:** Python 3.11+, Node 24+, [Ollama](https://ollama.com) with `qwen2.5-coder:7b` to **answer** questions. Embedding and reranker weights download from Hugging Face on first use unless already cached. CPU inference works; a GPU is faster but not required. Tests do not need Ollama, GPU, or network.
 
 ```bash
 python -m pip install -e ".[dev]"
