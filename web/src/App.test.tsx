@@ -1,4 +1,4 @@
-import { createEvent, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, createEvent, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App";
@@ -530,6 +530,173 @@ describe("App", () => {
   });
 
   describe("document scope", () => {
+    function deferred<T>() {
+      let resolve!: (value: T) => void;
+      let reject!: (error: Error) => void;
+      const promise = new Promise<T>((yes, no) => { resolve = yes; reject = no; });
+      return { promise, resolve, reject };
+    }
+
+    async function loadedScope(allDocuments: boolean, ids: string[]) {
+      mockedList.mockResolvedValue({
+        documents: [documentRow(), documentRow({ document_id: "doc-2", filename: "other.md" })],
+        chunker_id: "structure.v1:test", request_id: "d1",
+      });
+      const saved = sessionRow({ turn_count: 1, all_documents: allDocuments });
+      mockedListSessions.mockResolvedValue({ sessions: [saved], request_id: "s1" });
+      mockedGetSession.mockResolvedValue({
+        ...saved, selected_document_ids: ids, missing_selected_count: 0,
+        turns: [{ turn_id: "old-turn", sequence: 1, question: "Saved question", answer: "Saved answer",
+          grounding_status: "grounded", citations: [], sources: [], created_at: saved.created_at }],
+      });
+      render(<App />);
+      await screen.findByText("Saved question");
+      return userEvent.setup();
+    }
+
+    it("serializes captured rapid selections and waits for the newest save before Ask", async () => {
+      const first = deferred<SessionSummary>();
+      const second = deferred<SessionSummary>();
+      const third = deferred<SessionSummary>();
+      mockedPatchSession.mockImplementationOnce(() => first.promise)
+        .mockImplementationOnce(() => second.promise).mockImplementationOnce(() => third.promise);
+      const user = await loadedScope(false, []);
+      fireEvent.click(screen.getByRole("checkbox", { name: /attention.md/ }));
+      await waitFor(() => expect(mockedPatchSession).toHaveBeenCalledTimes(1));
+      fireEvent.click(screen.getByRole("checkbox", { name: /other.md/ }));
+      await user.type(screen.getByLabelText("Research question"), "Newest scope please");
+      await user.click(screen.getByRole("button", { name: "Ask question" }));
+      // Further intent while Ask is waiting must join the same drain.
+      fireEvent.click(screen.getByRole("checkbox", { name: /attention.md/ }));
+      expect(mockedPatchSession).toHaveBeenCalledTimes(1);
+      expect(mockedAsk).not.toHaveBeenCalled();
+      await act(async () => first.resolve(sessionRow()));
+      expect(mockedPatchSession).toHaveBeenCalledTimes(2);
+      expect(mockedAsk).not.toHaveBeenCalled();
+      await act(async () => second.resolve(sessionRow()));
+      expect(mockedPatchSession).toHaveBeenCalledTimes(3);
+      expect(mockedAsk).not.toHaveBeenCalled();
+      await act(async () => third.resolve(sessionRow()));
+      await waitFor(() => expect(mockedAsk).toHaveBeenCalledTimes(1));
+      expect(mockedPatchSession.mock.calls).toEqual([
+        ["sess-1", { all_documents: false, selected_document_ids: ["doc-1"] }],
+        ["sess-1", { all_documents: false, selected_document_ids: ["doc-1", "doc-2"] }],
+        ["sess-1", { all_documents: false, selected_document_ids: ["doc-2"] }],
+      ]);
+      expect(mockedAsk.mock.calls[0][0]).toMatchObject({ session_id: "sess-1" });
+      expect(mockedAsk.mock.calls[0][0].document_ids).toBeUndefined();
+    });
+
+    it("surfaces a failed save, blocks Ask, and recovers after a successful new selection", async () => {
+      mockedPatchSession.mockRejectedValueOnce(new Error("offline"));
+      const user = await loadedScope(true, []);
+      await user.click(screen.getByRole("checkbox", { name: /other.md/ }));
+      expect(await screen.findByRole("alert")).toHaveTextContent("Could not save document selection");
+      await user.type(screen.getByLabelText("Research question"), "Must not use stale scope");
+      await user.click(screen.getByRole("button", { name: "Ask question" }));
+      await waitFor(() => expect(screen.getByLabelText("Research question")).toHaveAttribute("aria-busy", "false"));
+      expect(mockedAsk).not.toHaveBeenCalled();
+      expect(mockedCreateSession).not.toHaveBeenCalled();
+      await user.click(screen.getByRole("checkbox", { name: /other.md/ }));
+      await waitFor(() => expect(mockedPatchSession).toHaveBeenCalledTimes(2));
+      await user.type(screen.getByLabelText("Research question"), "Selection recovered");
+      await user.click(screen.getByRole("button", { name: "Ask question" }));
+      await waitFor(() => expect(mockedAsk).toHaveBeenCalledTimes(1));
+    });
+
+    it("does not send a waiting Ask if its pending selection save fails", async () => {
+      const pending = deferred<SessionSummary>();
+      mockedPatchSession.mockReturnValueOnce(pending.promise);
+      const user = await loadedScope(true, []);
+      await user.click(screen.getByRole("checkbox", { name: /other.md/ }));
+      await user.type(screen.getByLabelText("Research question"), "Wait for selection");
+      await user.click(screen.getByRole("button", { name: "Ask question" }));
+      expect(mockedAsk).not.toHaveBeenCalled();
+      await act(async () => pending.reject(new Error("offline")));
+      expect((await screen.findAllByRole("alert"))[0]).toHaveTextContent("Could not save document selection");
+      expect(mockedAsk).not.toHaveBeenCalled();
+    });
+
+    it("keeps an old session's failed save isolated and restores its unsaved intent on return", async () => {
+      const pending = deferred<SessionSummary>();
+      mockedPatchSession.mockReturnValueOnce(pending.promise);
+      const user = await loadedScope(true, []);
+      await user.click(screen.getByRole("checkbox", { name: /other.md/ }));
+      await user.click(screen.getByRole("button", { name: "New research" }));
+      await act(async () => pending.reject(new Error("offline")));
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+      expect(screen.getByRole("checkbox", { name: "Ask across all documents" })).toBeChecked();
+      await user.click(screen.getByRole("button", { name: "History" }));
+      await user.click(screen.getByRole("menuitem", { name: /New research/ }));
+      await screen.findByText("Saved question");
+      expect(screen.getByRole("checkbox", { name: /attention.md/ })).toBeChecked();
+      expect(screen.getByRole("checkbox", { name: /other.md/ })).not.toBeChecked();
+      expect(screen.getByRole("alert")).toHaveTextContent("Could not save document selection");
+      await user.type(screen.getByLabelText("Research question"), "Still must not use old saved scope");
+      await user.click(screen.getByRole("button", { name: "Ask question" }));
+      await waitFor(() => expect(screen.getByLabelText("Research question")).toHaveAttribute("aria-busy", "false"));
+      expect(mockedAsk).not.toHaveBeenCalled();
+    });
+
+    it("ignores a late session load after New research changes the active draft", async () => {
+      const user = await loadedScope(false, ["doc-2"]);
+      const pending = deferred<Awaited<ReturnType<typeof getSession>>>();
+      mockedGetSession.mockReturnValueOnce(pending.promise);
+      await user.click(screen.getByRole("button", { name: "History" }));
+      await user.click(screen.getByRole("menuitem", { name: /New research/ }));
+      await user.click(screen.getByRole("button", { name: "New research" }));
+      await act(async () => pending.resolve({ ...sessionRow(), all_documents: false,
+        selected_document_ids: [], missing_selected_count: 0, turns: [] }));
+      expect(screen.queryByText("Saved question")).not.toBeInTheDocument();
+      expect(screen.getByRole("checkbox", { name: "Ask across all documents" })).toBeChecked();
+      expect(mockedCreateSession).not.toHaveBeenCalled();
+    });
+
+    it("saves selection changes made during first-session creation before asking", async () => {
+      const creation = deferred<SessionSummary>();
+      const saving = deferred<SessionSummary>();
+      mockedCreateSession.mockReturnValueOnce(creation.promise);
+      mockedPatchSession.mockReturnValueOnce(saving.promise);
+      mockedList.mockResolvedValue({ documents: [documentRow(), documentRow({ document_id: "doc-2", filename: "other.md" })], chunker_id: "test", request_id: "d1" });
+      const user = userEvent.setup();
+      render(<App />);
+      await screen.findByText("other.md");
+      await user.type(screen.getByLabelText("Research question"), "First question");
+      await user.click(screen.getByRole("button", { name: "Ask question" }));
+      expect(mockedCreateSession).toHaveBeenCalledWith({ all_documents: true, selected_document_ids: [] });
+      await user.click(screen.getByRole("checkbox", { name: /other.md/ }));
+      await act(async () => creation.resolve(sessionRow()));
+      expect(mockedPatchSession).toHaveBeenCalledWith("sess-1", { all_documents: false, selected_document_ids: ["doc-1"] });
+      expect(mockedAsk).not.toHaveBeenCalled();
+      await act(async () => saving.resolve(sessionRow()));
+      await waitFor(() => expect(mockedAsk).toHaveBeenCalledTimes(1));
+    });
+
+    it("keeps a fixed subset after upload even when it selected the whole previous library", async () => {
+      const user = await loadedScope(false, ["doc-1", "doc-2"]);
+      const fresh = documentRow({ document_id: "doc-3", filename: "fresh.md" });
+      mockedUpload.mockResolvedValue({ document: fresh, outcome: "created", warnings: [], request_id: "u1" });
+      mockedList.mockResolvedValue({ documents: [documentRow(), documentRow({ document_id: "doc-2", filename: "other.md" }), fresh], chunker_id: "test", request_id: "d2" });
+      expect(screen.getByRole("checkbox", { name: "Ask across all documents" })).toHaveProperty("indeterminate", true);
+      await user.upload(document.querySelector('input[type="file"]') as HTMLInputElement, new File(["orchard"], "fresh.md", { type: "text/markdown" }));
+      expect(await screen.findByRole("checkbox", { name: /fresh.md/ })).not.toBeChecked();
+      expect(screen.getByRole("checkbox", { name: /attention.md/ })).toBeChecked();
+      expect(mockedPatchSession).not.toHaveBeenCalled();
+    });
+
+    it.each([["doc-1", "doc-2"], ["doc-2"]])("retains a deleted subset without saving ALL: %j", async (...ids) => {
+      const user = await loadedScope(false, ids);
+      mockedDelete.mockResolvedValue({ document_id: "doc-2", deleted: true, already_absent: false, vector_cleanup_status: "purged", request_id: "x" });
+      await user.click(screen.getByRole("button", { name: "Actions for other.md" }));
+      await user.click(screen.getByRole("menuitem", { name: "Remove" }));
+      mockedList.mockResolvedValue({ documents: [documentRow()], chunker_id: "test", request_id: "d2" });
+      await user.click(screen.getByRole("button", { name: "Remove" }));
+      await waitFor(() => expect(screen.queryByText("other.md")).not.toBeInTheDocument());
+      expect(screen.getByRole("checkbox", { name: "Ask across all documents" })).not.toBeChecked();
+      expect(screen.getByText("1 previously selected document is no longer in the library.")).toBeInTheDocument();
+      expect(mockedPatchSession).not.toHaveBeenCalled();
+    });
+
     it("A: restores ALL mode after reload", async () => {
       mockedList.mockResolvedValue({
         documents: [
@@ -1038,7 +1205,7 @@ describe("App", () => {
     expect(document.getElementById("source-S1")).toHaveAttribute("aria-current", "true");
   });
 
-  it("sends selected document ids when the corpus is narrowed", async () => {
+  it("saves a narrowed scope before asking with only the session ID", async () => {
     mockedList.mockResolvedValue({
       documents: [
         documentRow(),
@@ -1057,7 +1224,8 @@ describe("App", () => {
     await waitFor(() => {
       expect(mockedAsk).toHaveBeenCalled();
     });
-    expect(mockedAsk.mock.calls[0][0].document_ids).toEqual(["doc-1"]);
+    expect(mockedCreateSession).toHaveBeenCalledWith({ all_documents: false, selected_document_ids: ["doc-1"] });
+    expect(mockedAsk.mock.calls[0][0].document_ids).toBeUndefined();
   });
 
   it("sends bounded conversation on follow-up and can clear it", async () => {
@@ -1437,12 +1605,12 @@ describe("App", () => {
       request_id: "d1",
     });
     mockedListSessions.mockResolvedValue({
-      sessions: [sessionRow({ title: "Filtered", turn_count: 1 })],
+      sessions: [sessionRow({ title: "Filtered", turn_count: 1, all_documents: false })],
       request_id: "s1",
     });
     mockedGetSession.mockResolvedValue({
-      ...sessionRow({ title: "Filtered", turn_count: 1 }),
-      selected_document_ids: [],
+      ...sessionRow({ title: "Filtered", turn_count: 1, all_documents: false }),
+      selected_document_ids: ["deleted-doc"],
       missing_selected_count: 1,
       turns: [
         {
@@ -2483,7 +2651,8 @@ describe("App", () => {
       await waitFor(() => {
         expect(mockedAsk).toHaveBeenCalled();
       });
-      expect(mockedAsk.mock.calls[0][0].document_ids).toEqual(["doc-1"]);
+      expect(mockedCreateSession).toHaveBeenCalledWith({ all_documents: false, selected_document_ids: ["doc-1"] });
+      expect(mockedAsk.mock.calls[0][0].document_ids).toBeUndefined();
     });
 
     it("does not restore all-document selection after a document list refresh", async () => {

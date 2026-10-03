@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping, Sequence
+from contextlib import AbstractContextManager
+from contextvars import ContextVar
 from dataclasses import dataclass
 
 from research_assistant.chunking.models import Chunk
@@ -66,6 +68,20 @@ class DocumentIndexHealth:
         return "Document index is incomplete or unavailable. Re-index to repair it."
 
 
+class _RequestHealthSnapshot(AbstractContextManager):
+    def __init__(self, service: "DocumentIndexHealthService", chunker_id: str) -> None:
+        self._service = service
+        self._chunker_id = chunker_id
+
+    def __enter__(self) -> dict[str, DocumentIndexHealth]:
+        health = self._service.inspect(self._chunker_id)
+        self._token = self._service._request_snapshot.set((self._chunker_id, health))
+        return dict(health)
+
+    def __exit__(self, exc_type, exc_value, traceback) -> None:
+        self._service._request_snapshot.reset(self._token)
+
+
 class DocumentIndexHealthService:
     def __init__(
         self,
@@ -76,6 +92,13 @@ class DocumentIndexHealthService:
         self._store = store
         self._vectors = vectors
         self._embedding = embedding
+        self._request_snapshot: ContextVar[tuple[str, dict[str, DocumentIndexHealth]] | None] = (
+            ContextVar("document_index_health_snapshot", default=None)
+        )
+
+    def request_snapshot(self, chunker_id: str) -> _RequestHealthSnapshot:
+        """Share one point-in-time inspection within an ask, never across requests."""
+        return _RequestHealthSnapshot(self, chunker_id)
 
     def document_index_health(
         self, document_id: str, chunker_id: str
@@ -88,8 +111,11 @@ class DocumentIndexHealthService:
         """Batch library checks into one vector inventory, or inspect one document.
 
         This is a point-in-time reconciliation, not a cross-store transaction.
-        No health cache may hide vector deletion or a failed activation.
+        A request snapshot may reuse this inspection only for that request.
         """
+        snapshot = self._request_snapshot.get()
+        if snapshot is not None and snapshot[0] == chunker_id and document_id is None:
+            return dict(snapshot[1])
         if document_id is None:
             documents = {doc.document_id: doc for doc in self._store.list_documents()}
             chunks = self._store.list_chunks_for_chunker(chunker_id)

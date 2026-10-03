@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import json
 import uuid
+from collections.abc import Sequence
 from datetime import datetime, timezone
 
 from research_assistant.api.errors import ApiError
 from research_assistant.api.mapping import to_ask_response
+from research_assistant.api.scope import DocumentScope
 from research_assistant.api.schemas import (
     AskResponse,
     CitationView,
@@ -49,12 +51,13 @@ class ResearchSessionService:
         session_id = uuid.uuid4().hex
         now = _utc_now()
         cleaned = normalize_title(title) if title else DEFAULT_SESSION_TITLE
+        scope = self._validated_scope(all_documents, selected_document_ids or ())
         record = self._app.store.create_session(
             session_id,
             title=cleaned,
             created_at=now,
-            all_documents=all_documents,
-            selected_document_ids=selected_document_ids or (),
+            all_documents=scope.all_documents,
+            selected_document_ids=scope.document_ids,
         )
         logger.info("session_created session_id=%s", session_id)
         return to_session_summary(record)
@@ -66,12 +69,13 @@ class ResearchSessionService:
         record = self._require(session_id)
         logger.info("session_loaded session_id=%s turns=%s", session_id, record.turn_count)
         turns = [to_session_turn_view(item) for item in self._app.store.list_turns(session_id)]
-        selected, missing = prune_selection(record, known_document_ids)
+        scope = DocumentScope.from_selection(record.all_documents, record.selected_document_ids)
+        missing = len(set(scope.document_ids) - known_document_ids)
         payload = to_session_summary(record).model_dump()
         payload.update(
             {
                 "all_documents": record.all_documents,
-                "selected_document_ids": selected,
+                "selected_document_ids": list(scope.document_ids),
                 "missing_selected_count": missing,
                 "turns": turns,
             }
@@ -94,19 +98,17 @@ class ResearchSessionService:
                 status_code=400,
             )
         next_title = normalize_title(title) if title is not None else None
-        next_all = record.all_documents if all_documents is None else all_documents
-        next_ids = (
-            list(record.selected_document_ids)
-            if selected_document_ids is None
-            else selected_document_ids
-        )
-        if next_all:
-            next_ids = []
+        scope = None
+        if all_documents is not None or selected_document_ids is not None:
+            scope = self._validated_scope(
+                record.all_documents if all_documents is None else all_documents,
+                record.selected_document_ids if selected_document_ids is None else selected_document_ids,
+            )
         updated = self._app.store.update_session(
             session_id,
             title=next_title,
-            all_documents=next_all,
-            selected_document_ids=next_ids,
+            all_documents=scope.all_documents if scope is not None else None,
+            selected_document_ids=scope.document_ids if scope is not None else None,
             updated_at=_utc_now(),
         )
         assert updated is not None
@@ -124,16 +126,21 @@ class ResearchSessionService:
         all_documents: bool,
         selected_document_ids: list[str],
     ) -> SessionSummary:
-        self._require(session_id)
-        ids = () if all_documents else tuple(selected_document_ids)
-        updated = self._app.store.update_session(
+        return self.patch_session(
             session_id,
             all_documents=all_documents,
-            selected_document_ids=ids,
-            updated_at=_utc_now(),
+            selected_document_ids=selected_document_ids,
         )
-        assert updated is not None
-        return to_session_summary(updated)
+
+    def document_scope(self, session_id: str) -> DocumentScope:
+        record = self._require(session_id)
+        return DocumentScope.from_selection(record.all_documents, record.selected_document_ids)
+
+    def _validated_scope(self, all_documents: bool, document_ids: Sequence[str]) -> DocumentScope:
+        scope = DocumentScope.from_selection(all_documents, document_ids)
+        if scope.document_ids:
+            scope.validate_known({doc.document_id for doc in self._app.store.list_documents()})
+        return scope
 
     def delete_session(self, session_id: str) -> bool:
         existed = self._app.store.get_session(session_id) is not None
@@ -332,17 +339,6 @@ def title_from_question(question: str) -> str:
         return normalize_title(question)
     except ApiError:
         return DEFAULT_SESSION_TITLE
-
-
-def prune_selection(
-    record: SessionRecord, known_document_ids: set[str]
-) -> tuple[list[str], int]:
-    if record.all_documents:
-        return [], 0
-    # Empty kept ids with all_documents=False is explicit NONE, not ALL.
-    kept = [item for item in record.selected_document_ids if item in known_document_ids]
-    missing = len(record.selected_document_ids) - len(kept)
-    return kept, missing
 
 
 def to_session_summary(record: SessionRecord) -> SessionSummary:

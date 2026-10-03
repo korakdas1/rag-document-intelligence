@@ -126,7 +126,7 @@ def test_persist_turn_reload_and_restart(tmp_path: Path) -> None:
     assert restored.json()["turns"][0]["sources"][0]["text"] == turn["sources"][0]["text"]
 
 
-def test_selected_documents_persist_and_missing_ids_are_pruned(tmp_path: Path) -> None:
+def test_selected_documents_persist_including_missing_ids(tmp_path: Path) -> None:
     client, _application = _client(tmp_path)
     error_doc = _upload(client, "error_code.md")
     cake_doc = _upload(client, "cake.md")
@@ -144,7 +144,7 @@ def test_selected_documents_persist_and_missing_ids_are_pruned(tmp_path: Path) -
     client.delete(f"/api/documents/{error_doc['document_id']}")
     loaded = client.get(f"/api/sessions/{session_id}").json()
     assert loaded["missing_selected_count"] == 1
-    assert error_doc["document_id"] not in loaded["selected_document_ids"]
+    assert error_doc["document_id"] in loaded["selected_document_ids"]
     assert cake_doc["document_id"] not in loaded["selected_document_ids"]
 
 

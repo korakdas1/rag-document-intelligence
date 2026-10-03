@@ -6,6 +6,7 @@ import { sanitizeUploadError } from "../userErrors";
 type DocumentSidebarProps = {
   documents: DocumentSummary[];
   selectedIds: string[];
+  allDocuments?: boolean;
   uploading: boolean;
   uploadError: string | null;
   uploadStatus?: string | null;
@@ -69,6 +70,7 @@ function statusClass(status: DocumentStatus, sourceAvailable?: boolean): string 
 export function DocumentSidebar({
   documents,
   selectedIds,
+  allDocuments,
   uploading,
   uploadError,
   uploadStatus = null,
@@ -94,7 +96,7 @@ export function DocumentSidebar({
   const masterRef = useRef<HTMLInputElement>(null);
   const selectedSet = new Set(selectedIds);
   const selectedCount = documents.filter((doc) => selectedSet.has(doc.document_id)).length;
-  const allSelected = documents.length > 0 && selectedCount === documents.length;
+  const allSelected = allDocuments ?? (documents.length > 0 && selectedCount === documents.length);
   const noneSelected = selectedCount === 0;
   const indeterminate = selectedCount > 0 && !allSelected;
   const query = filter.trim().toLowerCase();

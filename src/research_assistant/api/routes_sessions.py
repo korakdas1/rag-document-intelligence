@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Request
 
-from research_assistant.api.deps import get_library, get_sessions, request_id_of
+from research_assistant.api.deps import get_application, get_sessions, request_id_of
 from research_assistant.api.schemas import (
     CreateSessionRequest,
     DeleteSessionResponse,
@@ -36,7 +36,7 @@ def list_sessions(request: Request) -> SessionListResponse:
 
 @router.get("/sessions/{session_id}", response_model=SessionDetail, summary="Load a session")
 def get_session(session_id: str, request: Request) -> SessionDetail:
-    known = {item.document_id for item in get_library(request).list_documents()}
+    known = {item.document_id for item in get_application(request).store.list_documents()}
     return get_sessions(request).get_session(session_id, known_document_ids=known)
 
 

@@ -86,8 +86,51 @@ retain a separately staged previous representation during a rebuild. Health is a
 point-in-time check, not snapshot isolation against concurrent mutations.
 Library checks use one paginated payload inventory, without vectors, rather than
 one Qdrant request per document. Details and Re-index inspect the selected document.
-Retrieval also verifies the inventory (twice for hybrid's two branches), so cost
-grows with corpus size; a future incremental scheme must preserve these guarantees.
+Each API ask shares one health inspection between scope resolution and both
+retrieval branches, using a context-local snapshot released on success or failure.
+There is no cache across requests. Standalone hybrid retrieval outside this API
+context still inspects twice, and BM25 still reads SQLite chunks for its corpus
+fingerprint. Inventory cost grows with corpus size; a future incremental scheme
+must preserve these guarantees.
+
+## Saved document scope
+
+Session scope is a server-enforced boundary, represented by the existing
+`all_documents` and `selected_document_ids` fields (no schema change):
+
+| Mode | Persisted form | Ask behavior |
+| --- | --- | --- |
+| ALL | `true`, `[]` | Current searchable documents, including later successful uploads |
+| SUBSET | `false`, nonempty IDs | Exactly those documents; never expands on upload or deletion |
+| NONE | `false`, `[]` | `409 no_documents_selected`, before retrieval, reranking, or generation |
+
+Creation and deliberate selection updates validate known document IDs and remove
+duplicates while preserving first-occurrence order. Session reads retain deleted
+IDs and report `missing_selected_count`; the UI displays surviving checkboxes and
+a missing-document notice. A missing, failed, building, or incomplete selected
+document makes SUBSET fail closed with `409 selected_documents_unavailable`.
+The user must update the selection or repair the documents. ALL skips unready
+documents and returns `409 no_ready_documents` if none are searchable.
+
+For `/api/ask` with `session_id`, persisted scope is authoritative. Omit legacy
+`document_ids` to use it. If supplied, their normalized set must exactly match the
+effective saved scope, or the request returns `409 scope_mismatch`; an explicit
+empty list cannot bypass SUBSET. Without a session, omitted/empty IDs retain the
+legacy dynamic ALL behavior and nonempty IDs specify a validated subset.
+
+Each ask resolves a nonempty immutable ID tuple before entering the RAG pipeline;
+later session PATCHes cannot change that request's filter. Retry resolves the
+current saved scope. Historical per-turn scope snapshots/replay remain future
+work, and this boundary does not redact already saved answers or history.
+
+The UI captures and serializes selection PATCHes per session and waits for the
+newest intended save before Ask. Failed saves are visible and block Ask until a
+new selection saves successfully. New research remains local until its first
+question, which creates the session with its current scope. Changes during that
+creation are saved before asking. Individual document toggles select a fixed
+subset; the master checkbox explicitly chooses dynamic ALL. This ordering covers
+one browser instance; concurrent clients still use the latest persisted scope,
+without revisions or cross-store transaction isolation.
 
 ## Product API
 

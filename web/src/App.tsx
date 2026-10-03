@@ -1,4 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { documentScope, scopePayload, ScopeSaveQueue, visibleSelection } from "./documentScope";
+import type { DocumentScope } from "./documentScope";
 import { askQuestion } from "./api/ask";
 import { ApiClientError, describeApiFailure } from "./api/client";
 import {
@@ -195,6 +197,8 @@ export default function App() {
   const [activeTitle, setActiveTitle] = useState("New research");
   const [missingSelected, setMissingSelected] = useState(0);
   const [sessionError, setSessionError] = useState<string | null>(null);
+  const [scopeError, setScopeError] = useState<string | null>(null);
+  const [sessionLoading, setSessionLoading] = useState(false);
   const [pendingRename, setPendingRename] = useState<SessionSummary | null>(null);
   const [pendingSessionDelete, setPendingSessionDelete] = useState<SessionSummary | null>(null);
   const [sessionBusy, setSessionBusy] = useState(false);
@@ -205,7 +209,10 @@ export default function App() {
   const turnsRef = useRef<Turn[]>([]);
   const selectedIdsRef = useRef<string[]>([]);
   const documentsRef = useRef<DocumentSummary[]>([]);
-  const scopeModeRef = useRef<"all" | "subset" | "none">("all");
+  const scopeRef = useRef(documentScope(true, []));
+  const scopeSavesRef = useRef(new ScopeSaveQueue());
+  const sessionLoadRef = useRef(0);
+  const sessionLoadingRef = useRef(false);
   const pinBehaviorRef = useRef<ScrollBehavior>("auto");
   const uploadInFlightRef = useRef(false);
   const uploadGenerationRef = useRef(0);
@@ -358,17 +365,8 @@ export default function App() {
       const listed = await listDocuments();
       documentsRef.current = listed.documents;
       setDocuments(listed.documents);
-      const remaining = new Set(listed.documents.map((item) => item.document_id));
       const allIds = listed.documents.map((item) => item.document_id);
-      setSelectedIds((current) => {
-        if (scopeModeRef.current === "all") {
-          return allIds;
-        }
-        if (scopeModeRef.current === "none") {
-          return [];
-        }
-        return current.filter((id) => remaining.has(id));
-      });
+      applyScope(scopeRef.current, allIds);
       setLibraryError(null);
       return true;
     } catch (error) {
@@ -404,18 +402,32 @@ export default function App() {
   }
 
   async function openSession(sessionId: string) {
+    const generation = ++sessionLoadRef.current;
+    sessionLoadingRef.current = true;
+    setSessionLoading(true);
     setSessionError(null);
     try {
+      // Keep any failed local intent visible on return; Ask still requires its save.
+      await scopeSavesRef.current.wait(sessionId).catch(() => undefined);
+      const saveAtLoad = scopeSavesRef.current.current(sessionId);
       const loaded = await getSession(sessionId);
-      applySession(loaded);
+      if (generation !== sessionLoadRef.current) return;
+      const latestSave = scopeSavesRef.current.current(sessionId);
+      applySession(loaded, latestSave !== saveAtLoad || Boolean(latestSave?.error));
     } catch (error) {
+      if (generation !== sessionLoadRef.current) return;
       const message =
         error instanceof ApiClientError ? error.message : "Could not load the conversation.";
       setSessionError(message);
+    } finally {
+      if (generation === sessionLoadRef.current) {
+        sessionLoadingRef.current = false;
+        setSessionLoading(false);
+      }
     }
   }
 
-  function applySession(loaded: SessionDetail) {
+  function applySession(loaded: SessionDetail, useLocalScope = false) {
     stopFollowing();
     setPinSpace(0);
     setActiveSessionId(loaded.session_id);
@@ -425,21 +437,20 @@ export default function App() {
     setTurns(nextTurns);
     setActiveTurnId(nextTurns.at(-1)?.id ?? null);
     setActiveCitationId(null);
-    const known = documentsRef.current;
-    if (loaded.all_documents) {
-      scopeModeRef.current = "all";
-      setSelectedIds(known.map((item) => item.document_id));
-    } else {
-      const remaining = new Set(known.map((item) => item.document_id));
-      const next = loaded.selected_document_ids.filter((id) => remaining.has(id));
-      scopeModeRef.current = next.length === 0 ? "none" : "subset";
-      setSelectedIds(next);
-    }
-    setMissingSelected(loaded.missing_selected_count);
+    const pending = scopeSavesRef.current.current(loaded.session_id);
+    applyScope(
+      useLocalScope && pending
+        ? pending.scope
+        : documentScope(loaded.all_documents, loaded.selected_document_ids),
+    );
+    setScopeError(pending?.error ?? null);
     setLibraryChanged(false);
   }
 
   function startNewConversation() {
+    ++sessionLoadRef.current;
+    sessionLoadingRef.current = false;
+    setSessionLoading(false);
     stopFollowing();
     setPinSpace(0);
     setTurns([]);
@@ -451,62 +462,58 @@ export default function App() {
     activeSessionIdRef.current = null;
     setActiveTitle("New research");
     setSessionError(null);
-    scopeModeRef.current = "all";
-    setSelectedIds(documentsRef.current.map((item) => item.document_id));
+    setScopeError(null);
+    applyScope(documentScope(true, []));
   }
 
-  function rememberScope(next: string[]) {
-    const docs = documentsRef.current;
-    if (next.length === 0) {
-      scopeModeRef.current = "none";
-      return;
-    }
-    if (docs.length > 0 && next.length === docs.length) {
-      scopeModeRef.current = "all";
-      return;
-    }
-    scopeModeRef.current = "subset";
+  function applyScope(
+    scope: DocumentScope,
+    knownIds = documentsRef.current.map((doc) => doc.document_id),
+  ) {
+    scopeRef.current = scope;
+    const visible = visibleSelection(scope, knownIds);
+    selectedIdsRef.current = visible;
+    setSelectedIds(visible);
+    setMissingSelected(scope.mode === "subset" ? scope.documentIds.length - visible.length : 0);
   }
 
-  async function persistSelection(next: string[]) {
+  function persistSelection(scope: DocumentScope) {
     const sessionId = activeSessionIdRef.current;
-    if (!sessionId) {
-      return;
-    }
-    rememberScope(next);
-    try {
-      await patchSession(sessionId, {
-        all_documents: scopeModeRef.current === "all",
-        selected_document_ids: scopeModeRef.current === "all" ? [] : next,
-      });
-      await refreshSessionList();
-    } catch {
-      /* selection is still applied locally */
-    }
+    if (!sessionId) return;
+    const payload = scopePayload(scope);
+    const entry = scopeSavesRef.current.save(sessionId, scope, () =>
+      patchSession(sessionId, payload),
+    );
+    void entry.settled.then((error) => {
+      if (
+        activeSessionIdRef.current === sessionId &&
+        scopeSavesRef.current.current(sessionId) === entry
+      ) {
+        setScopeError(error);
+      }
+    });
+  }
+
+  function changeScope(scope: DocumentScope) {
+    applyScope(scope);
+    setScopeError(null);
+    persistSelection(scope);
   }
 
   function selectAllDocuments() {
-    const next = documentsRef.current.map((item) => item.document_id);
-    rememberScope(next);
-    setSelectedIds(next);
-    void persistSelection(next);
+    changeScope(documentScope(true, []));
   }
 
   function clearDocumentSelection() {
-    rememberScope([]);
-    setSelectedIds([]);
-    void persistSelection([]);
+    changeScope(documentScope(false, []));
   }
 
   function toggleDocument(documentId: string) {
-    setSelectedIds((current) => {
-      const next = current.includes(documentId)
-        ? current.filter((id) => id !== documentId)
-        : [...current, documentId];
-      rememberScope(next);
-      void persistSelection(next);
-      return next;
-    });
+    const current = selectedIdsRef.current;
+    const next = current.includes(documentId)
+      ? current.filter((id) => id !== documentId)
+      : [...current, documentId];
+    changeScope(documentScope(false, next));
   }
 
   async function handleUploadFiles(files: File[]) {
@@ -571,7 +578,7 @@ export default function App() {
           return;
         }
         noteLibraryChange();
-        if (scopeModeRef.current === "all") {
+        if (scopeRef.current.mode === "all") {
           setSelectedIds((current) => {
             const next = [...current];
             for (const id of succeededIds) {
@@ -636,20 +643,20 @@ export default function App() {
     if (activeSessionIdRef.current) {
       return activeSessionIdRef.current;
     }
-    const created = await createSession({
-      all_documents: scopeModeRef.current === "all",
-      selected_document_ids:
-        scopeModeRef.current === "all" ? [] : selectedIdsRef.current,
-    });
+    const initialScope = scopeRef.current;
+    const created = await createSession(scopePayload(initialScope));
     setActiveSessionId(created.session_id);
     activeSessionIdRef.current = created.session_id;
     setActiveTitle(created.title);
+    if (scopeRef.current !== initialScope) persistSelection(scopeRef.current);
     await refreshSessionList();
     return created.session_id;
   }
 
   async function requestAnswer(text: string, replaceTurnId?: string) {
-    if (!text || askingRef.current || selectedIdsRef.current.length === 0) {
+    if (
+      !text || askingRef.current || sessionLoadingRef.current || selectedIdsRef.current.length === 0
+    ) {
       return;
     }
     askingRef.current = true;
@@ -680,6 +687,10 @@ export default function App() {
     pinTurnNow(id, "smooth");
     try {
       const sessionId = await ensureSession();
+      await scopeSavesRef.current.wait(sessionId);
+      if (scopeRef.current.mode === "none" || selectedIdsRef.current.length === 0) {
+        throw new Error("Select at least one document before asking a question.");
+      }
       const history = replaceTurnId
         ? completedHistory(historySource.filter((turn) => turn.id !== id))
         : completedHistory(historySource);
@@ -687,7 +698,6 @@ export default function App() {
         replaceTurnId && !isClientTurnId(replaceTurnId) ? replaceTurnId : undefined;
       const response = await askQuestion({
         question: text,
-        document_ids: selectedIdsRef.current,
         retrieval_mode: mode,
         rerank,
         conversation: history,
@@ -720,7 +730,7 @@ export default function App() {
       }
     } catch (error) {
       const message =
-        error instanceof ApiClientError ? error.message : "The request failed.";
+        error instanceof Error ? error.message : "The request failed.";
       const persistedId =
         error instanceof ApiClientError && error.turnId ? error.turnId : id;
       const retryable = !(error instanceof ApiClientError && error.code === "not_found");
@@ -910,7 +920,12 @@ export default function App() {
             onRename={setPendingRename}
             onDelete={setPendingSessionDelete}
           />
-          <button type="button" className="btn btn-quiet" onClick={startNewConversation}>
+          <button
+            type="button"
+            className="btn btn-quiet"
+            disabled={asking}
+            onClick={startNewConversation}
+          >
             New research
           </button>
         </div>
@@ -920,6 +935,9 @@ export default function App() {
         <div className="banner banner-warn" role="alert">
           {sessionError}
         </div>
+      ) : null}
+      {scopeError ? (
+        <div className="banner banner-warn" role="alert">{scopeError}</div>
       ) : null}
       {missingSelected ? (
         <div className="banner banner-warn" role="status">
@@ -960,6 +978,7 @@ export default function App() {
         <DocumentSidebar
           documents={documents}
           selectedIds={selectedIds}
+          allDocuments={scopeRef.current.mode === "all"}
           uploading={uploading}
           uploadError={uploadError}
           uploadStatus={uploadStatus}
@@ -1011,7 +1030,7 @@ export default function App() {
                     error={turn.error}
                     pending={asking && turn.id === activeTurnId}
                     retryable={turn.retryable !== false}
-                    retryDisabled={!canAsk}
+                    retryDisabled={!canAsk || sessionLoading}
                     activeCitationId={turn.id === activeTurn?.id ? activeCitationId : null}
                     onCitationClick={(citationId) => focusCitation(turn.id, citationId)}
                     onRetry={() => void requestAnswer(turn.question, turn.id)}
@@ -1049,7 +1068,7 @@ export default function App() {
               <QuestionInput
                 value={question}
                 disabled={asking}
-                submitDisabled={!canAsk}
+                submitDisabled={!canAsk || sessionLoading}
                 textareaRef={composerRef}
                 onChange={setComposerValue}
                 onSubmit={(value) => {
