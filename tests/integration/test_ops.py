@@ -179,6 +179,111 @@ def test_oversized_upload_is_413(tmp_path: Path) -> None:
     assert response.json()["error"]["code"] == "too_large"
 
 
+def test_spooled_upload_rejection_leaves_api_responsive(tmp_path: Path) -> None:
+    with _client(tmp_path, max_file_bytes=16) as client:
+        # Just over the framework's 1 MiB spool threshold; no document indexing.
+        response = client.post(
+            "/api/documents",
+            files={"file": ("note.md", b"x" * (1024 * 1024 + 1), "text/markdown")},
+        )
+        assert response.status_code == 413
+        assert response.json()["error"]["code"] == "too_large"
+        assert client.get("/api/health").status_code == 200
+        assert client.get("/api/documents").json()["documents"] == []
+
+
+def test_truncated_pdf_returns_stable_parse_error(tmp_path: Path) -> None:
+    with _client(tmp_path) as client:
+        response = client.post(
+            "/api/documents",
+            files={"file": ("truncated.pdf", b"%PDF-1.7\n1 0 obj\n<<", "application/pdf")},
+        )
+        assert response.status_code == 422
+        error = response.json()["error"]
+        assert error["code"] == "parse_error"
+        assert error["message"] == "The file could not be parsed."
+        assert error["request_id"] == response.headers["x-request-id"]
+        assert all(
+            doc["status"] != "ready"
+            for doc in client.get("/api/documents").json()["documents"]
+        )
+        assert client.get("/api/health").status_code == 200
+
+
+def test_urlencoded_upload_enforces_field_limit(tmp_path: Path) -> None:
+    with _client(tmp_path) as client:
+        # A small body crosses only the default 1000-field limit.
+        response = client.post(
+            "/api/documents", data={f"field{i}": "x" for i in range(1001)}
+        )
+        assert response.status_code == 400
+        assert response.json()["error"]["code"] == "http_error"
+        assert response.json()["error"]["request_id"]
+        assert client.get("/api/documents").json()["documents"] == []
+
+
+def test_json_request_requires_content_type(tmp_path: Path) -> None:
+    with _client(tmp_path) as client:
+        response = client.post("/api/ask", content='{"question": "test"}')
+        assert response.status_code == 422
+        assert response.json()["error"]["code"] == "validation_error"
+        assert client.post("/api/ask", json={"question": "test"}).status_code == 409
+
+
+@pytest.mark.parametrize(
+    ("range_header", "status", "body", "content_range"),
+    [
+        (None, 200, b"0123456789", None),
+        ("bytes=2-5", 206, b"2345", "bytes 2-5/10"),
+        ("bytes=-3", 206, b"789", "bytes 7-9/10"),
+        ("bytes=20-30", 416, b"", "bytes */10"),
+    ],
+)
+def test_static_file_ranges(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    range_header: str | None,
+    status: int,
+    body: bytes,
+    content_range: str | None,
+) -> None:
+    dist = tmp_path / "web" / "dist"
+    dist.mkdir(parents=True)
+    (dist / "sample.txt").write_bytes(b"0123456789")
+    monkeypatch.chdir(tmp_path)
+    with _client(tmp_path) as client:
+        headers = {"Range": range_header} if range_header else {}
+        response = client.get("/sample.txt", headers=headers)
+        assert response.status_code == status
+        assert response.content == body
+        assert response.headers.get("content-range") == content_range
+        head = client.head("/sample.txt", headers=headers)
+        assert head.status_code == status
+        assert head.content == b""
+        assert head.headers.get("content-range") == content_range
+        assert client.get("/api/health").status_code == 200
+
+
+def test_static_index_and_multiple_ranges(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    dist = tmp_path / "web" / "dist"
+    dist.mkdir(parents=True)
+    (dist / "index.html").write_text("<h1>Library</h1>", encoding="utf-8")
+    (dist / "sample.txt").write_bytes(b"0123456789")
+    monkeypatch.chdir(tmp_path)
+    with _client(tmp_path) as client:
+        assert client.get("/").text == "<h1>Library</h1>"
+        response = client.get("/sample.txt", headers={"Range": "bytes=0-1,8-9"})
+        assert response.status_code == 206
+        assert response.headers["content-type"].startswith("multipart/byteranges;")
+        assert b"Content-Range: bytes 0-1/10" in response.content
+        assert b"Content-Range: bytes 8-9/10" in response.content
+        assert b"\r\n01\r\n" in response.content
+        assert b"\r\n89\r\n" in response.content
+        assert client.get("/sample.txt", headers={"Range": "bytes=bad"}).status_code == 400
+
+
 def test_malformed_pdf_does_not_become_ready(tmp_path: Path) -> None:
     client = _client(tmp_path)
     response = client.post(
