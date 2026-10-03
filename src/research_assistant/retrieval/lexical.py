@@ -10,6 +10,8 @@ from research_assistant.core.errors import RetrievalError
 from research_assistant.core.logging import get_logger
 from research_assistant.core.settings import Settings, load_settings
 from research_assistant.core.timing import Timer
+from research_assistant.indexing.health import DocumentIndexHealthService
+from research_assistant.indexing.service import IndexingService
 from research_assistant.retrieval.bm25 import BM25Index
 from research_assistant.retrieval.filters import RetrievalFilter, chunk_matches_filter
 from research_assistant.retrieval.identity import lexical_index_id_for
@@ -36,9 +38,13 @@ class LexicalRetriever:
         self,
         settings: Settings | None = None,
         store: SqliteDocumentStore | None = None,
+        index_health: DocumentIndexHealthService | None = None,
     ) -> None:
         self._settings = settings or load_settings()
         self._store = store or SqliteDocumentStore(self._settings.database_path)
+        self._health = index_health or IndexingService(
+            settings=self._settings, store=self._store
+        ).health
         self._cache_key: str | None = None
         self._index: BM25Index | None = None
         self._chunks: dict[str, Chunk] = {}
@@ -78,7 +84,7 @@ class LexicalRetriever:
         index_id = self.lexical_index_id(chunker_id)
         with Timer("lexical_search") as timer:
             index, chunks, filenames = self._index_for(chunker_id)
-            if not chunks:
+            if not chunks and not self._store.list_chunks_for_chunker(chunker_id):
                 raise RetrievalError(
                     f"No lexical corpus for chunker_id={chunker_id}",
                     code="missing_lexical_index",
@@ -140,6 +146,8 @@ class LexicalRetriever:
         self, chunker_id: str
     ) -> tuple[BM25Index, dict[str, Chunk], dict[str, str]]:
         rows = self._store.list_chunks_for_chunker(chunker_id)
+        allowed = self._health.searchable_document_ids(chunker_id)
+        rows = [chunk for chunk in rows if chunk.document_id in allowed]
         fingerprint = _corpus_fingerprint(
             chunker_id,
             rows,

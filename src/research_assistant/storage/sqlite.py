@@ -10,9 +10,15 @@ from pathlib import Path
 from research_assistant.chunking.models import Chunk
 from research_assistant.core.errors import DatabaseError
 from research_assistant.core.types import ContentType, IndexStatus, ParseStatus
-from research_assistant.storage.records import DocumentRecord, IndexMetadata, SessionRecord, SessionTurnRecord
+from research_assistant.storage.records import (
+    DocumentIndexState,
+    DocumentRecord,
+    IndexMetadata,
+    SessionRecord,
+    SessionTurnRecord,
+)
 
-SCHEMA_VERSION = 4
+SCHEMA_VERSION = 5
 
 _SCHEMA = """
 CREATE TABLE IF NOT EXISTS schema_version (
@@ -121,6 +127,20 @@ CREATE INDEX IF NOT EXISTS idx_turns_session_sequence
 """
 
 
+_DOCUMENT_INDEX_SCHEMA = """
+CREATE TABLE IF NOT EXISTS document_indexes (
+    document_id TEXT NOT NULL REFERENCES documents(document_id) ON DELETE CASCADE,
+    index_id TEXT NOT NULL,
+    chunker_id TEXT NOT NULL,
+    status TEXT NOT NULL CHECK(status IN ('unverified', 'building', 'ready', 'failed')),
+    attempt_id TEXT NOT NULL,
+    source_checksum TEXT NOT NULL,
+    chunk_ids TEXT NOT NULL,
+    PRIMARY KEY (document_id, index_id)
+)
+"""
+
+
 class SqliteDocumentStore:
     def __init__(self, database_path: Path, *, busy_timeout_ms: int = 5000) -> None:
         self._path = database_path
@@ -155,6 +175,16 @@ class SqliteDocumentStore:
             conn.executescript(_SCHEMA)
             conn.executescript(_SESSION_SCHEMA)
             row = conn.execute("SELECT version FROM schema_version").fetchone()
+            if row is not None and int(row["version"]) > SCHEMA_VERSION:
+                raise RuntimeError(
+                    f"Unsupported schema version {row['version']}; expected {SCHEMA_VERSION}"
+                )
+            # The additive migration and version advance commit together. Legacy
+            # rows are candidates only: live vector identities must still match.
+            conn.execute("BEGIN IMMEDIATE")
+            conn.execute(_DOCUMENT_INDEX_SCHEMA)
+            if row is not None and int(row["version"]) < 5:
+                self._migrate_document_indexes(conn)
             if row is None:
                 conn.execute(
                     "INSERT INTO schema_version (version) VALUES (?)",
@@ -166,12 +196,74 @@ class SqliteDocumentStore:
                     "INSERT INTO schema_version (version) VALUES (?)",
                     (SCHEMA_VERSION,),
                 )
-            elif int(row["version"]) > SCHEMA_VERSION:
-                raise RuntimeError(
-                    f"Unsupported schema version {row['version']}; "
-                    f"expected {SCHEMA_VERSION}"
-                )
             conn.commit()
+
+    @staticmethod
+    def _migrate_document_indexes(conn: sqlite3.Connection) -> None:
+        indexes = conn.execute("SELECT * FROM vector_indexes").fetchall()
+        for index in indexes:
+            rows = conn.execute(
+                """SELECT c.document_id, c.chunk_id, d.checksum_sha256
+                   FROM chunks c JOIN documents d USING (document_id)
+                   WHERE c.chunker_id = ? AND trim(c.text) != ''""",
+                (index["chunker_id"],),
+            ).fetchall()
+            grouped: dict[str, list[str]] = {}
+            checksums: dict[str, str] = {}
+            for item in rows:
+                grouped.setdefault(item["document_id"], []).append(item["chunk_id"])
+                checksums[item["document_id"]] = item["checksum_sha256"]
+            for document_id, chunk_ids in grouped.items():
+                conn.execute(
+                    """INSERT OR IGNORE INTO document_indexes
+                       VALUES (?, ?, ?, ?, '', ?, ?)""",
+                    (document_id, index["index_id"], index["chunker_id"],
+                     "unverified" if index["status"] == "ready" else "failed",
+                     checksums[document_id], json.dumps(sorted(chunk_ids))),
+                )
+
+    def list_document_indexes(
+        self, index_id: str, *, document_id: str | None = None
+    ) -> dict[str, DocumentIndexState]:
+        sql = "SELECT * FROM document_indexes WHERE index_id = ?"
+        params = (index_id,)
+        if document_id is not None:
+            sql += " AND document_id = ?"
+            params = (index_id, document_id)
+        with self._connect() as conn:
+            rows = conn.execute(sql, params).fetchall()
+        return {
+            row["document_id"]: DocumentIndexState(
+                document_id=row["document_id"],
+                index_id=row["index_id"],
+                chunker_id=row["chunker_id"],
+                status=row["status"],
+                attempt_id=row["attempt_id"],
+                source_checksum=row["source_checksum"],
+                chunk_ids=frozenset(json.loads(row["chunk_ids"])),
+            )
+            for row in rows
+        }
+
+    def begin_document_indexes(self, states: Sequence[DocumentIndexState]) -> None:
+        with self._connect() as conn:
+            conn.executemany(
+                """INSERT INTO document_indexes VALUES (?, ?, ?, 'building', ?, ?, ?)
+                   ON CONFLICT(document_id, index_id) DO UPDATE SET
+                     chunker_id = excluded.chunker_id, status = 'building',
+                     attempt_id = excluded.attempt_id,
+                     source_checksum = excluded.source_checksum, chunk_ids = excluded.chunk_ids""",
+                [(s.document_id, s.index_id, s.chunker_id, s.attempt_id,
+                  s.source_checksum, json.dumps(sorted(s.chunk_ids))) for s in states],
+            )
+
+    def finish_document_indexes(self, index_id: str, attempt_id: str, *, succeeded: bool) -> None:
+        with self._connect() as conn:
+            conn.execute(
+                """UPDATE document_indexes SET status = ?
+                   WHERE index_id = ? AND attempt_id = ?""",
+                ("ready" if succeeded else "failed", index_id, attempt_id),
+            )
 
     def schema_version(self) -> int:
         with self._connect() as conn:
@@ -243,6 +335,10 @@ class SqliteDocumentStore:
             conn.execute(sql, values)
             if existing is not None and existing["checksum_sha256"] != record.checksum_sha256:
                 conn.execute(
+                    "UPDATE document_indexes SET status = 'failed' WHERE document_id = ?",
+                    (record.document_id,),
+                )
+                conn.execute(
                     "DELETE FROM chunks WHERE document_id = ?",
                     (record.document_id,),
                 )
@@ -252,6 +348,16 @@ class SqliteDocumentStore:
         self, document_id: str, chunker_id: str, chunks: Sequence[Chunk]
     ) -> None:
         with self._connect() as conn:
+            old_ids = {row[0] for row in conn.execute(
+                "SELECT chunk_id FROM chunks WHERE document_id = ? AND chunker_id = ?",
+                (document_id, chunker_id),
+            )}
+            if old_ids != {chunk.chunk_id for chunk in chunks}:
+                conn.execute(
+                    """UPDATE document_indexes SET status = 'failed'
+                       WHERE document_id = ? AND chunker_id = ?""",
+                    (document_id, chunker_id),
+                )
             conn.execute(
                 "DELETE FROM chunks WHERE document_id = ? AND chunker_id = ?",
                 (document_id, chunker_id),

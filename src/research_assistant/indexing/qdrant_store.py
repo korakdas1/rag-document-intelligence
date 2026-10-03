@@ -245,6 +245,38 @@ class QdrantVectorStore:
             close()
         _STORE_CACHE.pop(str(self._path.resolve()), None)
 
+    def list_payloads(
+        self, collection_name: str, *, document_id: str | None = None
+    ) -> list[VectorPayload]:
+        """Read a paginated inventory without transferring embedding vectors."""
+        from qdrant_client.models import FieldCondition, Filter, MatchValue
+
+        if not self.collection_exists(collection_name):
+            return []
+        filt = Filter(must=[FieldCondition(
+            key="document_id", match=MatchValue(value=document_id)
+        )]) if document_id is not None else None
+        payloads: list[VectorPayload] = []
+        offset = None
+        try:
+            while True:
+                records, offset = self._client.scroll(
+                    collection_name=collection_name, scroll_filter=filt,
+                    limit=256, offset=offset, with_payload=True, with_vectors=False,
+                )
+                for record in records:
+                    payload = VectorPayload.from_dict(dict(record.payload or {}))
+                    if str(record.id) != point_id_for(payload.chunk_id):
+                        raise ValueError("Point identity does not match its chunk")
+                    payloads.append(payload)
+                if offset is None:
+                    return payloads
+        except Exception as exc:
+            raise VectorStoreError(
+                "Could not verify indexed document identities.",
+                code="index_inspection_failed",
+            ) from exc
+
 
 _STORE_CACHE: dict[str, QdrantVectorStore] = {}
 
@@ -292,4 +324,3 @@ def _qdrant_filter(payload_filter: object | None):
             FieldCondition(key="section_prefixes", match=MatchValue(value=key))
         )
     return Filter(must=must) if must else None
-

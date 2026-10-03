@@ -50,6 +50,7 @@ def _ingest_lexical_corpus(app):
         assert ingested.document is not None
         chunked = app.chunking.chunk_document(ingested.document.document_id, cfg)
         chunker_id = chunked.chunker_id
+        assert app.indexing.index_document(ingested.document.document_id, chunker_id).ok
     assert chunker_id is not None
     return chunker_id
 
@@ -97,6 +98,7 @@ def test_changed_content_drops_stale_lexical_entry(tmp_path: Path) -> None:
     assert first.document is not None
     cfg = _chunking()
     chunked = app.chunking.chunk_document(first.document.document_id, cfg)
+    assert app.indexing.index_document(first.document.document_id, chunked.chunker_id).ok
     ranked = app.lexical.search("ZEBRAQID", chunker_id=chunked.chunker_id, top_k=3)
     assert ranked.hits
     assert "ZEBRAQID" in ranked.hits[0].text
@@ -104,8 +106,11 @@ def test_changed_content_drops_stale_lexical_entry(tmp_path: Path) -> None:
     updated = app.ingest.ingest(path)
     assert updated.outcome is IngestOutcome.UPDATED
     app.chunking.chunk_document(first.document.document_id, cfg)
+    # Parsed/chunked content is not searchable until its index is activated.
     after = app.lexical.search("ZEBRAQID", chunker_id=chunked.chunker_id, top_k=3)
     assert after.hits == ()
+    assert not app.lexical.search("YAKQID", chunker_id=chunked.chunker_id).hits
+    assert app.indexing.index_document(first.document.document_id, chunked.chunker_id).ok
     kept = app.lexical.search("YAKQID", chunker_id=chunked.chunker_id, top_k=3)
     assert kept.hits
     assert "YAKQID" in kept.hits[0].text
@@ -129,5 +134,7 @@ def test_different_chunkers_do_not_mix(tmp_path: Path) -> None:
     assert app.lexical.lexical_index_id(a.chunker_id) != app.lexical.lexical_index_id(
         b.chunker_id
     )
+    assert app.indexing.index_document(ingested.document.document_id, a.chunker_id).ok
     hit_a = app.lexical.search("transformer", chunker_id=a.chunker_id, top_k=5)
+    assert hit_a.hits
     assert all(hit.chunker_id == a.chunker_id for hit in hit_a.hits)

@@ -78,8 +78,9 @@ def create_application(
         store=document_store,
         embedder=embedder,
         vector_store=vectors,
+        index_health=indexing.health,
     )
-    lexical = LexicalRetriever(settings=resolved, store=document_store)
+    lexical = LexicalRetriever(settings=resolved, store=document_store, index_health=indexing.health)
     hybrid = HybridSearchService(
         settings=resolved,
         dense=search,

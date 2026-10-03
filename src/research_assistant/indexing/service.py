@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from uuid import uuid4
 
 from research_assistant.chunking.models import Chunk
 from research_assistant.core.errors import VectorStoreError
@@ -24,6 +25,7 @@ from research_assistant.indexing.identity import (
     collection_name_for,
     index_id_for,
 )
+from research_assistant.indexing.health import DocumentIndexHealthService, representation_matches
 from research_assistant.indexing.invalidation import (
     PurgeResult,
     RegistryVectorInvalidator,
@@ -31,7 +33,7 @@ from research_assistant.indexing.invalidation import (
 from research_assistant.indexing.models import VectorPayload, VectorRecord
 from research_assistant.indexing.protocol import VectorStore
 from research_assistant.indexing.qdrant_store import qdrant_store_for
-from research_assistant.storage.records import DocumentRecord, IndexMetadata
+from research_assistant.storage.records import DocumentIndexState, DocumentRecord, IndexMetadata
 from research_assistant.storage.sqlite import SqliteDocumentStore
 
 logger = get_logger("research_assistant.indexing")
@@ -67,6 +69,9 @@ class IndexingService:
         self._embedder = embedder
         self._vectors = vector_store or qdrant_store_for(self._settings.vector_index_path)
         self._invalidator = RegistryVectorInvalidator(self._store, self._vectors)
+        self.health = DocumentIndexHealthService(
+            self._store, self._vectors, lambda: self.embedding
+        )
 
     @property
     def vector_store(self) -> VectorStore:
@@ -120,6 +125,75 @@ class IndexingService:
         return self._invalidator.purge_document(document_id)
 
     def _index_chunks(
+        self,
+        chunks: list[Chunk],
+        *,
+        chunker_id: str,
+        filename_by_document: dict[str, str],
+        replace_documents: tuple[str, ...] | None,
+        rebuild: bool = False,
+    ) -> IndexingResult:
+        identity = self.embedding
+        index_id = index_id_for(embedding=identity, chunker_id=chunker_id)
+        attempt_id = uuid4().hex
+        documents = (
+            self._store.list_documents() if rebuild
+            else [self._store.get_by_id(doc_id) for doc_id in (replace_documents or ())]
+        )
+        ids_by_document: dict[str, set[str]] = {}
+        for chunk in chunks:
+            if chunk.text.strip():
+                ids_by_document.setdefault(chunk.document_id, set()).add(chunk.chunk_id)
+        states = [
+            DocumentIndexState(
+                document_id=doc.document_id,
+                index_id=index_id,
+                chunker_id=chunker_id,
+                status="building",
+                attempt_id=attempt_id,
+                source_checksum=doc.checksum_sha256,
+                chunk_ids=frozenset(ids_by_document.get(doc.document_id, ())),
+            )
+            for doc in documents if doc is not None
+        ]
+        try:
+            # Commit inactivity before touching vectors. If activation later fails,
+            # even a complete physical write remains unavailable after restart.
+            self._store.begin_document_indexes(states)
+            result = self._write_chunks(
+                chunks,
+                chunker_id=chunker_id,
+                filename_by_document=filename_by_document,
+                replace_documents=replace_documents,
+                rebuild=rebuild,
+            )
+            if result.ok:
+                collection = collection_name_for(index_id)
+                payloads = self._vectors.list_payloads(
+                    collection,
+                    document_id=(
+                        replace_documents[0]
+                        if replace_documents and len(replace_documents) == 1 else None
+                    ),
+                )
+                expected = {chunk.chunk_id: chunk for chunk in chunks if chunk.text.strip()}
+                if not representation_matches(expected, payloads):
+                    raise VectorStoreError(
+                        "Indexed document identities do not match current chunks.",
+                        code="incomplete_index",
+                    )
+            self._store.finish_document_indexes(index_id, attempt_id, succeeded=result.ok)
+            return result
+        except Exception as exc:
+            logger.exception("document_indexing_failed index_id=%s", index_id)
+            try:
+                self._store.finish_document_indexes(index_id, attempt_id, succeeded=False)
+            except Exception:
+                # The previously committed building state still fails closed.
+                logger.exception("document_index_failure_persist_failed index_id=%s", index_id)
+            return _failed(index_id, chunker_id, identity, exc)
+
+    def _write_chunks(
         self,
         chunks: list[Chunk],
         *,
@@ -192,7 +266,7 @@ class IndexingService:
             elif replace_documents:
                 for document_id in replace_documents:
                     self._vectors.delete_by_document(
-                        collection, document_id, chunker_id
+                        collection, document_id
                     )
 
             if not usable:

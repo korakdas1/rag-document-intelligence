@@ -15,8 +15,9 @@ from research_assistant.api.schemas import (
     grounding_status_for,
 )
 from research_assistant.core.resource import sanitize_public_error
-from research_assistant.core.types import IndexStatus, ParseStatus
+from research_assistant.core.types import ParseStatus
 from research_assistant.generation.rag import RAGResult
+from research_assistant.indexing.health import DocumentIndexHealth
 from research_assistant.storage.records import DocumentRecord
 
 
@@ -49,12 +50,16 @@ def to_document_summary(
     *,
     chunk_count: int,
     indexed: bool,
+    index_health: DocumentIndexHealth | None = None,
 ) -> DocumentSummary:
+    status = document_status(record, chunk_count=chunk_count, indexed=indexed)
+    if index_health and index_health.status in {"failed", "repair_required", "unavailable"}:
+        status = "failed"
     return DocumentSummary(
         document_id=record.document_id,
         filename=record.filename,
         content_type=record.content_type.value,
-        status=document_status(record, chunk_count=chunk_count, indexed=indexed),
+        status=status,
         page_count=record.page_count,
         chunk_count=chunk_count,
         byte_size=record.byte_size,
@@ -65,15 +70,11 @@ def to_document_summary(
         error_message=(
             sanitize_public_error(record.error_message, filename=record.filename)
             if record.error_message
-            else None
+            else (index_health.message if index_health else None)
         ),
         source_available=source_available(record),
         checksum_prefix=checksum_prefix(record.checksum_sha256),
     )
-
-
-def index_is_ready(status: IndexStatus | None) -> bool:
-    return status is IndexStatus.READY
 
 
 def to_ask_response(result: RAGResult, *, request_id: str = "") -> AskResponse:
