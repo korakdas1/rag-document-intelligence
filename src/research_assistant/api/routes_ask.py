@@ -8,6 +8,7 @@ from research_assistant.api.deps import get_application, get_library, get_sessio
 from research_assistant.api.errors import ApiError, error_from_domain
 from research_assistant.api.mapping import to_ask_response
 from research_assistant.api.schemas import AskRequest, AskResponse
+from research_assistant.api.scope import DocumentScope, ScopeMode, resolve_scope
 from research_assistant.conversation.models import ConversationTurn
 from research_assistant.core.errors import (
     ContextError,
@@ -44,25 +45,6 @@ def ask(body: AskRequest, request: Request) -> AskResponse:
             request_id=request_id_of(request),
         )
     chunker_id = library.chunker_id
-    if not application.store.list_chunks_for_chunker(chunker_id):
-        raise ApiError(
-            code="no_ready_documents",
-            message="No indexed documents are available. Add a PDF, Markdown, or text file first.",
-            status_code=409,
-            request_id=request_id_of(request),
-        )
-    filters = None
-    if body.document_ids:
-        known = {item.document_id for item in library.list_documents()}
-        missing = [item for item in body.document_ids if item not in known]
-        if missing:
-            raise ApiError(
-                code="not_found",
-                message="One or more selected documents were not found.",
-                status_code=404,
-                request_id=request_id_of(request),
-            )
-        filters = RetrievalFilter(document_ids=tuple(body.document_ids))
     mode = body.retrieval_mode
     if mode not in {item.value for item in RetrievalMode}:
         raise ApiError(
@@ -83,8 +65,14 @@ def ask(body: AskRequest, request: Request) -> AskResponse:
     )
     sessions = get_sessions(request)
     session_id = (body.session_id or "").strip() or None
+    scope = (
+        sessions.document_scope(session_id)
+        if session_id
+        else DocumentScope.from_selection(not body.document_ids, body.document_ids)
+    )
+    if scope.mode is ScopeMode.NONE:
+        resolve_scope(scope, {}, session_id=session_id)
     if session_id:
-        sessions.ensure_exists(session_id)
         history = sessions.resolver_history(
             session_id, exclude_turn_id=body.replace_turn_id
         )
@@ -92,20 +80,32 @@ def ask(body: AskRequest, request: Request) -> AskResponse:
         "ask_started mode=%s rerank=%s filtered=%s history=%s session=%s request_id=%s",
         mode,
         body.rerank,
-        bool(filters),
+        True,
         len(history),
         session_id or "-",
         request_id_of(request),
     )
     try:
-        result = application.rag.answer(
-            question,
-            chunker_id=chunker_id,
-            mode=mode,
-            filters=filters,
-            rerank_enabled=body.rerank,
-            conversation=history,
-        )
+        with application.indexing.health.request_snapshot(chunker_id) as health:
+            if not session_id:
+                scope.validate_known(set(health))
+            effective = resolve_scope(
+                scope,
+                health,
+                session_id=session_id,
+                legacy_document_ids=(
+                    body.document_ids
+                    if session_id and "document_ids" in body.model_fields_set else None
+                ),
+            )
+            result = application.rag.answer(
+                question,
+                chunker_id=chunker_id,
+                mode=mode,
+                filters=RetrievalFilter(document_ids=effective),
+                rerank_enabled=body.rerank,
+                conversation=history,
+            )
     except (RetrievalError, RerankError, ContextError, GenerationError) as exc:
         mapped = error_from_domain(exc, request_id=request_id_of(request))
         logger.info("ask_failed code=%s", mapped.code)

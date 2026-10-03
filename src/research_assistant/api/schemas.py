@@ -107,7 +107,13 @@ class ConversationTurnView(BaseModel):
 
 class AskRequest(BaseModel):
     question: str
-    document_ids: list[str] = Field(default_factory=list)
+    document_ids: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Without a session, omitted/empty IDs search all ready documents. With a session, "
+            "omit this field to use saved scope; supplied IDs must match its effective documents."
+        ),
+    )
     retrieval_mode: RetrievalModeName = "hybrid"
     rerank: bool | None = None
     conversation: list[ConversationTurnView] = Field(default_factory=list)
@@ -243,7 +249,10 @@ class SessionTurnView(BaseModel):
 
 
 class SessionDetail(SessionSummary):
-    selected_document_ids: list[str] = Field(default_factory=list)
+    selected_document_ids: list[str] = Field(
+        default_factory=list,
+        description="Saved selection, including IDs deleted since it was saved; empty for ALL/NONE.",
+    )
     missing_selected_count: int = 0
     turns: list[SessionTurnView] = Field(default_factory=list)
 

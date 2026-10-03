@@ -616,28 +616,21 @@ class SqliteDocumentStore:
         selected_document_ids: Sequence[str] | None = None,
         updated_at: str,
     ) -> SessionRecord | None:
-        current = self.get_session(session_id)
-        if current is None:
-            return None
-        next_title = current.title if title is None else title
-        next_all = current.all_documents if all_documents is None else all_documents
-        next_ids = (
-            current.selected_document_ids
-            if selected_document_ids is None
-            else tuple(selected_document_ids)
-        )
         with self._connect() as conn:
             conn.execute(
                 """
                 UPDATE research_sessions
-                SET title = ?, all_documents = ?, selected_document_ids = ?,
+                SET title = COALESCE(?, title),
+                    all_documents = COALESCE(?, all_documents),
+                    selected_document_ids = COALESCE(?, selected_document_ids),
                     updated_at = ?
                 WHERE session_id = ?
                 """,
                 (
-                    next_title,
-                    1 if next_all else 0,
-                    json.dumps(list(next_ids), ensure_ascii=False),
+                    title,
+                    int(all_documents) if all_documents is not None else None,
+                    json.dumps(list(selected_document_ids), ensure_ascii=False)
+                    if selected_document_ids is not None else None,
                     updated_at,
                     session_id,
                 ),
