@@ -58,6 +58,17 @@ class IndexMetadata:
 
 
 @dataclass(frozen=True)
+class DocumentIndexState:
+    document_id: str
+    index_id: str
+    chunker_id: str
+    status: str
+    attempt_id: str
+    source_checksum: str
+    chunk_ids: frozenset[str]
+
+
+@dataclass(frozen=True)
 class SessionRecord:
     session_id: str
     title: str

@@ -2,16 +2,16 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from research_assistant.core.errors import RetrievalError, VectorStoreError
 from research_assistant.core.logging import get_logger
 from research_assistant.core.settings import Settings, load_settings
 from research_assistant.core.timing import Timer
-from research_assistant.core.types import IndexStatus
 from research_assistant.embeddings.factory import embedding_model_from_settings
 from research_assistant.embeddings.protocol import EmbeddingModel
 from research_assistant.indexing.identity import collection_name_for, index_id_for
+from research_assistant.indexing.health import DocumentIndexHealthService
 from research_assistant.indexing.protocol import VectorStore
 from research_assistant.indexing.qdrant_store import qdrant_store_for
 from research_assistant.retrieval.filters import RetrievalFilter, chunk_matches_filter
@@ -36,11 +36,15 @@ class DenseSearchService:
         store: SqliteDocumentStore | None = None,
         embedder: EmbeddingModel | None = None,
         vector_store: VectorStore | None = None,
+        index_health: DocumentIndexHealthService | None = None,
     ) -> None:
         self._settings = settings or load_settings()
         self._store = store or SqliteDocumentStore(self._settings.database_path)
         self._embedder = embedder
         self._vectors = vector_store or qdrant_store_for(self._settings.vector_index_path)
+        self._health = index_health or DocumentIndexHealthService(
+            self._store, self._vectors, lambda: self.embedder.identity
+        )
 
     @property
     def embedder(self) -> EmbeddingModel:
@@ -71,16 +75,17 @@ class DenseSearchService:
                 f"model={identity.embedding_model_id}",
                 code="missing_index",
             )
-        if meta.status is not IndexStatus.READY:
-            raise RetrievalError(
-                f"Index {index_id} is {meta.status.value}, not ready",
-                code="index_not_ready",
-            )
+        allowed = self._health.searchable_document_ids(chunker_id)
+        if filters and filters.document_ids:
+            allowed = allowed.intersection(filters.document_ids)
+        if not allowed:
+            return DenseSearchResult(query.strip(), index_id, (), 0.0)
+        active_filter = replace(filters or RetrievalFilter(), document_ids=tuple(sorted(allowed)))
         with Timer("dense_search") as timer:
             vector = self.embedder.embed_query(query.strip())
             try:
                 raw_hits = self._vectors.search(
-                    collection, vector, top_k=k, payload_filter=filters
+                    collection, vector, top_k=k, payload_filter=active_filter
                 )
             except VectorStoreError as exc:
                 raise RetrievalError(exc.message, code=exc.code) from exc
@@ -93,6 +98,8 @@ class DenseSearchService:
                     "dense_search_skipped_stale chunk_id=%s",
                     raw.chunk_id[:12],
                 )
+                continue
+            if chunk.document_id not in allowed:
                 continue
             filename = raw.payload.filename
             if not chunk_matches_filter(chunk, filters, filename=filename):

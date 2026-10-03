@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import Protocol
 
-from research_assistant.indexing.models import VectorHit, VectorRecord
+from research_assistant.indexing.models import VectorHit, VectorPayload, VectorRecord
 
 
 class VectorStore(Protocol):
@@ -56,5 +56,9 @@ class VectorStore(Protocol):
         document_id: str | None = None,
         chunker_id: str | None = None,
     ) -> list[str]: ...
+
+    def list_payloads(
+        self, collection_name: str, *, document_id: str | None = None
+    ) -> list[VectorPayload]: ...
 
     def close(self) -> None: ...

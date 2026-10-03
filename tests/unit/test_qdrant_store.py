@@ -114,3 +114,19 @@ def test_search_filter_applies_before_limit(tmp_path: Path) -> None:
     )
     assert [hit.chunk_id for hit in hits] == ["keep"]
     store.close()
+
+
+def test_payload_inventory_is_paginated_and_document_scoped(tmp_path: Path) -> None:
+    store = QdrantVectorStore(tmp_path / "qdrant")
+    try:
+        assert store.list_payloads("missing") == []
+        store.ensure_collection(collection_name="inventory", dimension=4, metric="cosine")
+        records = [_record(f"chunk-{i}", [1.0, 0.0, 0.0, 0.0],
+                           document_id="doc-a" if i < 270 else "doc-b")
+                   for i in range(280)]
+        store.upsert("inventory", records)
+        assert len(store.list_payloads("inventory")) == 280
+        actual = store.list_payloads("inventory", document_id="doc-a")
+        assert {point.chunk_id for point in actual} == {f"chunk-{i}" for i in range(270)}
+    finally:
+        store.close()

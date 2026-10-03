@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from research_assistant.api.errors import ApiError, error_from_domain
-from research_assistant.api.mapping import index_is_ready, to_document_summary
+from research_assistant.api.mapping import to_document_summary
 from research_assistant.api.schemas import DocumentDetail, DocumentSummary
 from research_assistant.api.upload import unique_destination
 from research_assistant.app import Application
@@ -61,12 +61,21 @@ class DocumentLibrary:
         return self._app.settings.max_file_bytes
 
     def list_documents(self) -> list[DocumentSummary]:
-        indexed = self._collection_ready()
+        records = self._app.store.list_documents()
+        health = self._app.indexing.health.inspect(self.chunker_id)
         items: list[DocumentSummary] = []
-        for record in self._app.store.list_documents():
+        for record in records:
+            document_health = health.get(record.document_id)
+            if document_health is None:
+                continue  # Removed while taking the health snapshot.
             count = self._app.store.count_chunks(record.document_id, self.chunker_id)
             items.append(
-                to_document_summary(record, chunk_count=count, indexed=indexed and count > 0)
+                to_document_summary(
+                    record,
+                    chunk_count=count,
+                    indexed=document_health.ready,
+                    index_health=document_health,
+                )
             )
         return items
 
@@ -79,8 +88,10 @@ class DocumentLibrary:
                 status_code=404,
             )
         count = self._app.store.count_chunks(document_id, self.chunker_id)
-        indexed = self._collection_ready() and count > 0
-        summary = to_document_summary(record, chunk_count=count, indexed=indexed)
+        health = self._app.indexing.health.document_index_health(document_id, self.chunker_id)
+        summary = to_document_summary(
+            record, chunk_count=count, indexed=health.ready, index_health=health
+        )
         warnings = _document_warnings(_parsed_payload(record))
         return DocumentDetail(
             **summary.model_dump(),
@@ -88,7 +99,7 @@ class DocumentLibrary:
             parser_id=record.parser_id,
             warnings=warnings,
             checksum_sha256=record.checksum_sha256,
-            index_status=self._index_status_name(),
+            index_status=health.status,
         )
 
     def ingest_and_index(self, path: Path) -> PreparedDocument:
@@ -124,7 +135,6 @@ class DocumentLibrary:
                 ingested.document,
                 outcome=ingested.outcome.value,
                 extra_warnings=ingested.warnings,
-                indexed=True,
             )
         prepared = self._finish_prepare(ingested)
         logger.info(
@@ -254,9 +264,12 @@ class DocumentLibrary:
         )
         return self._prepared_from_record(
             record,
-            outcome=ingested.outcome.value,
+            outcome=(
+                IngestOutcome.UPDATED.value
+                if ingested.outcome is IngestOutcome.UNCHANGED
+                else ingested.outcome.value
+            ),
             extra_warnings=tuple(dict.fromkeys(warnings)),
-            indexed=True,
         )
 
     def _prepared_from_record(
@@ -265,11 +278,15 @@ class DocumentLibrary:
         *,
         outcome: str,
         extra_warnings: tuple[str, ...] | list[str] = (),
-        indexed: bool,
     ) -> PreparedDocument:
         count = self._app.store.count_chunks(record.document_id, self.chunker_id)
+        health = self._app.indexing.health.document_index_health(
+            record.document_id, self.chunker_id
+        )
         return PreparedDocument(
-            summary=to_document_summary(record, chunk_count=count, indexed=indexed),
+            summary=to_document_summary(
+                record, chunk_count=count, indexed=health.ready, index_health=health
+            ),
             outcome=outcome,
             warnings=tuple(dict.fromkeys(extra_warnings)),
         )
@@ -285,28 +302,7 @@ class DocumentLibrary:
         return record
 
     def _document_is_ready(self, document_id: str) -> bool:
-        count = self._app.store.count_chunks(document_id, self.chunker_id)
-        return self._collection_ready() and count > 0
-
-    def _index_status_name(self) -> str | None:
-        try:
-            index_id = self._app.indexing.index_id_for_chunker(self.chunker_id)
-        except Exception:  # noqa: BLE001
-            return None
-        meta = self._app.store.get_vector_index(index_id)
-        if meta is None:
-            return None
-        return meta.status.value
-
-    def _collection_ready(self) -> bool:
-        try:
-            index_id = self._app.indexing.index_id_for_chunker(self.chunker_id)
-        except Exception:  # noqa: BLE001
-            return False
-        meta = self._app.store.get_vector_index(index_id)
-        if meta is None:
-            return False
-        return index_is_ready(meta.status)
+        return self._app.indexing.health.document_index_health(document_id, self.chunker_id).ready
 
 
 def _parsed_payload(record: DocumentRecord) -> ParsedDocument | None:
