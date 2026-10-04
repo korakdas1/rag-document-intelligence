@@ -40,6 +40,9 @@ The integrity test resolves both splits without retrieval; the command evaluates
 only dev. Do not use held-out retrieval or generation results to rewrite test
 questions or gold. The [frozen v2 baseline](baselines/qualitybench_v2_baseline_v1.md)
 records the separate live test measurement and rules for future comparisons.
+A [DEV generation diagnosis](diagnostics/qualitybench_v2_dev_generation_diagnosis_v1.md)
+records one unchanged-defaults DEV run, manual failure/repair analysis, and one
+unimplemented next experiment. It does not rerun or replace the frozen baseline.
 A future live run needs a separate workspace when the embedding configuration differs.
 
 ## Isolated workspace
