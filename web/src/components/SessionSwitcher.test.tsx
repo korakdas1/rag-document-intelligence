@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
@@ -92,5 +93,43 @@ describe("session dialogs", () => {
     );
     expect(screen.getByText(/Indexed documents are not deleted/)).toBeInTheDocument();
     expect(screen.getByRole("dialog", { name: "Delete conversation" })).toBeInTheDocument();
+  });
+});
+
+
+describe("session dialog focus integration", () => {
+  it.each(["Rename", "Delete"])("returns %s to History after its menu item unmounts", async (action) => {
+    function Harness() {
+      const [dialog, setDialog] = useState<string | null>(null);
+      return <>
+        <SessionSwitcher sessions={[session()]} activeSessionId="sess-1" onOpen={vi.fn()}
+          onRename={() => setDialog("Rename")} onDelete={() => setDialog("Delete")} />
+        {dialog === "Rename" && <RenameSessionDialog title="Prior work" busy={false} error={null}
+          onCancel={() => setDialog(null)} onConfirm={vi.fn()} />}
+        {dialog === "Delete" && <DeleteSessionDialog title="Prior work" busy={false} error={null}
+          onCancel={() => setDialog(null)} onConfirm={vi.fn()} />}
+      </>;
+    }
+    const user = userEvent.setup(); render(<Harness />);
+    await user.click(screen.getByRole("button", { name: "History" }));
+    await user.click(screen.getByRole("button", { name: `${action} Prior work` }));
+    if (action === "Rename") {
+      const input = screen.getByLabelText("Session title") as HTMLInputElement;
+      expect(input).toHaveFocus();
+      expect(input.selectionStart).toBe(0); expect(input.selectionEnd).toBe(10);
+    } else {
+      expect(screen.getByRole("button", { name: "Cancel" })).toHaveFocus();
+    }
+    await user.keyboard("{Escape}");
+    expect(screen.getByRole("button", { name: "History" })).toHaveFocus();
+  });
+
+  it.each(["Rename", "Delete"])("does not dismiss a busy %s dialog", async (kind) => {
+    const onCancel = vi.fn(); const user = userEvent.setup();
+    const props = { title: "Prior work", busy: true, error: null, onCancel, onConfirm: vi.fn() };
+    render(kind === "Rename" ? <RenameSessionDialog {...props} /> : <DeleteSessionDialog {...props} />);
+    expect(screen.getByRole("dialog")).toHaveFocus();
+    await user.keyboard("{Escape}"); await user.tab();
+    expect(onCancel).not.toHaveBeenCalled(); expect(screen.getByRole("dialog")).toHaveFocus();
   });
 });

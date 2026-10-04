@@ -64,7 +64,9 @@ export function DocumentActions({
     }
   }, [disabled, open]);
 
-  function choose(action: () => void) {
+  function choose(action: () => void, opensDialog = false) {
+    // The menu item unmounts; retain the exact persistent opener for dialogs.
+    if (opensDialog) triggerRef.current?.focus();
     onOpenChange(false);
     action();
   }
@@ -94,7 +96,7 @@ export function DocumentActions({
             <button
               type="button"
               role="menuitem"
-              onClick={() => choose(() => onDetails(document.document_id))}
+              onClick={() => choose(() => onDetails(document.document_id), true)}
             >
               Details
             </button>
@@ -114,7 +116,7 @@ export function DocumentActions({
             <button
               type="button"
               role="menuitem"
-              onClick={() => choose(() => onDelete(document))}
+              onClick={() => choose(() => onDelete(document), true)}
             >
               Remove
             </button>

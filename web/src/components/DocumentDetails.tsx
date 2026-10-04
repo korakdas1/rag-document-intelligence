@@ -1,4 +1,5 @@
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
+import { Dialog } from "./ui/Dialog";
 import type { DocumentDetail } from "../api/types";
 import { formatDocumentWarning } from "../documentWarnings";
 
@@ -49,126 +50,91 @@ export function DocumentDetails({ detail, onClose }: DocumentDetailsProps) {
   const warnings = warningMessages(detail);
   const warningCount = detail.warning_count ?? warnings.length;
 
-  useEffect(() => {
-    closeRef.current?.focus();
-  }, []);
-
-  function closeAndRestoreFocus() {
-    onClose();
-    const trigger = globalThis.document.querySelector(
-      `[aria-label="Actions for ${detail.filename.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"]`,
-    );
-    if (trigger instanceof HTMLElement) {
-      trigger.focus();
-    }
-  }
-
   return (
-    <div
-      className="dialog-backdrop"
-      data-testid="document-details-backdrop"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget) {
-          closeAndRestoreFocus();
-        }
-      }}
-    >
-      <div
-        className="dialog"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="document-details-title"
-        onMouseDown={(event) => event.stopPropagation()}
-        onKeyDown={(event) => {
-          if (event.key === "Escape") {
-            closeAndRestoreFocus();
-          }
-        }}
-      >
-        <h3 id="document-details-title">{displayValue(detail.filename)}</h3>
+    <Dialog title={displayValue(detail.filename)} onClose={onClose}
+      initialFocusRef={closeRef} dismissOnBackdrop backdropTestId="document-details-backdrop">
+      <dl className="detail-list">
+        <div>
+          <dt>Type</dt>
+          <dd>{displayValue(detail.content_type)}</dd>
+        </div>
+        <div>
+          <dt>Status</dt>
+          <dd>{productStatus(detail)}</dd>
+        </div>
+        <div>
+          <dt>Pages</dt>
+          <dd>{detail.page_count ?? "—"}</dd>
+        </div>
+        <div>
+          <dt>Chunks</dt>
+          <dd>{detail.chunk_count ?? "—"}</dd>
+        </div>
+        <div>
+          <dt>Ingested</dt>
+          <dd>{formatWhen(detail.ingested_at)}</dd>
+        </div>
+        <div>
+          <dt>Updated</dt>
+          <dd>{formatWhen(detail.updated_at)}</dd>
+        </div>
+        <div>
+          <dt>Warnings</dt>
+          <dd>{warningCount || "None"}</dd>
+        </div>
+      </dl>
+      {warnings.length ? (
+        <div className="detail-warnings">
+          <h4>Warnings</h4>
+          <ul className="warning-list">
+            {warnings.map((warning) => (
+              <li key={warning}>{formatDocumentWarning(warning)}</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+      <details className="detail-advanced">
+        <summary>Developer details</summary>
         <dl className="detail-list">
           <div>
-            <dt>Type</dt>
-            <dd>{displayValue(detail.content_type)}</dd>
+            <dt>Document ID</dt>
+            <dd>{displayValue(detail.document_id)}</dd>
           </div>
           <div>
-            <dt>Status</dt>
-            <dd>{productStatus(detail)}</dd>
+            <dt>Parser</dt>
+            <dd>{detail.parser_id || "—"}</dd>
           </div>
           <div>
-            <dt>Pages</dt>
-            <dd>{detail.page_count ?? "—"}</dd>
+            <dt>Checksum</dt>
+            <dd>{detail.checksum_sha256 || detail.checksum_prefix || "—"}</dd>
           </div>
           <div>
-            <dt>Chunks</dt>
-            <dd>{detail.chunk_count ?? "—"}</dd>
+            <dt>Index</dt>
+            <dd>{detail.index_status || "—"}</dd>
           </div>
           <div>
-            <dt>Ingested</dt>
-            <dd>{formatWhen(detail.ingested_at)}</dd>
-          </div>
-          <div>
-            <dt>Updated</dt>
-            <dd>{formatWhen(detail.updated_at)}</dd>
-          </div>
-          <div>
-            <dt>Warnings</dt>
-            <dd>{warningCount || "None"}</dd>
+            <dt>Chunker</dt>
+            <dd>{displayValue(detail.chunker_id)}</dd>
           </div>
         </dl>
         {warnings.length ? (
-          <div className="detail-warnings">
-            <h4>Warnings</h4>
-            <ul className="warning-list">
-              {warnings.map((warning) => (
-                <li key={warning}>{formatDocumentWarning(warning)}</li>
-              ))}
-            </ul>
-          </div>
+          <ul className="warning-list">
+            {warnings.map((warning) => (
+              <li key={`dev-${warning}`}>{warning}</li>
+            ))}
+          </ul>
         ) : null}
-        <details className="detail-advanced">
-          <summary>Developer details</summary>
-          <dl className="detail-list">
-            <div>
-              <dt>Document ID</dt>
-              <dd>{displayValue(detail.document_id)}</dd>
-            </div>
-            <div>
-              <dt>Parser</dt>
-              <dd>{detail.parser_id || "—"}</dd>
-            </div>
-            <div>
-              <dt>Checksum</dt>
-              <dd>{detail.checksum_sha256 || detail.checksum_prefix || "—"}</dd>
-            </div>
-            <div>
-              <dt>Index</dt>
-              <dd>{detail.index_status || "—"}</dd>
-            </div>
-            <div>
-              <dt>Chunker</dt>
-              <dd>{displayValue(detail.chunker_id)}</dd>
-            </div>
-          </dl>
-          {warnings.length ? (
-            <ul className="warning-list">
-              {warnings.map((warning) => (
-                <li key={`dev-${warning}`}>{warning}</li>
-              ))}
-            </ul>
-          ) : null}
-        </details>
-        <div className="dialog-actions">
-          <button
-            ref={closeRef}
-            type="button"
-            className="btn btn-quiet"
-            onClick={closeAndRestoreFocus}
-          >
-            Close
-          </button>
-        </div>
+      </details>
+      <div className="dialog-actions">
+        <button
+          ref={closeRef}
+          type="button"
+          className="btn btn-quiet"
+          onClick={onClose}
+        >
+          Close
+        </button>
       </div>
-    </div>
+    </Dialog>
   );
 }
