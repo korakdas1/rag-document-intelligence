@@ -51,6 +51,8 @@ def load_dataset(path: Path | str) -> EvaluationDataset:
     dataset_id = target.stem
     validate_examples(examples, source=str(target))
     version = "qualitybench.v1" if dataset_id.startswith("qualitybench") else DATASET_VERSION
+    if dataset_id == "qualitybench_v2":
+        version = "qualitybench.v2"
     return EvaluationDataset(
         dataset_id=dataset_id,
         version=version,
