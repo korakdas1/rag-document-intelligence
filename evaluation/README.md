@@ -38,9 +38,9 @@ serialization. Scripted outputs are not a model-performance baseline. Reports
 identify `qualitybench_v2` / `qualitybench.v2` and retain `evidence-metrics.v2`.
 The integrity test resolves both splits without retrieval; the command evaluates
 only dev. Do not use held-out retrieval or generation results to rewrite test
-questions or gold. The live v2 test baseline is reserved for a separate measurement
-after the benchmark is merged; none is run or published in this addition. A future
-live run needs a separate workspace when the embedding configuration differs.
+questions or gold. The [frozen v2 baseline](baselines/qualitybench_v2_baseline_v1.md)
+records the separate live test measurement and rules for future comparisons.
+A future live run needs a separate workspace when the embedding configuration differs.
 
 ## Isolated workspace
 
