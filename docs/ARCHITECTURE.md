@@ -140,6 +140,27 @@ without revisions or cross-store transaction isolation.
 
 The Vite UI talks to the API on `127.0.0.1:8000` (dev proxy for `/api`).
 
+## Local deployment boundary
+
+Native API processes default to `127.0.0.1:8000`. The bundled Docker frontend uses
+the same origin as the API:
+
+```text
+Browser -> host 127.0.0.1:8000 -> Docker bridge forwarding -> container 0.0.0.0:8000
+Application -> embedded Qdrant files under /app/data/indexes/qdrant
+```
+
+The container's wildcard listener enables forwarding; the loopback host
+publication limits default network exposure. The non-root API drops Linux
+capabilities while retaining writable data, home,
+and temporary paths. Existing bind mounts persist SQLite, uploads, and indexes.
+
+The opt-in `qdrant-server` profile provides a separate loopback-published server
+for manual experiments. No application code connects to it. Ollama remains on
+the host; `host.docker.internal` connectivity depends on host binding and platform.
+See [Docker setup and caveats](../README.md#docker). Neither CORS nor these local
+deployment defaults provide authentication for a remote or multi-user service.
+
 ## What this is not
 
 - Not a public multi-tenant service

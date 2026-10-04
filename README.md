@@ -97,11 +97,51 @@ Demo walkthrough and sample files: [docs/DEMO.md](docs/DEMO.md), [examples/demo_
 
 ### Docker
 
+Use Docker Compose and Docker Engine 28 or newer: older Engine versions have a
+[localhost port-publication limitation](https://docs.docker.com/engine/network/port-publishing/).
+
 ```bash
 docker compose up --build
 ```
 
-The API image does not bundle Ollama. Point `RESEARCH_ASSISTANT_LLM_BASE_URL` at host Ollama (`http://host.docker.internal:11434/v1`).
+Open http://127.0.0.1:8000 or http://localhost:8000 for the bundled frontend/API.
+Compose publishes `127.0.0.1:8000:8000`. Uvicorn still listens on `0.0.0.0:8000`
+**inside** the container so Docker can forward requests; the host publication
+controls access from outside the host.
+
+The API runs as non-root UID 10001 with all Linux capabilities dropped.
+SQLite, uploads, and embedded Qdrant remain in
+`./data/processed`, `./data/uploads`, and `./data/indexes`. On Linux, ensure those
+bind-mounted directories are writable by UID 10001 using suitable permissions or
+ACLs; preserve existing data and ownership. `docker compose down` stops the stack
+without deleting these directories. The container home/cache and temporary
+directories remain writable; model weights download on first use.
+
+Only the API starts by default. An auxiliary Qdrant HTTP server is available for
+manual API experiments:
+
+```bash
+docker compose --profile qdrant-server up --build
+docker compose --profile qdrant-server down
+```
+
+Its port is published only at `127.0.0.1:6333`. The application uses **embedded
+Qdrant**, has no server-backend configuration, and does not connect to this service.
+Enabling the profile does not change that behavior.
+
+Ollama remains an external host service. Compose uses
+`http://host.docker.internal:11434/v1` with a `host-gateway` mapping. Connectivity
+depends on the platform: on Linux Docker Engine, that gateway is not the host's
+loopback address, so a loopback-only Ollama listener may be unreachable. Prefer
+the native API workflow when retaining that listener, or configure restricted
+host networking/firewall access yourself. Do not casually set `OLLAMA_HOST=0.0.0.0`:
+it listens on every host interface and can expose Ollama to the LAN. This project
+does not change host Ollama or firewall settings. See the
+[Docker host-networking guidance](https://docs.docker.com/desktop/features/networking/)
+and [Ollama networking FAQ](https://docs.ollama.com/faq#how-can-i-expose-ollama-on-my-network).
+
+Validate the repository's default and optional Compose publications with
+`python scripts/check_local_deployment.py` (requires Docker Compose).
 
 ## Project structure
 
@@ -143,7 +183,13 @@ Runs that call `qwen2.5-coder:7b` are **optional** evaluation, not part of CI.
 
 ## Security / deployment scope
 
-Do not publish this process on the open internet without additional controls (auth, TLS, network isolation). The supported mode is **private local use**.
+The supported mode is **local, single-user use**, with no authentication, in-app
+TLS, or rate limiting. The native API defaults to `127.0.0.1`; Compose publishes
+the API on host loopback only. Do not replace that publication with `8000:8000`
+or `0.0.0.0:8000:8000` without appropriate network and security controls. Other
+processes on the same host can still access it; this is not public-internet
+hardening. CORS is a browser policy, not network access control: production keeps
+explicit local origins and does not allow wildcard origins or credentials.
 
 ## License
 
