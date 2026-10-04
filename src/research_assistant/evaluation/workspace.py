@@ -37,6 +37,37 @@ def validate_runtime_path(path: Path, serving: Settings, corpus: Path) -> Path:
     return resolved
 
 
+def validate_workspace_paths(
+    serving: Settings, *, corpus: Path, workspace: Path,
+    cache_dir: Path | None, output_dir: Path,
+) -> tuple[Path, Path, Path]:
+    """Resolve all CLI paths before writes and reserve workspace runtime storage.
+
+    Only cache/ may hold generation caches, and only results/ may hold reports
+    inside the workspace. This keeps research_assistant.db, indexes/, uploads/,
+    cache/ (for reports), workspace.json, and their ancestors/descendants reserved.
+    Reports outside the workspace must not be ancestors of the workspace either.
+    """
+    root = validate_runtime_path(workspace, serving, corpus)
+    cache = validate_runtime_path(cache_dir if cache_dir is not None else root / "cache", serving, corpus)
+    output = validate_runtime_path(output_dir, serving, corpus)
+    # Candidates are resolved, but the allowed subtrees stay anchored to root:
+    # a symlink named cache/ or results/ must not grant access to runtime storage.
+    if not cache.is_relative_to(root / "cache"):
+        raise EvaluationError(
+            f"--cache-dir must be {root / 'cache'} or a descendant; "
+            f"other workspace runtime paths are reserved: {cache}",
+            code="unsafe_evaluation_path",
+        )
+    if _overlaps(output, root) and not output.is_relative_to(root / "results"):
+        raise EvaluationError(
+            f"--output must be outside the workspace (and not its ancestor) or "
+            f"within {root / 'results'}; workspace runtime paths are reserved: {output}",
+            code="unsafe_evaluation_path",
+        )
+    return root, cache, output
+
+
 def open_workspace(
     serving: Settings, dataset: EvaluationDataset, *, corpus: Path,
     chunking: ChunkingConfig, path: Path | None, prepare: bool,

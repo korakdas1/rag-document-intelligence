@@ -89,6 +89,7 @@ def test_prepare_isolated_default_workspace_and_reuse(environment, capsys, famil
     assert report['corpus_sha256'] == corpus_fingerprint(corpus)
     assert report['workspace'] == str(workspace)
     assert 'git_commit' in report
+    assert Path(summary['output_path']).is_relative_to(Path.cwd() / 'evaluation/results')
     assert report['identities']['index_id']
     assert report['config']['embedding_model'] == 'hashing'
     row = report['examples'][0]
@@ -100,6 +101,7 @@ def test_prepare_isolated_default_workspace_and_reuse(environment, capsys, famil
     assert code == 0, reused
     assert snapshot(serving) == before
     if family == 'tiny':
+        assert list(workspace.joinpath('cache').glob('*.json'))
         cached = json.loads(Path(reused['output_path']).read_text())['examples'][0]
         assert cached['cached_generation'] is True
         assert cached['rendered_gold_all'] is True
@@ -228,3 +230,96 @@ def test_expanded_workspace_is_used_for_cache_and_reports(environment, capsys, m
     assert list((fake_home / 'evaluation/cache').glob('*.json'))
     assert Path(result['output_path']).is_relative_to(fake_home / 'reports')
     assert not Path('~').exists()
+
+
+@pytest.mark.parametrize('flag', ['--cache-dir', '--output'])
+@pytest.mark.parametrize('target', [
+    '.', '..', 'research_assistant.db', 'research_assistant.db/nested',
+    'indexes', 'indexes/qdrant', 'uploads', 'uploads/nested',
+    'workspace.json', 'workspace.json/nested', 'other',
+    'cache/../uploads', 'results/../indexes/qdrant',
+])
+def test_reserved_workspace_paths_rejected_before_writes(environment, capsys, flag, target):
+    serving, corpus, dataset = environment
+    workspace = Path('evaluation/workspaces/tiny')
+    before = snapshot(serving)
+    code, result = invoke(capsys, arguments(
+        corpus, dataset, '--prepare', '--workspace', workspace, flag, workspace / target,
+    ))
+    assert code == 1 and result['error_type'] == 'unsafe_evaluation_path', result
+    assert flag in result['error_message']
+    assert not Path('evaluation').exists()
+    assert snapshot(serving) == before
+
+
+@pytest.mark.parametrize('target', ['cache', 'cache/nested'])
+def test_report_output_cannot_use_generation_cache(environment, capsys, target):
+    serving, corpus, dataset = environment
+    workspace = Path('evaluation/workspaces/tiny')
+    before = snapshot(serving)
+    code, result = invoke(capsys, arguments(
+        corpus, dataset, '--prepare', '--workspace', workspace, '--output', workspace / target,
+    ))
+    assert code == 1 and result['error_type'] == 'unsafe_evaluation_path', result
+    assert '--output' in result['error_message']
+    assert not Path('evaluation').exists()
+    assert snapshot(serving) == before
+
+
+def test_reserved_path_rejections_preserve_prepared_workspace(environment, capsys):
+    serving, corpus, dataset = environment
+    code, prepared = invoke(capsys, arguments(corpus, dataset, '--prepare'))
+    assert code == 0, prepared
+    workspace = Path(prepared['workspace'])
+    # Settle SQLite finalizers from preparation before measuring later writes.
+    import gc
+    gc.collect()
+    before_workspace, before_serving = snapshot(workspace), snapshot(serving)
+    for flag in ('--cache-dir', '--output'):
+        targets = ['research_assistant.db', 'research_assistant.db/nested',
+                   'indexes/qdrant', 'uploads', 'workspace.json', 'workspace.json/nested']
+        if flag == '--output':
+            targets.append('cache')
+        for target in targets:
+            code, result = invoke(capsys, arguments(
+                corpus, dataset, '--prepare', '--workspace', workspace, flag, workspace / target,
+            ))
+            assert code == 1 and result['error_type'] == 'unsafe_evaluation_path', result
+            assert flag in result['error_message']
+    assert snapshot(workspace) == before_workspace
+    assert snapshot(serving) == before_serving
+
+
+@pytest.mark.parametrize('cache_path', ['cache', 'cache/generation/v1'])
+@pytest.mark.parametrize('output_path', ['results', 'results/review'])
+def test_dedicated_workspace_cache_and_results_work(environment, capsys, cache_path, output_path):
+    serving, corpus, dataset = environment
+    workspace = Path.cwd() / 'evaluation/workspaces/tiny'
+    before = snapshot(serving)
+    args = arguments(corpus, dataset, '--workspace', workspace,
+                     '--cache-dir', workspace / cache_path, '--output', workspace / output_path)
+    code, prepared = invoke(capsys, [*args, '--prepare'])
+    assert code == 0, prepared
+    code, reused = invoke(capsys, args)
+    assert code == 0, reused
+    assert list((workspace / cache_path).glob('*.json'))
+    assert Path(reused['output_path']).is_relative_to(workspace / output_path)
+    report = json.loads(Path(reused['output_path']).read_text())
+    assert report['examples'][0]['cached_generation'] is True
+    assert snapshot(serving) == before
+
+
+@pytest.mark.parametrize('flag,target', [('--cache-dir', 'indexes/qdrant'), ('--output', 'cache')])
+def test_aliases_cannot_bypass_reserved_workspace_paths(environment, capsys, flag, target):
+    serving, corpus, dataset = environment
+    workspace = Path.cwd() / 'evaluation/workspaces/tiny'
+    alias = Path.cwd() / 'alias'
+    alias.symlink_to(workspace / target, target_is_directory=True)
+    before = snapshot(serving)
+    code, result = invoke(capsys, arguments(
+        corpus, dataset, '--prepare', '--workspace', workspace, flag, alias,
+    ))
+    assert code == 1 and result['error_type'] == 'unsafe_evaluation_path', result
+    assert flag in result['error_message']
+    assert not workspace.exists()
+    assert snapshot(serving) == before

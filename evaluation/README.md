@@ -47,7 +47,7 @@ including resolved aliases. Existing non-empty directories without a workspace
 manifest and symlinks inside a workspace are refused. No cleanup/delete option is
 provided. Shared model-weight download caches are unchanged; `cache/` holds generic
 runner generation responses, not model weights. `--cache-dir`, if supplied, must
-remain within the workspace; the quality runner does not cache generation.
+be `<workspace>/cache` or a descendant; the quality runner does not cache generation.
 
 `--prepare` ingests/chunks/indexes only in that workspace. Omit it to reuse prepared
 state. A manifest checks dataset/corpus hashes, chunker, embedding configuration,
@@ -57,6 +57,11 @@ same embedded workspace is not supported. Low-level Python runners accept a
 caller-owned Application; programmatic callers must supply isolated storage.
 
 JSON reports stay under ignored `evaluation/results/` unless `--output` is given.
+Report output must be outside the workspace (and not an ancestor of it), or under
+the dedicated `<workspace>/results` subtree. The workspace database, `indexes/`,
+`uploads/`, `cache/`, and `workspace.json` are reserved runtime paths: report output
+cannot overlap them. Unsafe explicit cache/output paths are rejected before any
+workspace writes; they are never redirected.
 The default workspace tree is also ignored. Custom workspace/output paths remain
 the caller's responsibility to exclude from version control.
 

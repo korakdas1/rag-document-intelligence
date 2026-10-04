@@ -174,7 +174,7 @@ Runs that call `qwen2.5-coder:7b` are **optional** evaluation, not part of CI.
 
 - Local, single-user, **no authentication**, no rate limiting, no in-app TLS
 - Not public-internet hardened
-- On qualitybench_v1: 7/50 gold-in-context false abstentions; some phrase sensitivity; some incomplete multi-source answers
+- Historical qualitybench_v1 run: 7/50 answerable items abstained despite a selected gold chunk; exact rendered-evidence attribution was not measured. Some phrase sensitivity and incomplete multi-source answers remain limitations.
 - Valid citation IDs are not semantic entailment; conflicts can collapse to one side or abstain
 - Citation repair may change wording; it does not prove support
 - Local 7B decode takes seconds; the first request after model load can take much longer

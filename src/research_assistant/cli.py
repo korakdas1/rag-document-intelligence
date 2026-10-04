@@ -731,18 +731,18 @@ def _cmd_evaluate(settings, args) -> int:
     from research_assistant.chunking.config import default_config
     from research_assistant.evaluation.dataset import load_dataset, validate_dataset
     from research_assistant.evaluation.runner import EvaluationRunner
-    from research_assistant.evaluation.workspace import open_workspace, validate_runtime_path
+    from research_assistant.evaluation.workspace import open_workspace, validate_workspace_paths
 
     app = None
     try:
         dataset = load_dataset(args.dataset)
         validate_dataset(dataset, corpus_dir=args.corpus)
         config = default_config(strategy=args.chunk_strategy)
-        output_dir = validate_runtime_path(args.output, settings, args.corpus)
-        workspace = (args.workspace or Path("evaluation/workspaces") / dataset.dataset_id).expanduser().resolve()
-        cache_dir = (args.cache_dir or workspace / "cache").expanduser().resolve()
-        if not cache_dir.is_relative_to(workspace):
-            raise EvaluationError("--cache-dir must be inside --workspace", code="unsafe_evaluation_path")
+        workspace, cache_dir, output_dir = validate_workspace_paths(
+            settings, corpus=args.corpus,
+            workspace=args.workspace or Path("evaluation/workspaces") / dataset.dataset_id,
+            cache_dir=args.cache_dir, output_dir=args.output,
+        )
         app, metadata = open_workspace(
             settings, dataset, corpus=args.corpus, chunking=config,
             path=workspace, prepare=args.prepare,
