@@ -1,6 +1,7 @@
 """Frozen benchmark integrity checks; no retrieval, generation, or downloads."""
 
 import json
+import re
 from collections import Counter, defaultdict
 from pathlib import Path
 
@@ -130,6 +131,9 @@ def test_key_facts_are_complete_compact_and_serialized(benchmark):
         assert isinstance(facts, list), identifier
         assert all(isinstance(fact, str) and fact.strip() == fact and fact for fact in facts), identifier
         assert all(len(fact) <= 64 and len(fact.split()) <= 10 for fact in facts), identifier
+        # Bare 1–3 digit integers can match inside unrelated counts. Four-digit
+        # years, decimals, percentages, identifiers, and values with units remain valid.
+        assert all(re.fullmatch(r'[0-9]{1,3}', fact) is None for fact in facts), identifier
         assert len(set(map(normalized, facts))) == len(facts), identifier
         # Avoid labels such as "9" and "90" that count one component twice.
         assert not any(normalized(a) in normalized(b) for a in facts for b in facts if a != b), identifier
@@ -157,11 +161,21 @@ def test_key_facts_cover_multiple_components(benchmark):
         'qb2-064': {'0.7 degrees Celsius', 'unshielded test mount'},
         'qb2-079': {'searchable as historical sources', 'not current instructions'},
         'qb2-082': {'36 ms', '36 s'},
-        'qb2-091': {'7', '60'},
+        'qb2-091': {'in 7 of 60 answer records'},
     }
     by_id = {row['example_id']: row for row in rows}
     for identifier, components in required.items():
         assert components <= set(by_id[identifier]['key_facts']), identifier
+
+
+def test_answer_record_relation_rejects_numeric_substring_collision():
+    example = next(item for item in load_dataset(DATASET).examples if item.example_id == 'qb2-091')
+    assert key_fact_recall(example.reference_answer, example.key_facts) == 1.0
+    # The leading relation word prevents the correct 7 from matching within 17.
+    for incorrect in ('17 of 60 answer records',
+                      'Source labels were lost in 17 of 60 answer records.',
+                      'Source labels were lost in 7 of 160 answer records.'):
+        assert key_fact_recall(incorrect, example.key_facts) == 0.0
 
 
 def test_current_and_qualified_labels_preserve_question_scope(benchmark):
