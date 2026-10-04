@@ -1,6 +1,6 @@
 {
   "diagnosis_schema": "qualitybench-v2-dev-generation-diagnosis.v1",
-  "scope": "Single current-production DEV run; manual agent review; analysis only, not an independent human panel or a held-out benchmark claim.",
+  "scope": "Single current-production DEV run; output-by-output manual review; analysis only, not independent human adjudication or a held-out benchmark claim.",
   "identities": {
     "source_main_commit": "e494fd685c31363aaffc6555a1ef064f5f01dc00",
     "source_main_ci": {

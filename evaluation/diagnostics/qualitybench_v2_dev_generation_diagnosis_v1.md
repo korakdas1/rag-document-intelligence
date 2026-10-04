@@ -3,9 +3,10 @@
 ## Identity
 
 This is one diagnostic run on all 24 DEV examples, using unchanged production
-defaults. It is not a held-out benchmark claim. Manual review here means the
-authoring agent inspected all 123 rendered evidence blocks, all final answers,
-and all 13 saved first-pass/repair pairs; there was no independent human panel.
+defaults. It is not a held-out benchmark claim.
+The analysis reviewed all 123 rendered evidence blocks, all final answers,
+and all 13 saved first-pass/repair pairs; this was not independent human
+adjudication.
 The [machine-readable diagnosis](qualitybench_v2_dev_generation_diagnosis_v1.json)
 records every DEV question, resolver input/output, bounded exact evidence excerpts,
 answer, citation, deterministic metric, repair comparison, and analytical judgment.
