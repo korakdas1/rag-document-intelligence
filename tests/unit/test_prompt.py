@@ -6,6 +6,7 @@ from research_assistant.generation.prompt import (
     EVIDENCE_OPEN,
     QUESTION_CLOSE,
     QUESTION_OPEN,
+    REPAIR_INSTRUCTIONS,
     SYSTEM_INSTRUCTIONS,
     build_repair_request,
     build_request,
@@ -128,6 +129,8 @@ def test_repair_request_keeps_same_evidence_and_not_chat_history() -> None:
     )
     evidence = request.messages[3].content
     previous = request.messages[4].content
+    assert request.messages[0].content == SYSTEM_INSTRUCTIONS
+    assert request.messages[1].content == REPAIR_INSTRUCTIONS
     assert evidence == build_request("What is self-attention?", bundle, _identity()).messages[2].content
     assert "They do not marry" not in evidence
     assert "previous_output" in previous
@@ -137,7 +140,7 @@ def test_repair_request_keeps_same_evidence_and_not_chat_history() -> None:
 def test_prompt_version_and_json_examples() -> None:
     from research_assistant.generation.prompt import PROMPT_VERSION
 
-    assert PROMPT_VERSION == "grounded.answerability.v5"
+    assert PROMPT_VERSION == "grounded.answerability.v6"
     assert "No markdown fences" in SYSTEM_INSTRUCTIONS
     assert (
         '{"answer": "The system launched in March [S1].", "insufficient_evidence": false}'
@@ -150,6 +153,35 @@ def test_prompt_version_and_json_examples() -> None:
     assert "pebble" not in SYSTEM_INSTRUCTIONS.lower()
     assert "Do not silently pick a winner" in SYSTEM_INSTRUCTIONS
     assert "harry" not in SYSTEM_INSTRUCTIONS.lower()
+
+
+def test_sufficiency_recognizes_explicit_negatives_and_boundaries() -> None:
+    assert "A source-stated negative, limitation, or exclusion is evidence" in SYSTEM_INSTRUCTIONS
+    assert "directly answers what is or is not included, possible, or supported" in SYSTEM_INSTRUCTIONS
+    assert '"not", "cannot", "does not", or "excludes" do not mean evidence is absent' in SYSTEM_INSTRUCTIONS
+    assert "Preserve the negative or qualification when answering" in SYSTEM_INSTRUCTIONS
+
+
+def test_sufficiency_recognizes_methods_despite_nearby_caveats() -> None:
+    assert "An explicit method or procedure answers how something is done" in SYSTEM_INSTRUCTIONS
+    assert "a nearby caveat about what it does not guarantee does not erase that direct answer" in SYSTEM_INSTRUCTIONS
+
+
+def test_sufficiency_keeps_absence_distinct_from_explicit_negatives() -> None:
+    assert "check every evidence block for a statement that directly answers the requested property" in SYSTEM_INSTRUCTIONS
+    assert "Set insufficient_evidence=true only when no block supports the answer" in SYSTEM_INSTRUCTIONS
+    assert 'Missing evidence is not a negative finding: do not answer "no" unless a cited block itself states that negative' in SYSTEM_INSTRUCTIONS
+    assert "source says nothing about the requested property or value" in SYSTEM_INSTRUCTIONS
+    assert "discusses only a related thing without the requested method or property, the evidence is still insufficient" in SYSTEM_INSTRUCTIONS
+
+
+def test_sufficiency_preserves_citation_and_json_contract() -> None:
+    assert "Place [S#] markers next to factual claims, using only IDs that appear in the evidence" in SYSTEM_INSTRUCTIONS
+    assert "Substantive answers require at least one valid [S#]" in SYSTEM_INSTRUCTIONS
+    assert "If you cite a block, the claim must be supported by that block" in SYSTEM_INSTRUCTIONS
+    assert "Return only a single JSON object" in SYSTEM_INSTRUCTIONS
+    assert '"answer" must be a JSON string' in SYSTEM_INSTRUCTIONS
+    assert '"insufficient_evidence" must be a JSON boolean (true or false), not a string' in SYSTEM_INSTRUCTIONS
 
 
 def test_format_repair_has_no_evidence() -> None:
