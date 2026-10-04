@@ -50,6 +50,12 @@ The [first-pass citation-compliance experiment](experiments/qualitybench_v2_dev_
 records one v7 DEV run: citation targets passed, but factual and final-citation
 guardrails failed, so the candidate was rejected and reverted before merge.
 Production remains on `grounded.answerability.v5`; the v7 PR preserves records only.
+
+The [citation-repair invariance replay](experiments/qualitybench_v2_dev_citation_repair_invariance_v1.md)
+records one repair-only replay of 13 saved v5 DEV cases, with no retrieval or
+first-pass generation. All 13 outputs preserve content exactly; the experiment is
+rejected because the required full workspace test gate retains two pre-existing
+private failures. The candidate remains available for external review.
 A future live run needs a separate workspace when the embedding configuration differs.
 
 ## Isolated workspace
