@@ -1917,6 +1917,37 @@ describe("App", () => {
     expect(screen.queryByRole("dialog", { name: "attention.md" })).not.toBeInTheDocument();
   });
 
+  it("returns details to the exact Actions trigger when filenames are duplicated", async () => {
+    mockedList.mockResolvedValue({ documents: [documentRow(), documentRow({ document_id: "doc-2" })],
+      chunker_id: "test", request_id: "d1" });
+    mockedGet.mockResolvedValue({ ...documentRow({ document_id: "doc-2" }),
+      checksum_sha256: "abc", index_status: "ready", warnings: [], chunker_id: "test", parser_id: "markdown.v1" });
+    const user = userEvent.setup(); render(<App />);
+    const triggers = await screen.findAllByRole("button", { name: "Actions for attention.md" });
+    await user.click(triggers[1]);
+    await user.click(screen.getByRole("menuitem", { name: "Details" }));
+    await screen.findByRole("dialog");
+    await user.click(screen.getByRole("button", { name: "Close" }));
+    expect(triggers[1]).toHaveFocus(); expect(triggers[0]).not.toHaveFocus();
+  });
+
+  it("returns to the library landmark when removing the document destroys its trigger", async () => {
+    mockedList.mockResolvedValue({ documents: [documentRow()], chunker_id: "test", request_id: "d1" });
+    mockedDelete.mockResolvedValue({ document_id: "doc-1", deleted: true, already_absent: false,
+      vector_cleanup_status: "purged", request_id: "del1" });
+    const user = userEvent.setup(); render(<App />);
+    await user.click(await screen.findByRole("button", { name: "Actions for attention.md" }));
+    await user.click(screen.getByRole("menuitem", { name: "Remove" }));
+    let finishRefresh!: (value: Awaited<ReturnType<typeof listDocuments>>) => void;
+    mockedList.mockReturnValueOnce(new Promise((resolve) => { finishRefresh = resolve; }));
+    await user.click(screen.getByRole("button", { name: "Remove" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(screen.getByRole("complementary", { name: "Document library" })).toHaveFocus();
+    await act(async () => finishRefresh({ documents: [], chunker_id: "test", request_id: "d2" }));
+    expect(screen.queryByRole("button", { name: "Actions for attention.md" })).not.toBeInTheDocument();
+    expect(screen.getByRole("complementary", { name: "Document library" })).toHaveFocus();
+  });
+
   it("shows a details-specific error instead of an upload error", async () => {
     mockedList.mockResolvedValue({
       documents: [documentRow()],
@@ -1936,8 +1967,20 @@ describe("App", () => {
     );
     expect(screen.queryByTestId("upload-error")).not.toBeInTheDocument();
     expect(screen.queryByText("An unexpected error occurred.")).not.toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Close" }));
+    const close = screen.getByRole("button", { name: "Close" });
+    expect(close).toHaveFocus();
+    await user.tab();
+    await user.tab({ shift: true });
+    expect(close).toHaveFocus();
+    await user.click(close);
     expect(screen.queryByTestId("document-details-error")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Actions for attention.md" })).toHaveFocus();
+    await user.click(screen.getByRole("button", { name: "Actions for attention.md" }));
+    await user.click(screen.getByRole("menuitem", { name: "Details" }));
+    await screen.findByRole("dialog", { name: "Document details" });
+    await user.keyboard("{Escape}");
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Actions for attention.md" })).toHaveFocus();
   });
 
   it("opens details for a newly uploaded document", async () => {

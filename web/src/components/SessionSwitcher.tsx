@@ -121,6 +121,7 @@ export function SessionSwitcher({
                           className="btn-menu"
                           aria-label={`Rename ${session.title}`}
                           onClick={() => {
+                            triggerRef.current?.focus();
                             setOpen(false);
                             onRename(session);
                           }}
@@ -132,6 +133,7 @@ export function SessionSwitcher({
                           className="btn-menu"
                           aria-label={`Delete ${session.title}`}
                           onClick={() => {
+                            triggerRef.current?.focus();
                             setOpen(false);
                             onDelete(session);
                           }}

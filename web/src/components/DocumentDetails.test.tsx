@@ -200,3 +200,20 @@ describe("library dialogs", () => {
     expect(onCancel).not.toHaveBeenCalled();
   });
 });
+
+describe("destructive document focus", () => {
+  it("starts on Cancel and contains focus while busy without dismissing", async () => {
+    const user = userEvent.setup();
+    const onCancel = vi.fn();
+    const { rerender } = render(<DeleteDocumentDialog filename="notes.md" busy={false}
+      error={null} onCancel={onCancel} onConfirm={vi.fn()} />);
+    expect(screen.getByRole("button", { name: "Cancel" })).toHaveFocus();
+    await user.tab();
+    expect(screen.getByRole("button", { name: "Remove" })).toHaveFocus();
+    rerender(<DeleteDocumentDialog filename="notes.md" busy error={null} onCancel={onCancel} onConfirm={vi.fn()} />);
+    await user.tab(); await user.keyboard("{Escape}");
+    expect(screen.getByRole("dialog")).toHaveFocus();
+    expect(onCancel).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "Removing…" })).toBeDisabled();
+  });
+});

@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { Dialog } from "./components/ui/Dialog";
 import { documentScope, scopePayload, ScopeSaveQueue, visibleSelection } from "./documentScope";
 import type { DocumentScope } from "./documentScope";
 import { askQuestion } from "./api/ask";
@@ -1097,42 +1098,21 @@ export default function App() {
       </div>
       {detail ? <DocumentDetails detail={detail} onClose={() => setDetail(null)} /> : null}
       {detailError ? (
-        <div
-          className="dialog-backdrop"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) {
-              setDetailError(null);
-            }
-          }}
-        >
-          <div
-            className="dialog"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="document-details-error-title"
-            data-testid="document-details-error"
-            onMouseDown={(event) => event.stopPropagation()}
-            onKeyDown={(event) => {
-              if (event.key === "Escape") {
-                setDetailError(null);
-              }
-            }}
-          >
-            <h3 id="document-details-error-title">Document details</h3>
-            <p className="error" role="alert">
-              {detailError}
-            </p>
-            <div className="dialog-actions">
-              <button
-                type="button"
-                className="btn btn-quiet"
-                onClick={() => setDetailError(null)}
-              >
-                Close
-              </button>
-            </div>
+        <Dialog title="Document details" onClose={() => setDetailError(null)}
+          dismissOnBackdrop testId="document-details-error">
+          <p className="error" role="alert">
+            {detailError}
+          </p>
+          <div className="dialog-actions">
+            <button
+              type="button"
+              className="btn btn-quiet"
+              onClick={() => setDetailError(null)}
+            >
+              Close
+            </button>
           </div>
-        </div>
+        </Dialog>
       ) : null}
       {pendingDelete ? (
         <DeleteDocumentDialog

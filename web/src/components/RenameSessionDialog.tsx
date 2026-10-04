@@ -1,4 +1,5 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
+import { Dialog } from "./ui/Dialog";
 
 type RenameSessionDialogProps = {
   title: string;
@@ -19,62 +20,44 @@ export function RenameSessionDialog({
   const inputRef = useRef<HTMLInputElement>(null);
   const [value, setValue] = useState(title);
 
-  useEffect(() => {
-    inputRef.current?.focus();
-    inputRef.current?.select();
-  }, []);
-
   const trimmed = value.trim();
 
   return (
-    <div className="dialog-backdrop">
-      <div
-        className="dialog"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
+    <Dialog title="Rename conversation" onClose={onCancel} busy={busy} initialFocusRef={inputRef} selectInitialText>
+      <label className="visually-hidden" htmlFor={`${titleId}-input`}>
+        Session title
+      </label>
+      <input
+        ref={inputRef}
+        id={`${titleId}-input`}
+        value={value}
+        maxLength={80}
+        disabled={busy}
+        onChange={(event) => setValue(event.target.value)}
         onKeyDown={(event) => {
-          if (event.key === "Escape" && !busy) {
-            onCancel();
+          if (event.key === "Enter" && trimmed && !busy) {
+            onConfirm(trimmed);
           }
         }}
-      >
-        <h3 id={titleId}>Rename conversation</h3>
-        <label className="visually-hidden" htmlFor={`${titleId}-input`}>
-          Session title
-        </label>
-        <input
-          ref={inputRef}
-          id={`${titleId}-input`}
-          value={value}
-          maxLength={80}
-          disabled={busy}
-          onChange={(event) => setValue(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter" && trimmed && !busy) {
-              onConfirm(trimmed);
-            }
-          }}
-        />
-        {error ? (
-          <p className="error" role="alert">
-            {error}
-          </p>
-        ) : null}
-        <div className="dialog-actions">
-          <button type="button" className="btn btn-quiet" disabled={busy} onClick={onCancel}>
-            Cancel
-          </button>
-          <button
-            type="button"
-            className="btn btn-primary"
-            disabled={busy || !trimmed}
-            onClick={() => onConfirm(trimmed)}
-          >
-            {busy ? "Saving…" : "Save"}
-          </button>
-        </div>
+      />
+      {error ? (
+        <p className="error" role="alert">
+          {error}
+        </p>
+      ) : null}
+      <div className="dialog-actions">
+        <button type="button" className="btn btn-quiet" disabled={busy} onClick={onCancel}>
+          Cancel
+        </button>
+        <button
+          type="button"
+          className="btn btn-primary"
+          disabled={busy || !trimmed}
+          onClick={() => onConfirm(trimmed)}
+        >
+          {busy ? "Saving…" : "Save"}
+        </button>
       </div>
-    </div>
+    </Dialog>
   );
 }
