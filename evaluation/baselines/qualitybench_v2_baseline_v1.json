@@ -1,0 +1,3764 @@
+{
+  "baseline_id": "qualitybench_v2_baseline_v1",
+  "timestamp": "20261004T060418Z",
+  "git_commit": "98db5679f5b6b9477a23079fdf6fc9524e1adb40",
+  "source_ci": {
+    "conclusion": "success",
+    "created_at": "2026-10-04T05:46:58Z",
+    "event": "push",
+    "head_sha": "98db5679f5b6b9477a23079fdf6fc9524e1adb40",
+    "html_url": "https://github.com/korakdas1/rag-document-intelligence/actions/runs/37180872656",
+    "id": 37180872656,
+    "name": "CI",
+    "status": "completed",
+    "updated_at": "2026-10-04T05:49:43Z"
+  },
+  "raw_report": {
+    "path": "evaluation/results/qualitybench_v2_baseline_98db5679/eval_20261004T060418Z_877bd388bf34.json",
+    "sha256": "b182bf3d0203cbb7d0f0cf1a09269e2e0420c41032cb7dc9acfe6c488859d870",
+    "run_id": "eval_20261004T060418Z_877bd388bf34",
+    "bytes": 1256714
+  },
+  "metrics_schema": "evidence-metrics.v2",
+  "dataset": {
+    "id": "qualitybench_v2",
+    "version": "qualitybench.v2",
+    "sha256": "4ae148bb8c375d667e1803e72ce977431e5b54cf250122ceeaa5d7fde3ddcc9f",
+    "path": "evaluation/datasets/qualitybench_v2.jsonl"
+  },
+  "corpus": {
+    "sha256": "c9f92ea09c75cb2976201933c0f044be6b82a66491cc50b00d3783d2ea2f67cb",
+    "path": "evaluation/corpus/quality_v2"
+  },
+  "configuration": {
+    "serving_settings": {
+      "database_path": "data/processed/research_assistant.db",
+      "log_level": "INFO",
+      "max_file_bytes": 52428800,
+      "embedding_model_name": "BAAI/bge-small-en-v1.5",
+      "embedding_device": "auto",
+      "embedding_batch_size": 32,
+      "embedding_normalize": true,
+      "vector_index_path": "data/indexes/qdrant",
+      "default_top_k": 5,
+      "bm25_k1": 1.2,
+      "bm25_b": 0.75,
+      "rrf_k": 60,
+      "dense_candidate_k": 20,
+      "lexical_candidate_k": 20,
+      "reranker_model_name": "cross-encoder/ms-marco-MiniLM-L-6-v2",
+      "reranker_device": "auto",
+      "reranker_batch_size": 8,
+      "reranker_max_length": 512,
+      "rerank_candidate_k": 20,
+      "rerank_top_k": 8,
+      "rerank_enabled": true,
+      "max_context_tokens": 1024,
+      "llm_provider": "openai_compatible",
+      "llm_model_name": "qwen2.5-coder:7b",
+      "llm_base_url": "http://127.0.0.1:11434/v1",
+      "llm_temperature": 0.0,
+      "llm_max_output_tokens": 512,
+      "llm_timeout_seconds": 120.0,
+      "llm_response_format": "json_object",
+      "upload_dir": "data/uploads",
+      "cors_origins": [
+        "http://127.0.0.1:5173",
+        "http://localhost:5173"
+      ],
+      "conversation_window": 4,
+      "llm_citation_repair": true,
+      "llm_format_repair": false,
+      "llm_keep_alive": "",
+      "llm_repair_model_name": "",
+      "app_env": "development",
+      "api_host": "127.0.0.1",
+      "api_port": 8000,
+      "max_question_chars": 8000,
+      "health_probe_timeout_seconds": 1.5,
+      "sqlite_busy_timeout_ms": 5000
+    },
+    "chunking": {
+      "strategy": "structure",
+      "target_chars": 1000,
+      "max_chars": 1500,
+      "min_chars": 200,
+      "overlap_chars": 150,
+      "prefer_section_boundaries": true
+    },
+    "evaluation": {
+      "metrics_schema": "evidence-metrics.v2",
+      "dataset_id": "qualitybench_v2",
+      "dataset_version": "qualitybench.v2",
+      "family": "qualitybench",
+      "stage": "full",
+      "mode": "hybrid",
+      "split": "test",
+      "chunker_id": "structure.v1:fc9ff956df32",
+      "candidate_k": 20,
+      "dense_candidate_k": 20,
+      "lexical_candidate_k": 20,
+      "rrf_k": 60,
+      "rerank_enabled": true,
+      "reranker_model": "cross-encoder/ms-marco-MiniLM-L-6-v2",
+      "rerank_top_k": 8,
+      "max_context_tokens": 1024,
+      "embedding_model": "BAAI/bge-small-en-v1.5",
+      "llm_model": "qwen2.5-coder:7b",
+      "llm_provider": "openai_compatible",
+      "llm_temperature": 0.0,
+      "prompt_id": "grounded.answerability.v5",
+      "parser_id": "json.object.v2",
+      "resolver_id": "followup.heuristic.v4",
+      "llm_citation_repair": true,
+      "llm_keep_alive": "",
+      "llm_repair_model": "",
+      "repeat": 1,
+      "tag": null,
+      "example_ids": null
+    }
+  },
+  "identities": {
+    "report": {
+      "chunker_id": "structure.v1:fc9ff956df32",
+      "embedding_model_id": "bge-small-en-v1.5:73115d06b057",
+      "index_id": "5a8ebe075cf9e5fb",
+      "reranker_id": "ms-marco-MiniLM-L-6-v2:603b5a7fd2cf",
+      "llm_id": "qwen2.5-coder-7b:8f6776b6b431",
+      "resolver_id": "followup.heuristic.v4"
+    },
+    "embedding": {
+      "embedding_model_id": "bge-small-en-v1.5:73115d06b057",
+      "provider": "sentence-transformers",
+      "model_name": "BAAI/bge-small-en-v1.5",
+      "revision": "5c38ec7c405ec4b44b94cc5a9bb96e735b38267a",
+      "dimension": 384,
+      "normalize": true,
+      "query_prefix": "Represent this sentence for searching relevant passages: ",
+      "document_prefix": "",
+      "metric": "cosine"
+    },
+    "reranker": {
+      "reranker_id": "ms-marco-MiniLM-L-6-v2:603b5a7fd2cf",
+      "provider": "sentence-transformers-cross-encoder",
+      "model_name": "cross-encoder/ms-marco-MiniLM-L-6-v2",
+      "revision": "cross-encoder/ms-marco-MiniLM-L-6-v2",
+      "max_length": 512,
+      "batch_size": 8,
+      "scoring": "logit",
+      "device": "cuda"
+    },
+    "cached_models": {
+      "BAAI/bge-small-en-v1.5": {
+        "cached_main_revision": "5c38ec7c405ec4b44b94cc5a9bb96e735b38267a",
+        "config_sha256": "094f8e891b932f2000c92cfc663bac4c62069f5d8af5b5278c4306aef3084750"
+      },
+      "cross-encoder/ms-marco-MiniLM-L-6-v2": {
+        "cached_main_revision": "233902d25c440f23af6f7d6e94d2946bac0bee0a",
+        "config_sha256": "380e02c93f431831be65d99a4e7e5f67c133985bf2e77d9d4eba46847190bacc"
+      }
+    },
+    "llm": {
+      "llm_id": "qwen2.5-coder-7b:8f6776b6b431",
+      "provider": "openai_compatible",
+      "model_name": "qwen2.5-coder:7b",
+      "temperature": 0.0,
+      "max_output_tokens": 512,
+      "response_format": "json_object",
+      "timeout_seconds": 120.0,
+      "base_url": "http://127.0.0.1:11434/v1"
+    },
+    "index_manifest": {
+      "identity": {
+        "workspace_schema": "evaluation-workspace.v1",
+        "dataset_sha256": "4ae148bb8c375d667e1803e72ce977431e5b54cf250122ceeaa5d7fde3ddcc9f",
+        "corpus_sha256": "c9f92ea09c75cb2976201933c0f044be6b82a66491cc50b00d3783d2ea2f67cb",
+        "chunker_id": "structure.v1:fc9ff956df32",
+        "embedding_model": "BAAI/bge-small-en-v1.5",
+        "embedding_normalize": true
+      },
+      "prepared": true,
+      "state": {
+        "chunker_id": "structure.v1:fc9ff956df32",
+        "index_id": "5a8ebe075cf9e5fb",
+        "embedding_model_id": "bge-small-en-v1.5:73115d06b057",
+        "document_count": 20,
+        "chunk_count": 141,
+        "indexed_count": 141,
+        "files": [
+          "atlas_brief.md",
+          "atlas_limitations.md",
+          "atlas_methods.md",
+          "atlas_release.md",
+          "atlas_report.md",
+          "kestrel_amendment.md",
+          "kestrel_brief.md",
+          "kestrel_incident.md",
+          "kestrel_notebook.md",
+          "kestrel_protocol.md",
+          "meridian_brief.md",
+          "meridian_incident.md",
+          "meridian_protocol.md",
+          "meridian_release.md",
+          "meridian_report.md",
+          "northstar_amendment.md",
+          "northstar_brief.md",
+          "northstar_incident.md",
+          "northstar_protocol.md",
+          "northstar_report.md"
+        ]
+      }
+    }
+  },
+  "environment": {
+    "python": "3.13.12 | packaged by Anaconda, Inc. | (main, Feb 24 2026, 16:13:31) [GCC 14.3.0]",
+    "python_executable": "/tmp/security-maintenance-gbyqcx71/test-env/bin/python",
+    "platform": "Linux-7.0.0-34-generic-x86_64-with-glibc2.39",
+    "packages": {
+      "torch": "2.13.0",
+      "sentence-transformers": "5.7.0",
+      "transformers": "5.15.0",
+      "numpy": "2.5.2",
+      "qdrant-client": "1.19.0",
+      "fastapi": "0.133.0",
+      "starlette": "1.3.1",
+      "pypdf": "6.19.0",
+      "python-multipart": "0.0.32",
+      "huggingface-hub": "1.27.0",
+      "tokenizers": "0.22.2",
+      "safetensors": "0.8.0",
+      "scipy": "1.18.0",
+      "scikit-learn": "1.9.0"
+    },
+    "settings_environment_overrides": {},
+    "settings_differences": {},
+    "execution_environment": {
+      "PYTHONPATH": "src",
+      "HF_HUB_OFFLINE": "1"
+    },
+    "cuda_available": true,
+    "torch_cuda_version": "13.0",
+    "device": "NVIDIA GeForce RTX 3050 Laptop GPU",
+    "chunking": {
+      "strategy": "structure",
+      "target_chars": 1000,
+      "max_chars": 1500,
+      "min_chars": 200,
+      "overlap_chars": 150,
+      "prefer_section_boundaries": true
+    },
+    "chunker_id": "structure.v1:fc9ff956df32",
+    "ollama_pre_run_loaded_models": {
+      "models": []
+    },
+    "ollama_version": "0.21.0",
+    "ollama_model": {
+      "name": "qwen2.5-coder:7b",
+      "model": "qwen2.5-coder:7b",
+      "modified_at": "2026-03-30T00:23:05.662953962+05:30",
+      "size": 4683087561,
+      "digest": "dae161e27b0e90dd1856c8bb3209201fd6736d8eb66298e75ed87571486f4364",
+      "details": {
+        "parent_model": "",
+        "format": "gguf",
+        "family": "qwen2",
+        "families": [
+          "qwen2"
+        ],
+        "parameter_size": "7.6B",
+        "quantization_level": "Q4_K_M"
+      }
+    },
+    "ollama_loaded_model": [
+      {
+        "name": "qwen2.5-coder:7b",
+        "model": "qwen2.5-coder:7b",
+        "size": 5371275264,
+        "digest": "dae161e27b0e90dd1856c8bb3209201fd6736d8eb66298e75ed87571486f4364",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "qwen2",
+          "families": [
+            "qwen2"
+          ],
+          "parameter_size": "7.6B",
+          "quantization_level": "Q4_K_M"
+        },
+        "expires_at": "2026-10-04T11:40:36.981247919+05:30",
+        "size_vram": 2565965824,
+        "context_length": 4096
+      }
+    ],
+    "cpu": {
+      "Architecture": "x86_64",
+      "CPU(s)": "12",
+      "Model name": "11th Gen Intel(R) Core(TM) i5-11260H @ 2.60GHz",
+      "Thread(s) per core": "2",
+      "Core(s) per socket": "6",
+      "Socket(s)": "1",
+      "CPU max MHz": "4400.0000",
+      "CPU min MHz": "800.0000"
+    },
+    "gpu_csv": "name, uuid, driver_version, memory.total [MiB], memory.used [MiB]\nNVIDIA GeForce RTX 3050 Laptop GPU, GPU-d97972fc-7c16-49f2-b184-446705b3a87a, 595.91.07, 4096 MiB, 96 MiB",
+    "connection_audit": {
+      "loopback_proxy_bypass": false,
+      "proxy_variable_names": [],
+      "api_key_variable_names_present": []
+    },
+    "serving_files_verified_unchanged": 81
+  },
+  "execution": {
+    "source_commit": "98db5679f5b6b9477a23079fdf6fc9524e1adb40",
+    "command": [
+      "/tmp/security-maintenance-gbyqcx71/test-env/bin/python",
+      "-m",
+      "research_assistant",
+      "evaluate",
+      "--dataset",
+      "evaluation/datasets/qualitybench_v2.jsonl",
+      "--corpus",
+      "evaluation/corpus/quality_v2",
+      "--workspace",
+      "evaluation/workspaces/qualitybench_v2_baseline_98db5679",
+      "--prepare",
+      "--stage",
+      "full",
+      "--split",
+      "test",
+      "--mode",
+      "hybrid",
+      "--output",
+      "evaluation/results/qualitybench_v2_baseline_98db5679"
+    ],
+    "environment_overrides": {
+      "PYTHONPATH": "src",
+      "HF_HUB_OFFLINE": "1"
+    },
+    "started_at": "2026-10-04T06:04:07.940548+00:00",
+    "attempt": 1,
+    "split": "test",
+    "repeat": 1,
+    "returncode": 0,
+    "finished_at": "2026-10-04T06:18:46.303785+00:00",
+    "wall_seconds": 878.3631247470039,
+    "workspace": "/media/korak/workspace/ai_research_assistant_rag_based_document_intelligence/evaluation/workspaces/qualitybench_v2_baseline_98db5679",
+    "successful_completed_test_runs": 1,
+    "technical_restarts": 0,
+    "selection_policy": "First successful complete test execution; no repeats or selective reruns; no tuning."
+  },
+  "aggregate_metrics": {
+    "n": 72,
+    "n_answerable": 60,
+    "n_unanswerable": 12,
+    "product_status": {
+      "GROUNDED": 40,
+      "NOT_ENOUGH_EVIDENCE": 19,
+      "UNVERIFIED": 13
+    },
+    "product_status_answerable": {
+      "GROUNDED": 39,
+      "UNVERIFIED": 13,
+      "NOT_ENOUGH_EVIDENCE": 8
+    },
+    "product_status_unanswerable": {
+      "NOT_ENOUGH_EVIDENCE": 11,
+      "GROUNDED": 1
+    },
+    "abstention": {
+      "true_positive": 11,
+      "false_positive": 8,
+      "false_negative": 1,
+      "true_negative": 52,
+      "precision": 0.5789473684210527,
+      "recall": 0.9166666666666666,
+      "false_answer_rate": 0.08333333333333333,
+      "false_abstention_rate": 0.13333333333333333,
+      "false_abstention_with_gold_context": 7
+    },
+    "retrieval_to_context": {
+      "gold_in_hybrid_rate": 1.0,
+      "gold_in_rerank_rate": 1.0,
+      "gold_chunk_selected_rate": 1.0,
+      "context_gold_chunk_recall": 1.0,
+      "rendered_gold_any_rate": 1.0,
+      "rendered_gold_all_rate": 0.9833333333333333,
+      "rendered_gold_passage_recall": 0.9916666666666667
+    },
+    "answer_content": {
+      "lexical_key_fact_recall": 0.673611111111111,
+      "all_lexical_key_facts_matched": 0.6166666666666667,
+      "reference_token_f1_diagnostic": 0.3601953306779927
+    },
+    "citations": {
+      "answers_requiring_citation": 52,
+      "answers_with_valid_citation": 39,
+      "citation_coverage": 0.75,
+      "missing_citation_count": 13,
+      "invalid_citation_count": 0,
+      "malformed_count": 0,
+      "cited_gold_passage_recall": 0.6416666666666667,
+      "product_grounded": 40,
+      "product_grounded_with_full_cited_gold": 38,
+      "product_grounded_without_cited_gold": 0
+    },
+    "conflict": {
+      "n_expected_conflict": 6,
+      "true_conflict_reported": 2,
+      "true_conflict_both_key_facts": 2,
+      "collapsed": 2,
+      "incorrectly_abstained": 2,
+      "false_conflict_reported": 0
+    },
+    "ambiguity": {
+      "guessed_referent": 0
+    },
+    "multi_source": {
+      "items_with_slots": 15,
+      "all_slots_lexically_matched": 0,
+      "all_slots_lexically_matched_rate": 0.0,
+      "slot_count": 30,
+      "slots_lexically_matched": 0,
+      "lexical_slot_match_rate": 0.0,
+      "slots_cited_gold": 11,
+      "slot_cited_gold_rate": 0.36666666666666664,
+      "unmatched_labeled_slots": 30,
+      "items_with_forbidden_phrase": 0
+    },
+    "phrase_consistency": {
+      "groups": 2,
+      "stable_groups": 1,
+      "consistency_rate": 0.5
+    },
+    "repair": {
+      "invocation_count": 31,
+      "invocation_rate": 0.4305555555555556,
+      "drift_kinds": {
+        "marker_only": 17,
+        "polarity_change": 3,
+        "entity_change": 4,
+        "added_factual_claim": 4,
+        "paraphrase": 2
+      },
+      "repair_grounded_without_cited_gold": 0
+    },
+    "cited_gold_coverage": {
+      "product_grounded": 40,
+      "full_gold_passage_coverage": 38,
+      "partial_gold_passage_coverage": 1,
+      "no_gold_passage_coverage": 0,
+      "not_applicable": 1,
+      "product_grounded_with_full_cited_gold": 38,
+      "product_grounded_without_cited_gold": 0
+    },
+    "llm_calls": {
+      "mean": 1.4305555555555556
+    },
+    "unverified": {
+      "wrong_missing_citation": 5,
+      "useful_missing_citation": 8
+    },
+    "primary_failures": {
+      "WRONG_ANSWER": 8,
+      "MISSING_CITATION": 5,
+      "CONFLICT_HANDLING_FAILURE": 1,
+      "QUERY_REWRITE_ERROR": 1,
+      "FALSE_ANSWER_WITHOUT_SUPPORT": 1,
+      "MULTISOURCE_SYNTHESIS_FAILURE": 3,
+      "FALSE_ABSTENTION_WITH_GOLD_CONTEXT": 6,
+      "INCOMPLETE_ANSWER": 3,
+      "CONTEXT_BUDGET_DROP": 1
+    },
+    "latency": {
+      "retrieval_ms": {
+        "n": 72,
+        "mean_ms": 31.91,
+        "median_ms": 30.97,
+        "p90_ms": 35.8,
+        "p95_ms": 37.15,
+        "min_ms": 27.71,
+        "max_ms": 50.95,
+        "cold_first_ms": 30.15,
+        "warm_n": 71,
+        "warm_mean_ms": 31.93,
+        "warm_median_ms": 31.02
+      },
+      "rerank_ms": {
+        "n": 72,
+        "mean_ms": 37.99,
+        "median_ms": 39.59,
+        "p90_ms": 42.41,
+        "p95_ms": 43.0,
+        "min_ms": 8.53,
+        "max_ms": 46.99,
+        "cold_first_ms": 37.2,
+        "warm_n": 71,
+        "warm_mean_ms": 38.0,
+        "warm_median_ms": 39.74
+      },
+      "generation_ms": {
+        "n": 72,
+        "mean_ms": 11894.62,
+        "median_ms": 8775.05,
+        "p90_ms": 20200.68,
+        "p95_ms": 22778.39,
+        "min_ms": 4352.84,
+        "max_ms": 78522.28,
+        "cold_first_ms": 78522.28,
+        "warm_n": 71,
+        "warm_mean_ms": 10956.2,
+        "warm_median_ms": 8775.05
+      },
+      "first_pass_generation_ms": {
+        "n": 72,
+        "mean_ms": 8055.59,
+        "median_ms": 6775.72,
+        "p90_ms": 9893.92,
+        "p95_ms": 11186.82,
+        "min_ms": 4352.84,
+        "max_ms": 71596.39,
+        "cold_first_ms": 71596.39,
+        "warm_n": 71,
+        "warm_mean_ms": 7160.65,
+        "warm_median_ms": 6775.72
+      },
+      "repair_ms": {
+        "n": 72,
+        "mean_ms": 3839.03,
+        "median_ms": 0.0,
+        "p90_ms": 10306.76,
+        "p95_ms": 14279.32,
+        "min_ms": 0.0,
+        "max_ms": 16532.9,
+        "cold_first_ms": 6925.89,
+        "warm_n": 71,
+        "warm_mean_ms": 3795.55,
+        "warm_median_ms": 0.0
+      },
+      "total_ms": {
+        "n": 72,
+        "mean_ms": 11964.52,
+        "median_ms": 8844.96,
+        "p90_ms": 20274.73,
+        "p95_ms": 22852.96,
+        "min_ms": 4421.67,
+        "max_ms": 78589.62,
+        "cold_first_ms": 78589.62,
+        "warm_n": 71,
+        "warm_mean_ms": 11026.13,
+        "warm_median_ms": 8844.96
+      }
+    }
+  },
+  "by_slice": {
+    "conflict": {
+      "n": 6,
+      "n_answerable": 6,
+      "n_unanswerable": 0,
+      "product_status": {
+        "UNVERIFIED": 2,
+        "GROUNDED": 2,
+        "NOT_ENOUGH_EVIDENCE": 2
+      },
+      "product_status_answerable": {
+        "UNVERIFIED": 2,
+        "GROUNDED": 2,
+        "NOT_ENOUGH_EVIDENCE": 2
+      },
+      "product_status_unanswerable": {},
+      "abstention": {
+        "true_positive": 0,
+        "false_positive": 2,
+        "false_negative": 0,
+        "true_negative": 4,
+        "precision": 0.0,
+        "recall": null,
+        "false_answer_rate": null,
+        "false_abstention_rate": 0.3333333333333333,
+        "false_abstention_with_gold_context": 2
+      },
+      "retrieval_to_context": {
+        "gold_in_hybrid_rate": 1.0,
+        "gold_in_rerank_rate": 1.0,
+        "gold_chunk_selected_rate": 1.0,
+        "context_gold_chunk_recall": 1.0,
+        "rendered_gold_any_rate": 1.0,
+        "rendered_gold_all_rate": 1.0,
+        "rendered_gold_passage_recall": 1.0
+      },
+      "answer_content": {
+        "lexical_key_fact_recall": 0.4166666666666667,
+        "all_lexical_key_facts_matched": 0.3333333333333333,
+        "reference_token_f1_diagnostic": 0.2598635931969266
+      },
+      "citations": {
+        "answers_requiring_citation": 4,
+        "answers_with_valid_citation": 2,
+        "citation_coverage": 0.5,
+        "missing_citation_count": 2,
+        "invalid_citation_count": 0,
+        "malformed_count": 0,
+        "cited_gold_passage_recall": 0.25,
+        "product_grounded": 2,
+        "product_grounded_with_full_cited_gold": 1,
+        "product_grounded_without_cited_gold": 0
+      },
+      "conflict": {
+        "n_expected_conflict": 6,
+        "true_conflict_reported": 2,
+        "true_conflict_both_key_facts": 2,
+        "collapsed": 2,
+        "incorrectly_abstained": 2,
+        "false_conflict_reported": 0
+      },
+      "ambiguity": {
+        "guessed_referent": 0
+      },
+      "multi_source": {
+        "items_with_slots": 6,
+        "all_slots_lexically_matched": 0,
+        "all_slots_lexically_matched_rate": 0.0,
+        "slot_count": 12,
+        "slots_lexically_matched": 0,
+        "lexical_slot_match_rate": 0.0,
+        "slots_cited_gold": 3,
+        "slot_cited_gold_rate": 0.25,
+        "unmatched_labeled_slots": 12,
+        "items_with_forbidden_phrase": 0
+      },
+      "phrase_consistency": {
+        "groups": 0,
+        "stable_groups": 0,
+        "consistency_rate": null
+      },
+      "repair": {
+        "invocation_count": 4,
+        "invocation_rate": 0.6666666666666666,
+        "drift_kinds": {
+          "marker_only": 2
+        },
+        "repair_grounded_without_cited_gold": 0
+      },
+      "cited_gold_coverage": {
+        "product_grounded": 2,
+        "full_gold_passage_coverage": 1,
+        "partial_gold_passage_coverage": 1,
+        "no_gold_passage_coverage": 0,
+        "not_applicable": 0,
+        "product_grounded_with_full_cited_gold": 1,
+        "product_grounded_without_cited_gold": 0
+      },
+      "llm_calls": {
+        "mean": 1.6666666666666667
+      },
+      "unverified": {
+        "useful_missing_citation": 2
+      },
+      "primary_failures": {
+        "MISSING_CITATION": 2,
+        "CONFLICT_HANDLING_FAILURE": 1,
+        "WRONG_ANSWER": 1,
+        "FALSE_ABSTENTION_WITH_GOLD_CONTEXT": 2
+      },
+      "latency": {
+        "retrieval_ms": {
+          "n": 6,
+          "mean_ms": 33.72,
+          "median_ms": 31.76,
+          "p90_ms": null,
+          "p95_ms": null,
+          "min_ms": 31.17,
+          "max_ms": 36.5,
+          "cold_first_ms": 31.17,
+          "warm_n": 5,
+          "warm_mean_ms": 34.23,
+          "warm_median_ms": 35.73
+        },
+        "rerank_ms": {
+          "n": 6,
+          "mean_ms": 40.91,
+          "median_ms": 40.91,
+          "p90_ms": null,
+          "p95_ms": null,
+          "min_ms": 37.07,
+          "max_ms": 44.56,
+          "cold_first_ms": 39.26,
+          "warm_n": 5,
+          "warm_mean_ms": 41.24,
+          "warm_median_ms": 41.01
+        },
+        "generation_ms": {
+          "n": 6,
+          "mean_ms": 13523.99,
+          "median_ms": 15112.7,
+          "p90_ms": null,
+          "p95_ms": null,
+          "min_ms": 4352.84,
+          "max_ms": 21379.78,
+          "cold_first_ms": 18608.18,
+          "warm_n": 5,
+          "warm_mean_ms": 12507.15,
+          "warm_median_ms": 15112.7
+        },
+        "first_pass_generation_ms": {
+          "n": 6,
+          "mean_ms": 7395.6,
+          "median_ms": 6922.34,
+          "p90_ms": null,
+          "p95_ms": null,
+          "min_ms": 4352.84,
+          "max_ms": 10696.79,
+          "cold_first_ms": 9302.1,
+          "warm_n": 5,
+          "warm_mean_ms": 7014.3,
+          "warm_median_ms": 6922.34
+        },
+        "repair_ms": {
+          "n": 6,
+          "mean_ms": 6128.39,
+          "median_ms": 8190.36,
+          "p90_ms": null,
+          "p95_ms": null,
+          "min_ms": 0.0,
+          "max_ms": 10682.99,
+          "cold_first_ms": 9306.08,
+          "warm_n": 5,
+          "warm_mean_ms": 5492.85,
+          "warm_median_ms": 8190.36
+        },
+        "total_ms": {
+          "n": 6,
+          "mean_ms": 13598.62,
+          "median_ms": 15184.96,
+          "p90_ms": null,
+          "p95_ms": null,
+          "min_ms": 4421.67,
+          "max_ms": 21457.29,
+          "cold_first_ms": 18678.61,
+          "warm_n": 5,
+          "warm_mean_ms": 12582.62,
+          "warm_median_ms": 15184.96
+        }
+      }
+    },
+    "core": {
+      "n": 7,
+      "n_answerable": 7,
+      "n_unanswerable": 0,
+      "product_status": {
+        "GROUNDED": 4,
+        "UNVERIFIED": 3
+      },
+      "product_status_answerable": {
+        "GROUNDED": 4,
+        "UNVERIFIED": 3
+      },
+      "product_status_unanswerable": {},
+      "abstention": {
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 0,
+        "true_negative": 7,
+        "precision": null,
+        "recall": null,
+        "false_answer_rate": null,
+        "false_abstention_rate": 0.0,
+        "false_abstention_with_gold_context": 0
+      },
+      "retrieval_to_context": {
+        "gold_in_hybrid_rate": 1.0,
+        "gold_in_rerank_rate": 1.0,
+        "gold_chunk_selected_rate": 1.0,
+        "context_gold_chunk_recall": 1.0,
+        "rendered_gold_any_rate": 1.0,
+        "rendered_gold_all_rate": 1.0,
+        "rendered_gold_passage_recall": 1.0
+      },
+      "answer_content": {
+        "lexical_key_fact_recall": 0.5714285714285714,
+        "all_lexical_key_facts_matched": 0.5714285714285714,
+        "reference_token_f1_diagnostic": 0.370514872615713
+      },
+      "citations": {
+        "answers_requiring_citation": 7,
+        "answers_with_valid_citation": 4,
+        "citation_coverage": 0.5714285714285714,
+        "missing_citation_count": 3,
+        "invalid_citation_count": 0,
+        "malformed_count": 0,
+        "cited_gold_passage_recall": 0.5714285714285714,
+        "product_grounded": 4,
+        "product_grounded_with_full_cited_gold": 4,
+        "product_grounded_without_cited_gold": 0
+      },
+      "conflict": {
+        "n_expected_conflict": 0,
+        "true_conflict_reported": 0,
+        "true_conflict_both_key_facts": 0,
+        "collapsed": 0,
+        "incorrectly_abstained": 0,
+        "false_conflict_reported": 0
+      },
+      "ambiguity": {
+        "guessed_referent": 0
+      },
+      "multi_source": {
+        "items_with_slots": 0,
+        "all_slots_lexically_matched": 0,
+        "all_slots_lexically_matched_rate": null,
+        "slot_count": 0,
+        "slots_lexically_matched": 0,
+        "lexical_slot_match_rate": null,
+        "slots_cited_gold": 0,
+        "slot_cited_gold_rate": null,
+        "unmatched_labeled_slots": 0,
+        "items_with_forbidden_phrase": 0
+      },
+      "phrase_consistency": {
+        "groups": 0,
+        "stable_groups": 0,
+        "consistency_rate": null
+      },
+      "repair": {
+        "invocation_count": 7,
+        "invocation_rate": 1.0,
+        "drift_kinds": {
+          "marker_only": 3,
+          "polarity_change": 3,
+          "entity_change": 3,
+          "added_factual_claim": 2
+        },
+        "repair_grounded_without_cited_gold": 0
+      },
+      "cited_gold_coverage": {
+        "product_grounded": 4,
+        "full_gold_passage_coverage": 4,
+        "partial_gold_passage_coverage": 0,
+        "no_gold_passage_coverage": 0,
+        "not_applicable": 0,
+        "product_grounded_with_full_cited_gold": 4,
+        "product_grounded_without_cited_gold": 0
+      },
+      "llm_calls": {
+        "mean": 2.0
+      },
+      "unverified": {
+        "wrong_missing_citation": 2,
+        "useful_missing_citation": 1
+      },
+      "primary_failures": {
+        "WRONG_ANSWER": 3,
+        "MISSING_CITATION": 1
+      },
+      "latency": {
+        "retrieval_ms": {
+          "n": 7,
+          "mean_ms": 33.35,
+          "median_ms": 33.96,
+          "p90_ms": null,
+          "p95_ms": null,
+          "min_ms": 28.2,
+          "max_ms": 37.15,
+          "cold_first_ms": 33.01,
+          "warm_n": 6,
+          "warm_mean_ms": 33.41,
+          "warm_median_ms": 33.96
+        },
+        "rerank_ms": {
+          "n": 7,
+          "mean_ms": 39.2,
+          "median_ms": 39.59,
+          "p90_ms": null,
+          "p95_ms": null,
+          "min_ms": 34.64,
+          "max_ms": 41.54,
+          "cold_first_ms": 38.5,
+          "warm_n": 6,
+          "warm_mean_ms": 39.32,
+          "warm_median_ms": 39.59
+        },
+        "generation_ms": {
+          "n": 7,
+          "mean_ms": 16490.43,
+          "median_ms": 14680.39,
+          "p90_ms": null,
+          "p95_ms": null,
+          "min_ms": 10018.7,
+          "max_ms": 23279.06,
+          "cold_first_ms": 11615.9,
+          "warm_n": 6,
+          "warm_mean_ms": 17302.86,
+          "warm_median_ms": 14680.39
+        },
+        "first_pass_generation_ms": {
+          "n": 7,
+          "mean_ms": 6596.98,
+          "median_ms": 6035.94,
+          "p90_ms": null,
+          "p95_ms": null,
+          "min_ms": 4427.76,
+          "max_ms": 11186.82,
+          "cold_first_ms": 5377.0,
+          "warm_n": 6,
+          "warm_mean_ms": 6800.31,
+          "warm_median_ms": 6035.94
+        },
+        "repair_ms": {
+          "n": 7,
+          "mean_ms": 9893.46,
+          "median_ms": 7766.54,
+          "p90_ms": null,
+          "p95_ms": null,
+          "min_ms": 5590.94,
+          "max_ms": 16532.9,
+          "cold_first_ms": 6238.9,
+          "warm_n": 6,
+          "warm_mean_ms": 10502.55,
+          "warm_median_ms": 7766.54
+        },
+        "total_ms": {
+          "n": 7,
+          "mean_ms": 16562.99,
+          "median_ms": 14753.89,
+          "p90_ms": null,
+          "p95_ms": null,
+          "min_ms": 10087.53,
+          "max_ms": 23356.17,
+          "cold_first_ms": 11687.4,
+          "warm_n": 6,
+          "warm_mean_ms": 17375.58,
+          "warm_median_ms": 14753.89
+        }
+      }
+    },
+    "followup": {
+      "n": 6,
+      "n_answerable": 6,
+      "n_unanswerable": 0,
+      "product_status": {
+        "NOT_ENOUGH_EVIDENCE": 3,
+        "GROUNDED": 3
+      },
+      "product_status_answerable": {
+        "NOT_ENOUGH_EVIDENCE": 3,
+        "GROUNDED": 3
+      },
+      "product_status_unanswerable": {},
+      "abstention": {
+        "true_positive": 0,
+        "false_positive": 3,
+        "false_negative": 0,
+        "true_negative": 3,
+        "precision": 0.0,
+        "recall": null,
+        "false_answer_rate": null,
+        "false_abstention_rate": 0.5,
+        "false_abstention_with_gold_context": 3
+      },
+      "retrieval_to_context": {
+        "gold_in_hybrid_rate": 1.0,
+        "gold_in_rerank_rate": 1.0,
+        "gold_chunk_selected_rate": 1.0,
+        "context_gold_chunk_recall": 1.0,
+        "rendered_gold_any_rate": 1.0,
+        "rendered_gold_all_rate": 1.0,
+        "rendered_gold_passage_recall": 1.0
+      },
+      "answer_content": {
+        "lexical_key_fact_recall": 0.5,
+        "all_lexical_key_facts_matched": 0.5,
+        "reference_token_f1_diagnostic": 0.26603419781337406
+      },
+      "citations": {
+        "answers_requiring_citation": 3,
+        "answers_with_valid_citation": 3,
+        "citation_coverage": 1.0,
+        "missing_citation_count": 0,
+        "invalid_citation_count": 0,
+        "malformed_count": 0,
+        "cited_gold_passage_recall": 0.5,
+        "product_grounded": 3,
+        "product_grounded_with_full_cited_gold": 3,
+        "product_grounded_without_cited_gold": 0
+      },
+      "conflict": {
+        "n_expected_conflict": 0,
+        "true_conflict_reported": 0,
+        "true_conflict_both_key_facts": 0,
+        "collapsed": 0,
+        "incorrectly_abstained": 0,
+        "false_conflict_reported": 0
+      },
+      "ambiguity": {
+        "guessed_referent": 0
+      },
+      "multi_source": {
+        "items_with_slots": 0,
+        "all_slots_lexically_matched": 0,
+        "all_slots_lexically_matched_rate": null,
+        "slot_count": 0,
+        "slots_lexically_matched": 0,
+        "lexical_slot_match_rate": null,
+        "slots_cited_gold": 0,
+        "slot_cited_gold_rate": null,
+        "unmatched_labeled_slots": 0,
+        "items_with_forbidden_phrase": 0
+      },
+      "phrase_consistency": {
+        "groups": 0,
+        "stable_groups": 0,
+        "consistency_rate": null
+      },
+      "repair": {
+        "invocation_count": 1,
+        "invocation_rate": 0.16666666666666666,
+        "drift_kinds": {
+          "marker_only": 1
+        },
+        "repair_grounded_without_cited_gold": 0
+      },
+      "cited_gold_coverage": {
+        "product_grounded": 3,
+        "full_gold_passage_coverage": 3,
+        "partial_gold_passage_coverage": 0,
+        "no_gold_passage_coverage": 0,
+        "not_applicable": 0,
+        "product_grounded_with_full_cited_gold": 3,
+        "product_grounded_without_cited_gold": 0
+      },
+      "llm_calls": {
+        "mean": 1.1666666666666667
+      },
+      "unverified": {},
+      "primary_failures": {
+        "QUERY_REWRITE_ERROR": 1,
+        "FALSE_ABSTENTION_WITH_GOLD_CONTEXT": 2
+      },
+      "latency": {
+        "retrieval_ms": {
+          "n": 6,
+          "mean_ms": 31.03,
+          "median_ms": 29.82,
+          "p90_ms": null,
+          "p95_ms": null,
+          "min_ms": 28.83,
+          "max_ms": 34.99,
+          "cold_first_ms": 28.94,
+          "warm_n": 5,
+          "warm_mean_ms": 31.44,
+          "warm_median_ms": 31.7
+        },
+        "rerank_ms": {
+          "n": 6,
+          "mean_ms": 37.96,
+          "median_ms": 37.08,
+          "p90_ms": null,
+          "p95_ms": null,
+          "min_ms": 35.3,
+          "max_ms": 40.79,
+          "cold_first_ms": 35.3,
+          "warm_n": 5,
+          "warm_mean_ms": 38.5,
+          "warm_median_ms": 38.9
+        },
+        "generation_ms": {
+          "n": 6,
+          "mean_ms": 7594.88,
+          "median_ms": 5986.47,
+          "p90_ms": null,
+          "p95_ms": null,
+          "min_ms": 5477.9,
+          "max_ms": 14552.43,
+          "cold_first_ms": 5479.89,
+          "warm_n": 5,
+          "warm_mean_ms": 8017.88,
+          "warm_median_ms": 6161.57
+        },
+        "first_pass_generation_ms": {
+          "n": 6,
+          "mean_ms": 6298.46,
+          "median_ms": 5986.47,
+          "p90_ms": null,
+          "p95_ms": null,
+          "min_ms": 5477.9,
+          "max_ms": 7911.0,
+          "cold_first_ms": 5479.89,
+          "warm_n": 5,
+          "warm_mean_ms": 6462.17,
+          "warm_median_ms": 6161.57
+        },
+        "repair_ms": {
+          "n": 6,
+          "mean_ms": 1296.42,
+          "median_ms": 0.0,
+          "p90_ms": null,
+          "p95_ms": null,
+          "min_ms": 0.0,
+          "max_ms": 7778.52,
+          "cold_first_ms": 0.0,
+          "warm_n": 5,
+          "warm_mean_ms": 1555.7,
+          "warm_median_ms": 0.0
+        },
+        "total_ms": {
+          "n": 6,
+          "mean_ms": 7663.87,
+          "median_ms": 6051.19,
+          "p90_ms": null,
+          "p95_ms": null,
+          "min_ms": 5544.13,
+          "max_ms": 14627.23,
+          "cold_first_ms": 5544.13,
+          "warm_n": 5,
+          "warm_mean_ms": 8087.81,
+          "warm_median_ms": 6230.35
+        }
+      }
+    },
+    "hard_negative": {
+      "n": 4,
+      "n_answerable": 4,
+      "n_unanswerable": 0,
+      "product_status": {
+        "GROUNDED": 3,
+        "UNVERIFIED": 1
+      },
+      "product_status_answerable": {
+        "GROUNDED": 3,
+        "UNVERIFIED": 1
+      },
+      "product_status_unanswerable": {},
+      "abstention": {
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 0,
+        "true_negative": 4,
+        "precision": null,
+        "recall": null,
+        "false_answer_rate": null,
+        "false_abstention_rate": 0.0,
+        "false_abstention_with_gold_context": 0
+      },
+      "retrieval_to_context": {
+        "gold_in_hybrid_rate": 1.0,
+        "gold_in_rerank_rate": 1.0,
+        "gold_chunk_selected_rate": 1.0,
+        "context_gold_chunk_recall": 1.0,
+        "rendered_gold_any_rate": 1.0,
+        "rendered_gold_all_rate": 1.0,
+        "rendered_gold_passage_recall": 1.0
+      },
+      "answer_content": {
+        "lexical_key_fact_recall": 1.0,
+        "all_lexical_key_facts_matched": 1.0,
+        "reference_token_f1_diagnostic": 0.5678437695028085
+      },
+      "citations": {
+        "answers_requiring_citation": 4,
+        "answers_with_valid_citation": 3,
+        "citation_coverage": 0.75,
+        "missing_citation_count": 1,
+        "invalid_citation_count": 0,
+        "malformed_count": 0,
+        "cited_gold_passage_recall": 0.75,
+        "product_grounded": 3,
+        "product_grounded_with_full_cited_gold": 3,
+        "product_grounded_without_cited_gold": 0
+      },
+      "conflict": {
+        "n_expected_conflict": 0,
+        "true_conflict_reported": 0,
+        "true_conflict_both_key_facts": 0,
+        "collapsed": 0,
+        "incorrectly_abstained": 0,
+        "false_conflict_reported": 0
+      },
+      "ambiguity": {
+        "guessed_referent": 0
+      },
+      "multi_source": {
+        "items_with_slots": 0,
+        "all_slots_lexically_matched": 0,
+        "all_slots_lexically_matched_rate": null,
+        "slot_count": 0,
+        "slots_lexically_matched": 0,
+        "lexical_slot_match_rate": null,
+        "slots_cited_gold": 0,
+        "slot_cited_gold_rate": null,
+        "unmatched_labeled_slots": 0,
+        "items_with_forbidden_phrase": 0
+      },
+      "phrase_consistency": {
+        "groups": 0,
+        "stable_groups": 0,
+        "consistency_rate": null
+      },
+      "repair": {
+        "invocation_count": 4,
+        "invocation_rate": 1.0,
+        "drift_kinds": {
+          "marker_only": 3,
+          "paraphrase": 1,
+          "added_factual_claim": 1
+        },
+        "repair_grounded_without_cited_gold": 0
+      },
+      "cited_gold_coverage": {
+        "product_grounded": 3,
+        "full_gold_passage_coverage": 3,
+        "partial_gold_passage_coverage": 0,
+        "no_gold_passage_coverage": 0,
+        "not_applicable": 0,
+        "product_grounded_with_full_cited_gold": 3,
+        "product_grounded_without_cited_gold": 0
+      },
+      "llm_calls": {
+        "mean": 2.0
+      },
+      "unverified": {
+        "useful_missing_citation": 1
+      },
+      "primary_failures": {
+        "MISSING_CITATION": 1
+      },
+      "latency": {
+        "retrieval_ms": {
+          "n": 4,
+          "mean_ms": 29.64,
+          "median_ms": 29.46,
+          "p90_ms": null,
+          "p95_ms": null,
+          "min_ms": 28.81,
+          "max_ms": 30.54,
+          "cold_first_ms": 28.81,
+          "warm_n": 3,
+          "warm_mean_ms": 29.91,
+          "warm_median_ms": 29.74
+        },
+        "rerank_ms": {
+          "n": 4,
+          "mean_ms": 40.23,
+          "median_ms": 39.45,
+          "p90_ms": null,
+          "p95_ms": null,
+          "min_ms": 38.84,
+          "max_ms": 42.75,
+          "cold_first_ms": 38.84,
+          "warm_n": 3,
+          "warm_mean_ms": 40.69,
+          "warm_median_ms": 39.88
+        },
+        "generation_ms": {
+          "n": 4,
+          "mean_ms": 16167.48,
+          "median_ms": 15332.94,
+          "p90_ms": null,
+          "p95_ms": null,
+          "min_ms": 13660.48,
+          "max_ms": 17904.04,
+          "cold_first_ms": 13660.48,
+          "warm_n": 3,
+          "warm_mean_ms": 17003.15,
+          "warm_median_ms": 17772.48
+        },
+        "first_pass_generation_ms": {
+          "n": 4,
+          "mean_ms": 7321.25,
+          "median_ms": 6882.34,
+          "p90_ms": null,
+          "p95_ms": null,
+          "min_ms": 6504.46,
+          "max_ms": 8646.78,
+          "cold_first_ms": 6504.46,
+          "warm_n": 3,
+          "warm_mean_ms": 7593.52,
+          "warm_median_ms": 7251.44
+        },
+        "repair_ms": {
+          "n": 4,
+          "mean_ms": 8846.23,
+          "median_ms": 8450.6,
+          "p90_ms": null,
+          "p95_ms": null,
+          "min_ms": 7156.03,
+          "max_ms": 10521.04,
+          "cold_first_ms": 7156.03,
+          "warm_n": 3,
+          "warm_mean_ms": 9409.63,
+          "warm_median_ms": 9257.26
+        },
+        "total_ms": {
+          "n": 4,
+          "mean_ms": 16237.35,
+          "median_ms": 15401.85,
+          "p90_ms": null,
+          "p95_ms": null,
+          "min_ms": 13728.14,
+          "max_ms": 17977.33,
+          "cold_first_ms": 13728.14,
+          "warm_n": 3,
+          "warm_mean_ms": 17073.76,
+          "warm_median_ms": 17842.1
+        }
+      }
+    },
+    "longdoc": {
+      "n": 16,
+      "n_answerable": 16,
+      "n_unanswerable": 0,
+      "product_status": {
+        "GROUNDED": 14,
+        "UNVERIFIED": 2
+      },
+      "product_status_answerable": {
+        "GROUNDED": 14,
+        "UNVERIFIED": 2
+      },
+      "product_status_unanswerable": {},
+      "abstention": {
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 0,
+        "true_negative": 16,
+        "precision": null,
+        "recall": null,
+        "false_answer_rate": null,
+        "false_abstention_rate": 0.0,
+        "false_abstention_with_gold_context": 0
+      },
+      "retrieval_to_context": {
+        "gold_in_hybrid_rate": 1.0,
+        "gold_in_rerank_rate": 1.0,
+        "gold_chunk_selected_rate": 1.0,
+        "context_gold_chunk_recall": 1.0,
+        "rendered_gold_any_rate": 1.0,
+        "rendered_gold_all_rate": 1.0,
+        "rendered_gold_passage_recall": 1.0
+      },
+      "answer_content": {
+        "lexical_key_fact_recall": 0.8177083333333334,
+        "all_lexical_key_facts_matched": 0.75,
+        "reference_token_f1_diagnostic": 0.44685973739767376
+      },
+      "citations": {
+        "answers_requiring_citation": 16,
+        "answers_with_valid_citation": 14,
+        "citation_coverage": 0.875,
+        "missing_citation_count": 2,
+        "invalid_citation_count": 0,
+        "malformed_count": 0,
+        "cited_gold_passage_recall": 0.875,
+        "product_grounded": 14,
+        "product_grounded_with_full_cited_gold": 14,
+        "product_grounded_without_cited_gold": 0
+      },
+      "conflict": {
+        "n_expected_conflict": 0,
+        "true_conflict_reported": 0,
+        "true_conflict_both_key_facts": 0,
+        "collapsed": 0,
+        "incorrectly_abstained": 0,
+        "false_conflict_reported": 0
+      },
+      "ambiguity": {
+        "guessed_referent": 0
+      },
+      "multi_source": {
+        "items_with_slots": 4,
+        "all_slots_lexically_matched": 0,
+        "all_slots_lexically_matched_rate": 0.0,
+        "slot_count": 8,
+        "slots_lexically_matched": 0,
+        "lexical_slot_match_rate": 0.0,
+        "slots_cited_gold": 4,
+        "slot_cited_gold_rate": 0.5,
+        "unmatched_labeled_slots": 8,
+        "items_with_forbidden_phrase": 0
+      },
+      "phrase_consistency": {
+        "groups": 0,
+        "stable_groups": 0,
+        "consistency_rate": null
+      },
+      "repair": {
+        "invocation_count": 6,
+        "invocation_rate": 0.375,
+        "drift_kinds": {
+          "marker_only": 4
+        },
+        "repair_grounded_without_cited_gold": 0
+      },
+      "cited_gold_coverage": {
+        "product_grounded": 14,
+        "full_gold_passage_coverage": 14,
+        "partial_gold_passage_coverage": 0,
+        "no_gold_passage_coverage": 0,
+        "not_applicable": 0,
+        "product_grounded_with_full_cited_gold": 14,
+        "product_grounded_without_cited_gold": 0
+      },
+      "llm_calls": {
+        "mean": 1.375
+      },
+      "unverified": {
+        "useful_missing_citation": 1,
+        "wrong_missing_citation": 1
+      },
+      "primary_failures": {
+        "MULTISOURCE_SYNTHESIS_FAILURE": 2,
+        "WRONG_ANSWER": 2
+      },
+      "latency": {
+        "retrieval_ms": {
+          "n": 16,
+          "mean_ms": 32.31,
+          "median_ms": 30.6,
+          "p90_ms": 36.23,
+          "p95_ms": null,
+          "min_ms": 29.28,
+          "max_ms": 50.95,
+          "cold_first_ms": 30.6,
+          "warm_n": 15,
+          "warm_mean_ms": 32.42,
+          "warm_median_ms": 30.85
+        },
+        "rerank_ms": {
+          "n": 16,
+          "mean_ms": 39.79,
+          "median_ms": 39.99,
+          "p90_ms": 42.41,
+          "p95_ms": null,
+          "min_ms": 35.59,
+          "max_ms": 43.0,
+          "cold_first_ms": 38.21,
+          "warm_n": 15,
+          "warm_mean_ms": 39.89,
+          "warm_median_ms": 40.27
+        },
+        "generation_ms": {
+          "n": 16,
+          "mean_ms": 11080.3,
+          "median_ms": 8775.05,
+          "p90_ms": 17300.59,
+          "p95_ms": null,
+          "min_ms": 6153.55,
+          "max_ms": 29638.87,
+          "cold_first_ms": 14366.1,
+          "warm_n": 15,
+          "warm_mean_ms": 10861.25,
+          "warm_median_ms": 8775.05
+        },
+        "first_pass_generation_ms": {
+          "n": 16,
+          "mean_ms": 7836.6,
+          "median_ms": 6806.9,
+          "p90_ms": 10030.66,
+          "p95_ms": null,
+          "min_ms": 6153.55,
+          "max_ms": 15202.6,
+          "cold_first_ms": 6804.42,
+          "warm_n": 15,
+          "warm_mean_ms": 7905.41,
+          "warm_median_ms": 7228.87
+        },
+        "repair_ms": {
+          "n": 16,
+          "mean_ms": 3243.71,
+          "median_ms": 0.0,
+          "p90_ms": 8821.51,
+          "p95_ms": null,
+          "min_ms": 0.0,
+          "max_ms": 14436.28,
+          "cold_first_ms": 7561.67,
+          "warm_n": 15,
+          "warm_mean_ms": 2955.84,
+          "warm_median_ms": 0.0
+        },
+        "total_ms": {
+          "n": 16,
+          "mean_ms": 11152.4,
+          "median_ms": 8844.96,
+          "p90_ms": 17370.51,
+          "p95_ms": null,
+          "min_ms": 6220.86,
+          "max_ms": 29717.51,
+          "cold_first_ms": 14434.91,
+          "warm_n": 15,
+          "warm_mean_ms": 10933.56,
+          "warm_median_ms": 8844.96
+        }
+      }
+    },
+    "multisource": {
+      "n": 5,
+      "n_answerable": 5,
+      "n_unanswerable": 0,
+      "product_status": {
+        "GROUNDED": 2,
+        "UNVERIFIED": 2,
+        "NOT_ENOUGH_EVIDENCE": 1
+      },
+      "product_status_answerable": {
+        "GROUNDED": 2,
+        "UNVERIFIED": 2,
+        "NOT_ENOUGH_EVIDENCE": 1
+      },
+      "product_status_unanswerable": {},
+      "abstention": {
+        "true_positive": 0,
+        "false_positive": 1,
+        "false_negative": 0,
+        "true_negative": 4,
+        "precision": 0.0,
+        "recall": null,
+        "false_answer_rate": null,
+        "false_abstention_rate": 0.2,
+        "false_abstention_with_gold_context": 0
+      },
+      "retrieval_to_context": {
+        "gold_in_hybrid_rate": 1.0,
+        "gold_in_rerank_rate": 1.0,
+        "gold_chunk_selected_rate": 1.0,
+        "context_gold_chunk_recall": 1.0,
+        "rendered_gold_any_rate": 1.0,
+        "rendered_gold_all_rate": 0.8,
+        "rendered_gold_passage_recall": 0.9
+      },
+      "answer_content": {
+        "lexical_key_fact_recall": 0.4666666666666667,
+        "all_lexical_key_facts_matched": 0.4,
+        "reference_token_f1_diagnostic": 0.4470899470899471
+      },
+      "citations": {
+        "answers_requiring_citation": 4,
+        "answers_with_valid_citation": 2,
+        "citation_coverage": 0.5,
+        "missing_citation_count": 2,
+        "invalid_citation_count": 0,
+        "malformed_count": 0,
+        "cited_gold_passage_recall": 0.4,
+        "product_grounded": 2,
+        "product_grounded_with_full_cited_gold": 2,
+        "product_grounded_without_cited_gold": 0
+      },
+      "conflict": {
+        "n_expected_conflict": 0,
+        "true_conflict_reported": 0,
+        "true_conflict_both_key_facts": 0,
+        "collapsed": 0,
+        "incorrectly_abstained": 0,
+        "false_conflict_reported": 0
+      },
+      "ambiguity": {
+        "guessed_referent": 0
+      },
+      "multi_source": {
+        "items_with_slots": 5,
+        "all_slots_lexically_matched": 0,
+        "all_slots_lexically_matched_rate": 0.0,
+        "slot_count": 10,
+        "slots_lexically_matched": 0,
+        "lexical_slot_match_rate": 0.0,
+        "slots_cited_gold": 4,
+        "slot_cited_gold_rate": 0.4,
+        "unmatched_labeled_slots": 10,
+        "items_with_forbidden_phrase": 0
+      },
+      "phrase_consistency": {
+        "groups": 0,
+        "stable_groups": 0,
+        "consistency_rate": null
+      },
+      "repair": {
+        "invocation_count": 2,
+        "invocation_rate": 0.4,
+        "drift_kinds": {
+          "paraphrase": 1
+        },
+        "repair_grounded_without_cited_gold": 0
+      },
+      "cited_gold_coverage": {
+        "product_grounded": 2,
+        "full_gold_passage_coverage": 2,
+        "partial_gold_passage_coverage": 0,
+        "no_gold_passage_coverage": 0,
+        "not_applicable": 0,
+        "product_grounded_with_full_cited_gold": 2,
+        "product_grounded_without_cited_gold": 0
+      },
+      "llm_calls": {
+        "mean": 1.4
+      },
+      "unverified": {
+        "useful_missing_citation": 1,
+        "wrong_missing_citation": 1
+      },
+      "primary_failures": {
+        "MULTISOURCE_SYNTHESIS_FAILURE": 1,
+        "MISSING_CITATION": 1,
+        "WRONG_ANSWER": 1,
+        "CONTEXT_BUDGET_DROP": 1
+      },
+      "latency": {
+        "retrieval_ms": {
+          "n": 5,
+          "mean_ms": 31.03,
+          "median_ms": 30.51,
+          "p90_ms": null,
+          "p95_ms": null,
+          "min_ms": 29.94,
+          "max_ms": 32.92,
+          "cold_first_ms": 30.29,
+          "warm_n": 4,
+          "warm_mean_ms": 31.22,
+          "warm_median_ms": 30.51
+        },
+        "rerank_ms": {
+          "n": 5,
+          "mean_ms": 41.24,
+          "median_ms": 41.13,
+          "p90_ms": null,
+          "p95_ms": null,
+          "min_ms": 40.2,
+          "max_ms": 42.56,
+          "cold_first_ms": 41.86,
+          "warm_n": 4,
+          "warm_mean_ms": 41.09,
+          "warm_median_ms": 40.47
+        },
+        "generation_ms": {
+          "n": 5,
+          "mean_ms": 12896.23,
+          "median_ms": 13804.33,
+          "p90_ms": null,
+          "p95_ms": null,
+          "min_ms": 5458.37,
+          "max_ms": 20200.68,
+          "cold_first_ms": 10360.94,
+          "warm_n": 4,
+          "warm_mean_ms": 13530.05,
+          "warm_median_ms": 13804.33
+        },
+        "first_pass_generation_ms": {
+          "n": 5,
+          "mean_ms": 9411.06,
+          "median_ms": 9893.92,
+          "p90_ms": null,
+          "p95_ms": null,
+          "min_ms": 5458.37,
+          "max_ms": 13804.33,
+          "cold_first_ms": 10360.94,
+          "warm_n": 4,
+          "warm_mean_ms": 9173.6,
+          "warm_median_ms": 7537.76
+        },
+        "repair_ms": {
+          "n": 5,
+          "mean_ms": 3485.17,
+          "median_ms": 0.0,
+          "p90_ms": null,
+          "p95_ms": null,
+          "min_ms": 0.0,
+          "max_ms": 10306.76,
+          "cold_first_ms": 0.0,
+          "warm_n": 4,
+          "warm_mean_ms": 4356.46,
+          "warm_median_ms": 0.0
+        },
+        "total_ms": {
+          "n": 5,
+          "mean_ms": 12968.51,
+          "median_ms": 13874.75,
+          "p90_ms": null,
+          "p95_ms": null,
+          "min_ms": 5532.44,
+          "max_ms": 20274.73,
+          "cold_first_ms": 10433.09,
+          "warm_n": 4,
+          "warm_mean_ms": 13602.36,
+          "warm_median_ms": 13874.75
+        }
+      }
+    },
+    "paraphrase": {
+      "n": 6,
+      "n_answerable": 6,
+      "n_unanswerable": 0,
+      "product_status": {
+        "GROUNDED": 3,
+        "UNVERIFIED": 3
+      },
+      "product_status_answerable": {
+        "GROUNDED": 3,
+        "UNVERIFIED": 3
+      },
+      "product_status_unanswerable": {},
+      "abstention": {
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 0,
+        "true_negative": 6,
+        "precision": null,
+        "recall": null,
+        "false_answer_rate": null,
+        "false_abstention_rate": 0.0,
+        "false_abstention_with_gold_context": 0
+      },
+      "retrieval_to_context": {
+        "gold_in_hybrid_rate": 1.0,
+        "gold_in_rerank_rate": 1.0,
+        "gold_chunk_selected_rate": 1.0,
+        "context_gold_chunk_recall": 1.0,
+        "rendered_gold_any_rate": 1.0,
+        "rendered_gold_all_rate": 1.0,
+        "rendered_gold_passage_recall": 1.0
+      },
+      "answer_content": {
+        "lexical_key_fact_recall": 0.6666666666666666,
+        "all_lexical_key_facts_matched": 0.5,
+        "reference_token_f1_diagnostic": 0.3151989277749927
+      },
+      "citations": {
+        "answers_requiring_citation": 6,
+        "answers_with_valid_citation": 3,
+        "citation_coverage": 0.5,
+        "missing_citation_count": 3,
+        "invalid_citation_count": 0,
+        "malformed_count": 0,
+        "cited_gold_passage_recall": 0.5,
+        "product_grounded": 3,
+        "product_grounded_with_full_cited_gold": 3,
+        "product_grounded_without_cited_gold": 0
+      },
+      "conflict": {
+        "n_expected_conflict": 0,
+        "true_conflict_reported": 0,
+        "true_conflict_both_key_facts": 0,
+        "collapsed": 0,
+        "incorrectly_abstained": 0,
+        "false_conflict_reported": 0
+      },
+      "ambiguity": {
+        "guessed_referent": 0
+      },
+      "multi_source": {
+        "items_with_slots": 0,
+        "all_slots_lexically_matched": 0,
+        "all_slots_lexically_matched_rate": null,
+        "slot_count": 0,
+        "slots_lexically_matched": 0,
+        "lexical_slot_match_rate": null,
+        "slots_cited_gold": 0,
+        "slot_cited_gold_rate": null,
+        "unmatched_labeled_slots": 0,
+        "items_with_forbidden_phrase": 0
+      },
+      "phrase_consistency": {
+        "groups": 2,
+        "stable_groups": 1,
+        "consistency_rate": 0.5
+      },
+      "repair": {
+        "invocation_count": 3,
+        "invocation_rate": 0.5,
+        "drift_kinds": {
+          "entity_change": 1,
+          "added_factual_claim": 1
+        },
+        "repair_grounded_without_cited_gold": 0
+      },
+      "cited_gold_coverage": {
+        "product_grounded": 3,
+        "full_gold_passage_coverage": 3,
+        "partial_gold_passage_coverage": 0,
+        "no_gold_passage_coverage": 0,
+        "not_applicable": 0,
+        "product_grounded_with_full_cited_gold": 3,
+        "product_grounded_without_cited_gold": 0
+      },
+      "llm_calls": {
+        "mean": 1.5
+      },
+      "unverified": {
+        "useful_missing_citation": 2,
+        "wrong_missing_citation": 1
+      },
+      "primary_failures": {
+        "INCOMPLETE_ANSWER": 2,
+        "WRONG_ANSWER": 1
+      },
+      "latency": {
+        "retrieval_ms": {
+          "n": 6,
+          "mean_ms": 31.79,
+          "median_ms": 31.35,
+          "p90_ms": null,
+          "p95_ms": null,
+          "min_ms": 29.14,
+          "max_ms": 35.06,
+          "cold_first_ms": 29.14,
+          "warm_n": 5,
+          "warm_mean_ms": 32.32,
+          "warm_median_ms": 31.94
+        },
+        "rerank_ms": {
+          "n": 6,
+          "mean_ms": 39.75,
+          "median_ms": 39.46,
+          "p90_ms": null,
+          "p95_ms": null,
+          "min_ms": 38.16,
+          "max_ms": 41.28,
+          "cold_first_ms": 40.46,
+          "warm_n": 5,
+          "warm_mean_ms": 39.61,
+          "warm_median_ms": 39.46
+        },
+        "generation_ms": {
+          "n": 6,
+          "mean_ms": 12761.07,
+          "median_ms": 8127.59,
+          "p90_ms": null,
+          "p95_ms": null,
+          "min_ms": 6893.03,
+          "max_ms": 22681.88,
+          "cold_first_ms": 6893.03,
+          "warm_n": 5,
+          "warm_mean_ms": 13934.68,
+          "warm_median_ms": 12731.58
+        },
+        "first_pass_generation_ms": {
+          "n": 6,
+          "mean_ms": 7858.03,
+          "median_ms": 7726.04,
+          "p90_ms": null,
+          "p95_ms": null,
+          "min_ms": 6893.03,
+          "max_ms": 9087.78,
+          "cold_first_ms": 6893.03,
+          "warm_n": 5,
+          "warm_mean_ms": 8051.03,
+          "warm_median_ms": 8127.59
+        },
+        "repair_ms": {
+          "n": 6,
+          "mean_ms": 4903.04,
+          "median_ms": 0.0,
+          "p90_ms": null,
+          "p95_ms": null,
+          "min_ms": 0.0,
+          "max_ms": 14279.32,
+          "cold_first_ms": 0.0,
+          "warm_n": 5,
+          "warm_mean_ms": 5883.65,
+          "warm_median_ms": 5820.4
+        },
+        "total_ms": {
+          "n": 6,
+          "mean_ms": 12832.61,
+          "median_ms": 8196.93,
+          "p90_ms": null,
+          "p95_ms": null,
+          "min_ms": 6962.62,
+          "max_ms": 22751.39,
+          "cold_first_ms": 6962.62,
+          "warm_n": 5,
+          "warm_mean_ms": 14006.61,
+          "warm_median_ms": 12807.18
+        }
+      }
+    },
+    "subset": {
+      "n": 5,
+      "n_answerable": 5,
+      "n_unanswerable": 0,
+      "product_status": {
+        "GROUNDED": 4,
+        "NOT_ENOUGH_EVIDENCE": 1
+      },
+      "product_status_answerable": {
+        "GROUNDED": 4,
+        "NOT_ENOUGH_EVIDENCE": 1
+      },
+      "product_status_unanswerable": {},
+      "abstention": {
+        "true_positive": 0,
+        "false_positive": 1,
+        "false_negative": 0,
+        "true_negative": 4,
+        "precision": 0.0,
+        "recall": null,
+        "false_answer_rate": null,
+        "false_abstention_rate": 0.2,
+        "false_abstention_with_gold_context": 1
+      },
+      "retrieval_to_context": {
+        "gold_in_hybrid_rate": 1.0,
+        "gold_in_rerank_rate": 1.0,
+        "gold_chunk_selected_rate": 1.0,
+        "context_gold_chunk_recall": 1.0,
+        "rendered_gold_any_rate": 1.0,
+        "rendered_gold_all_rate": 1.0,
+        "rendered_gold_passage_recall": 1.0
+      },
+      "answer_content": {
+        "lexical_key_fact_recall": 0.7,
+        "all_lexical_key_facts_matched": 0.6,
+        "reference_token_f1_diagnostic": 0.21944862155388473
+      },
+      "citations": {
+        "answers_requiring_citation": 4,
+        "answers_with_valid_citation": 4,
+        "citation_coverage": 1.0,
+        "missing_citation_count": 0,
+        "invalid_citation_count": 0,
+        "malformed_count": 0,
+        "cited_gold_passage_recall": 0.8,
+        "product_grounded": 4,
+        "product_grounded_with_full_cited_gold": 4,
+        "product_grounded_without_cited_gold": 0
+      },
+      "conflict": {
+        "n_expected_conflict": 0,
+        "true_conflict_reported": 0,
+        "true_conflict_both_key_facts": 0,
+        "collapsed": 0,
+        "incorrectly_abstained": 0,
+        "false_conflict_reported": 0
+      },
+      "ambiguity": {
+        "guessed_referent": 0
+      },
+      "multi_source": {
+        "items_with_slots": 0,
+        "all_slots_lexically_matched": 0,
+        "all_slots_lexically_matched_rate": null,
+        "slot_count": 0,
+        "slots_lexically_matched": 0,
+        "lexical_slot_match_rate": null,
+        "slots_cited_gold": 0,
+        "slot_cited_gold_rate": null,
+        "unmatched_labeled_slots": 0,
+        "items_with_forbidden_phrase": 0
+      },
+      "phrase_consistency": {
+        "groups": 0,
+        "stable_groups": 0,
+        "consistency_rate": null
+      },
+      "repair": {
+        "invocation_count": 2,
+        "invocation_rate": 0.4,
+        "drift_kinds": {
+          "marker_only": 2
+        },
+        "repair_grounded_without_cited_gold": 0
+      },
+      "cited_gold_coverage": {
+        "product_grounded": 4,
+        "full_gold_passage_coverage": 4,
+        "partial_gold_passage_coverage": 0,
+        "no_gold_passage_coverage": 0,
+        "not_applicable": 0,
+        "product_grounded_with_full_cited_gold": 4,
+        "product_grounded_without_cited_gold": 0
+      },
+      "llm_calls": {
+        "mean": 1.4
+      },
+      "unverified": {},
+      "primary_failures": {
+        "INCOMPLETE_ANSWER": 1,
+        "FALSE_ABSTENTION_WITH_GOLD_CONTEXT": 1
+      },
+      "latency": {
+        "retrieval_ms": {
+          "n": 5,
+          "mean_ms": 30.31,
+          "median_ms": 29.18,
+          "p90_ms": null,
+          "p95_ms": null,
+          "min_ms": 27.71,
+          "max_ms": 33.44,
+          "cold_first_ms": 27.71,
+          "warm_n": 4,
+          "warm_mean_ms": 30.96,
+          "warm_median_ms": 29.18
+        },
+        "rerank_ms": {
+          "n": 5,
+          "mean_ms": 14.67,
+          "median_ms": 15.86,
+          "p90_ms": null,
+          "p95_ms": null,
+          "min_ms": 8.53,
+          "max_ms": 17.05,
+          "cold_first_ms": 15.86,
+          "warm_n": 4,
+          "warm_mean_ms": 14.37,
+          "warm_median_ms": 15.64
+        },
+        "generation_ms": {
+          "n": 5,
+          "mean_ms": 9427.44,
+          "median_ms": 7121.31,
+          "p90_ms": null,
+          "p95_ms": null,
+          "min_ms": 5855.45,
+          "max_ms": 14307.55,
+          "cold_first_ms": 7033.69,
+          "warm_n": 4,
+          "warm_mean_ms": 10025.87,
+          "warm_median_ms": 7121.31
+        },
+        "first_pass_generation_ms": {
+          "n": 5,
+          "mean_ms": 6535.73,
+          "median_ms": 6775.72,
+          "p90_ms": null,
+          "p95_ms": null,
+          "min_ms": 5855.45,
+          "max_ms": 7121.31,
+          "cold_first_ms": 7033.69,
+          "warm_n": 4,
+          "warm_mean_ms": 6411.24,
+          "warm_median_ms": 5892.47
+        },
+        "repair_ms": {
+          "n": 5,
+          "mean_ms": 2891.71,
+          "median_ms": 0.0,
+          "p90_ms": null,
+          "p95_ms": null,
+          "min_ms": 0.0,
+          "max_ms": 7531.83,
+          "cold_first_ms": 0.0,
+          "warm_n": 4,
+          "warm_mean_ms": 3614.63,
+          "warm_median_ms": 0.0
+        },
+        "total_ms": {
+          "n": 5,
+          "mean_ms": 9472.41,
+          "median_ms": 7171.01,
+          "p90_ms": null,
+          "p95_ms": null,
+          "min_ms": 5899.75,
+          "max_ms": 14357.15,
+          "cold_first_ms": 7077.26,
+          "warm_n": 4,
+          "warm_mean_ms": 10071.2,
+          "warm_median_ms": 7171.01
+        }
+      }
+    },
+    "unanswerable": {
+      "n": 12,
+      "n_answerable": 0,
+      "n_unanswerable": 12,
+      "product_status": {
+        "NOT_ENOUGH_EVIDENCE": 11,
+        "GROUNDED": 1
+      },
+      "product_status_answerable": {},
+      "product_status_unanswerable": {
+        "NOT_ENOUGH_EVIDENCE": 11,
+        "GROUNDED": 1
+      },
+      "abstention": {
+        "true_positive": 11,
+        "false_positive": 0,
+        "false_negative": 1,
+        "true_negative": 0,
+        "precision": 1.0,
+        "recall": 0.9166666666666666,
+        "false_answer_rate": 0.08333333333333333,
+        "false_abstention_rate": null,
+        "false_abstention_with_gold_context": 0
+      },
+      "retrieval_to_context": {
+        "gold_in_hybrid_rate": null,
+        "gold_in_rerank_rate": null,
+        "gold_chunk_selected_rate": null,
+        "context_gold_chunk_recall": null,
+        "rendered_gold_any_rate": null,
+        "rendered_gold_all_rate": null,
+        "rendered_gold_passage_recall": null
+      },
+      "answer_content": {
+        "lexical_key_fact_recall": null,
+        "all_lexical_key_facts_matched": null,
+        "reference_token_f1_diagnostic": null
+      },
+      "citations": {
+        "answers_requiring_citation": 0,
+        "answers_with_valid_citation": 0,
+        "citation_coverage": null,
+        "missing_citation_count": 0,
+        "invalid_citation_count": 0,
+        "malformed_count": 0,
+        "cited_gold_passage_recall": null,
+        "product_grounded": 1,
+        "product_grounded_with_full_cited_gold": 0,
+        "product_grounded_without_cited_gold": 0
+      },
+      "conflict": {
+        "n_expected_conflict": 0,
+        "true_conflict_reported": 0,
+        "true_conflict_both_key_facts": 0,
+        "collapsed": 0,
+        "incorrectly_abstained": 0,
+        "false_conflict_reported": 0
+      },
+      "ambiguity": {
+        "guessed_referent": 0
+      },
+      "multi_source": {
+        "items_with_slots": 0,
+        "all_slots_lexically_matched": 0,
+        "all_slots_lexically_matched_rate": null,
+        "slot_count": 0,
+        "slots_lexically_matched": 0,
+        "lexical_slot_match_rate": null,
+        "slots_cited_gold": 0,
+        "slot_cited_gold_rate": null,
+        "unmatched_labeled_slots": 0,
+        "items_with_forbidden_phrase": 0
+      },
+      "phrase_consistency": {
+        "groups": 0,
+        "stable_groups": 0,
+        "consistency_rate": null
+      },
+      "repair": {
+        "invocation_count": 0,
+        "invocation_rate": 0.0,
+        "drift_kinds": {},
+        "repair_grounded_without_cited_gold": 0
+      },
+      "cited_gold_coverage": {
+        "product_grounded": 1,
+        "full_gold_passage_coverage": 0,
+        "partial_gold_passage_coverage": 0,
+        "no_gold_passage_coverage": 0,
+        "not_applicable": 1,
+        "product_grounded_with_full_cited_gold": 0,
+        "product_grounded_without_cited_gold": 0
+      },
+      "llm_calls": {
+        "mean": 1.0
+      },
+      "unverified": {},
+      "primary_failures": {
+        "FALSE_ANSWER_WITHOUT_SUPPORT": 1
+      },
+      "latency": {
+        "retrieval_ms": {
+          "n": 12,
+          "mean_ms": 32.9,
+          "median_ms": 31.11,
+          "p90_ms": 39.5,
+          "p95_ms": null,
+          "min_ms": 30.18,
+          "max_ms": 42.4,
+          "cold_first_ms": 30.18,
+          "warm_n": 11,
+          "warm_mean_ms": 33.15,
+          "warm_median_ms": 31.49
+        },
+        "rerank_ms": {
+          "n": 12,
+          "mean_ms": 40.07,
+          "median_ms": 39.02,
+          "p90_ms": 45.04,
+          "p95_ms": null,
+          "min_ms": 34.36,
+          "max_ms": 46.99,
+          "cold_first_ms": 38.64,
+          "warm_n": 11,
+          "warm_mean_ms": 40.2,
+          "warm_median_ms": 39.26
+        },
+        "generation_ms": {
+          "n": 12,
+          "mean_ms": 5856.56,
+          "median_ms": 5671.16,
+          "p90_ms": 6270.95,
+          "p95_ms": null,
+          "min_ms": 5455.52,
+          "max_ms": 7189.58,
+          "cold_first_ms": 5507.11,
+          "warm_n": 11,
+          "warm_mean_ms": 5888.32,
+          "warm_median_ms": 5730.17
+        },
+        "first_pass_generation_ms": {
+          "n": 12,
+          "mean_ms": 5856.56,
+          "median_ms": 5671.16,
+          "p90_ms": 6270.95,
+          "p95_ms": null,
+          "min_ms": 5455.52,
+          "max_ms": 7189.58,
+          "cold_first_ms": 5507.11,
+          "warm_n": 11,
+          "warm_mean_ms": 5888.32,
+          "warm_median_ms": 5730.17
+        },
+        "repair_ms": {
+          "n": 12,
+          "mean_ms": 0.0,
+          "median_ms": 0.0,
+          "p90_ms": 0.0,
+          "p95_ms": null,
+          "min_ms": 0.0,
+          "max_ms": 0.0,
+          "cold_first_ms": 0.0,
+          "warm_n": 11,
+          "warm_mean_ms": 0.0,
+          "warm_median_ms": 0.0
+        },
+        "total_ms": {
+          "n": 12,
+          "mean_ms": 5929.53,
+          "median_ms": 5760.55,
+          "p90_ms": 6339.06,
+          "p95_ms": null,
+          "min_ms": 5527.17,
+          "max_ms": 7259.86,
+          "cold_first_ms": 5575.94,
+          "warm_n": 11,
+          "warm_mean_ms": 5961.67,
+          "warm_median_ms": 5807.47
+        }
+      }
+    },
+    "versioning": {
+      "n": 5,
+      "n_answerable": 5,
+      "n_unanswerable": 0,
+      "product_status": {
+        "GROUNDED": 4,
+        "NOT_ENOUGH_EVIDENCE": 1
+      },
+      "product_status_answerable": {
+        "GROUNDED": 4,
+        "NOT_ENOUGH_EVIDENCE": 1
+      },
+      "product_status_unanswerable": {},
+      "abstention": {
+        "true_positive": 0,
+        "false_positive": 1,
+        "false_negative": 0,
+        "true_negative": 4,
+        "precision": 0.0,
+        "recall": null,
+        "false_answer_rate": null,
+        "false_abstention_rate": 0.2,
+        "false_abstention_with_gold_context": 1
+      },
+      "retrieval_to_context": {
+        "gold_in_hybrid_rate": 1.0,
+        "gold_in_rerank_rate": 1.0,
+        "gold_chunk_selected_rate": 1.0,
+        "context_gold_chunk_recall": 1.0,
+        "rendered_gold_any_rate": 1.0,
+        "rendered_gold_all_rate": 1.0,
+        "rendered_gold_passage_recall": 1.0
+      },
+      "answer_content": {
+        "lexical_key_fact_recall": 0.8,
+        "all_lexical_key_facts_matched": 0.8,
+        "reference_token_f1_diagnostic": 0.24354234001292824
+      },
+      "citations": {
+        "answers_requiring_citation": 4,
+        "answers_with_valid_citation": 4,
+        "citation_coverage": 1.0,
+        "missing_citation_count": 0,
+        "invalid_citation_count": 0,
+        "malformed_count": 0,
+        "cited_gold_passage_recall": 0.8,
+        "product_grounded": 4,
+        "product_grounded_with_full_cited_gold": 4,
+        "product_grounded_without_cited_gold": 0
+      },
+      "conflict": {
+        "n_expected_conflict": 0,
+        "true_conflict_reported": 0,
+        "true_conflict_both_key_facts": 0,
+        "collapsed": 0,
+        "incorrectly_abstained": 0,
+        "false_conflict_reported": 0
+      },
+      "ambiguity": {
+        "guessed_referent": 0
+      },
+      "multi_source": {
+        "items_with_slots": 0,
+        "all_slots_lexically_matched": 0,
+        "all_slots_lexically_matched_rate": null,
+        "slot_count": 0,
+        "slots_lexically_matched": 0,
+        "lexical_slot_match_rate": null,
+        "slots_cited_gold": 0,
+        "slot_cited_gold_rate": null,
+        "unmatched_labeled_slots": 0,
+        "items_with_forbidden_phrase": 0
+      },
+      "phrase_consistency": {
+        "groups": 0,
+        "stable_groups": 0,
+        "consistency_rate": null
+      },
+      "repair": {
+        "invocation_count": 2,
+        "invocation_rate": 0.4,
+        "drift_kinds": {
+          "marker_only": 2
+        },
+        "repair_grounded_without_cited_gold": 0
+      },
+      "cited_gold_coverage": {
+        "product_grounded": 4,
+        "full_gold_passage_coverage": 4,
+        "partial_gold_passage_coverage": 0,
+        "no_gold_passage_coverage": 0,
+        "not_applicable": 0,
+        "product_grounded_with_full_cited_gold": 4,
+        "product_grounded_without_cited_gold": 0
+      },
+      "llm_calls": {
+        "mean": 1.4
+      },
+      "unverified": {},
+      "primary_failures": {
+        "FALSE_ABSTENTION_WITH_GOLD_CONTEXT": 1
+      },
+      "latency": {
+        "retrieval_ms": {
+          "n": 5,
+          "mean_ms": 29.54,
+          "median_ms": 29.5,
+          "p90_ms": null,
+          "p95_ms": null,
+          "min_ms": 28.89,
+          "max_ms": 30.17,
+          "cold_first_ms": 30.15,
+          "warm_n": 4,
+          "warm_mean_ms": 29.39,
+          "warm_median_ms": 28.99
+        },
+        "rerank_ms": {
+          "n": 5,
+          "mean_ms": 38.22,
+          "median_ms": 39.14,
+          "p90_ms": null,
+          "p95_ms": null,
+          "min_ms": 35.01,
+          "max_ms": 39.89,
+          "cold_first_ms": 37.2,
+          "warm_n": 4,
+          "warm_mean_ms": 38.47,
+          "warm_median_ms": 39.14
+        },
+        "generation_ms": {
+          "n": 5,
+          "mean_ms": 22769.63,
+          "median_ms": 8924.09,
+          "p90_ms": null,
+          "p95_ms": null,
+          "min_ms": 5598.52,
+          "max_ms": 78522.28,
+          "cold_first_ms": 78522.28,
+          "warm_n": 4,
+          "warm_mean_ms": 8831.47,
+          "warm_median_ms": 7074.36
+        },
+        "first_pass_generation_ms": {
+          "n": 5,
+          "mean_ms": 19965.62,
+          "median_ms": 7074.36,
+          "p90_ms": null,
+          "p95_ms": null,
+          "min_ms": 5598.52,
+          "max_ms": 71596.39,
+          "cold_first_ms": 71596.39,
+          "warm_n": 4,
+          "warm_mean_ms": 7057.93,
+          "warm_median_ms": 6634.74
+        },
+        "repair_ms": {
+          "n": 5,
+          "mean_ms": 2804.01,
+          "median_ms": 0.0,
+          "p90_ms": null,
+          "p95_ms": null,
+          "min_ms": 0.0,
+          "max_ms": 7094.17,
+          "cold_first_ms": 6925.89,
+          "warm_n": 4,
+          "warm_mean_ms": 1773.54,
+          "warm_median_ms": 0.0
+        },
+        "total_ms": {
+          "n": 5,
+          "mean_ms": 22837.39,
+          "median_ms": 8993.4,
+          "p90_ms": null,
+          "p95_ms": null,
+          "min_ms": 5667.39,
+          "max_ms": 78589.62,
+          "cold_first_ms": 78589.62,
+          "warm_n": 4,
+          "warm_mean_ms": 8899.33,
+          "warm_median_ms": 7143.71
+        }
+      }
+    }
+  },
+  "paraphrase_stability": {
+    "meridian_final_score": {
+      "n": 3,
+      "distinct_product_status": 1,
+      "status_set": [
+        "GROUNDED"
+      ],
+      "distinct_lexical_key_fact_recall": 1,
+      "stable": true
+    },
+    "atlas_retired_status": {
+      "n": 3,
+      "distinct_product_status": 1,
+      "status_set": [
+        "UNVERIFIED"
+      ],
+      "distinct_lexical_key_fact_recall": 2,
+      "stable": false
+    }
+  },
+  "first_failure_funnel": {
+    "n_answerable": 60,
+    "policy": "Ordered cumulative gates; each item exits once. Retrieval gates are any-gold-chunk; rendered/cited gates require all exact labeled passages. This descriptive funnel does not replace the existing root-cause taxonomy or estimate semantic accuracy.",
+    "stages": [
+      {
+        "stage": "gold_retrieved",
+        "definition": "At least one labeled gold chunk retrieved (gold_in_hybrid)",
+        "entered": 60,
+        "retained": 60,
+        "first_failures": 0,
+        "first_failure_example_ids": [],
+        "existing_primary_failures": {}
+      },
+      {
+        "stage": "gold_survives_rerank",
+        "definition": "At least one labeled gold chunk survives reranking (gold_in_rerank)",
+        "entered": 60,
+        "retained": 60,
+        "first_failures": 0,
+        "first_failure_example_ids": [],
+        "existing_primary_failures": {}
+      },
+      {
+        "stage": "required_gold_rendered",
+        "definition": "All required gold passages occur in exact rendered excerpts (rendered_gold_all)",
+        "entered": 60,
+        "retained": 59,
+        "first_failures": 1,
+        "first_failure_example_ids": [
+          "qb2-089"
+        ],
+        "existing_primary_failures": {
+          "CONTEXT_BUDGET_DROP": 1
+        }
+      },
+      {
+        "stage": "answer_attempted",
+        "definition": "Parsed, non-abstaining answer without technical failure",
+        "entered": 59,
+        "retained": 52,
+        "first_failures": 7,
+        "first_failure_example_ids": [
+          "qb2-021",
+          "qb2-037",
+          "qb2-045",
+          "qb2-067",
+          "qb2-068",
+          "qb2-083",
+          "qb2-084"
+        ],
+        "existing_primary_failures": {
+          "FALSE_ABSTENTION_WITH_GOLD_CONTEXT": 6,
+          "QUERY_REWRITE_ERROR": 1
+        }
+      },
+      {
+        "stage": "all_key_facts_matched",
+        "definition": "Every lexical key fact matched",
+        "entered": 52,
+        "retained": 37,
+        "first_failures": 15,
+        "first_failure_example_ids": [
+          "qb2-012",
+          "qb2-015",
+          "qb2-035",
+          "qb2-036",
+          "qb2-041",
+          "qb2-043",
+          "qb2-060",
+          "qb2-066",
+          "qb2-079",
+          "qb2-080",
+          "qb2-081",
+          "qb2-087",
+          "qb2-088",
+          "qb2-091",
+          "qb2-093"
+        ],
+        "existing_primary_failures": {
+          "CONFLICT_HANDLING_FAILURE": 1,
+          "INCOMPLETE_ANSWER": 3,
+          "MULTISOURCE_SYNTHESIS_FAILURE": 3,
+          "WRONG_ANSWER": 8
+        }
+      },
+      {
+        "stage": "citation_valid",
+        "definition": "Product citation validation status valid",
+        "entered": 37,
+        "retained": 32,
+        "first_failures": 5,
+        "first_failure_example_ids": [
+          "qb2-014",
+          "qb2-034",
+          "qb2-059",
+          "qb2-061",
+          "qb2-062"
+        ],
+        "existing_primary_failures": {
+          "MISSING_CITATION": 5
+        }
+      },
+      {
+        "stage": "all_cited_gold_covered",
+        "definition": "All required gold passages occur in cited rendered excerpts",
+        "entered": 32,
+        "retained": 32,
+        "first_failures": 0,
+        "first_failure_example_ids": [],
+        "existing_primary_failures": {}
+      }
+    ],
+    "final_example_ids": [
+      "qb2-007",
+      "qb2-008",
+      "qb2-009",
+      "qb2-010",
+      "qb2-013",
+      "qb2-016",
+      "qb2-017",
+      "qb2-018",
+      "qb2-019",
+      "qb2-020",
+      "qb2-022",
+      "qb2-031",
+      "qb2-032",
+      "qb2-033",
+      "qb2-038",
+      "qb2-039",
+      "qb2-040",
+      "qb2-042",
+      "qb2-044",
+      "qb2-055",
+      "qb2-056",
+      "qb2-057",
+      "qb2-058",
+      "qb2-063",
+      "qb2-064",
+      "qb2-065",
+      "qb2-069",
+      "qb2-082",
+      "qb2-085",
+      "qb2-086",
+      "qb2-090",
+      "qb2-092"
+    ]
+  },
+  "failure_ledger_policy": "Include any existing primary/secondary failure; answerable non-grounded status, missing required rendered/cited gold, unmatched key facts; unanswerable non-abstention; forbidden-phrase hit; expected conflict without lexical conflict marker; unmatched/uncited claim slot; unstable paraphrase-group membership; or repair polarity/entity/added-claim drift. Successful marker-only repairs and lexical paraphrase drift alone do not trigger ledger inclusion. Supplemental diagnostic_reasons are report-derived flags, not rewritten root-cause labels or semantic judgments.",
+  "failure_ledger_count": 31,
+  "failure_ledger": [
+    {
+      "example_id": "qb2-012",
+      "slice": "core",
+      "category": "yes_no",
+      "answerable": true,
+      "product_status": "UNVERIFIED",
+      "primary_failure": "WRONG_ANSWER",
+      "secondary_failures": [
+        "MISSING_CITATION"
+      ],
+      "gold_in_hybrid": true,
+      "gold_in_rerank": true,
+      "gold_chunk_selected": true,
+      "rendered_gold_any": true,
+      "rendered_gold_all": true,
+      "rendered_gold_passage_recall": 1.0,
+      "lexical_key_fact_recall": 0.0,
+      "validation_status": "missing_citations",
+      "cited_gold_passage_recall": 0.0,
+      "repair_attempts": 1,
+      "total_latency_ms": 21512.73040304659,
+      "diagnostic_reasons": [
+        "WRONG_ANSWER",
+        "MISSING_CITATION",
+        "ANSWERABLE_NOT_GROUNDED",
+        "LEXICAL_KEY_FACTS_UNMATCHED",
+        "REQUIRED_CITED_GOLD_MISSING",
+        "REPAIR_CONTENT_DRIFT"
+      ],
+      "diagnostic_note": "lexical answer label(s) unmatched; cited excerpts lack some/all required gold; repair content-drift diagnostic",
+      "technical_error": null,
+      "claim_slot_matches": [],
+      "repair_drift_kinds": [
+        "polarity_change",
+        "entity_change",
+        "added_factual_claim"
+      ]
+    },
+    {
+      "example_id": "qb2-013",
+      "slice": "multisource",
+      "category": "comparison",
+      "answerable": true,
+      "product_status": "GROUNDED",
+      "primary_failure": null,
+      "secondary_failures": [],
+      "gold_in_hybrid": true,
+      "gold_in_rerank": true,
+      "gold_chunk_selected": true,
+      "rendered_gold_any": true,
+      "rendered_gold_all": true,
+      "rendered_gold_passage_recall": 1.0,
+      "lexical_key_fact_recall": 1.0,
+      "validation_status": "valid",
+      "cited_gold_passage_recall": 1.0,
+      "repair_attempts": 0,
+      "total_latency_ms": 10433.085419994313,
+      "diagnostic_reasons": [
+        "LEXICAL_CLAIM_SLOT_UNMATCHED"
+      ],
+      "diagnostic_note": "authored claim-slot phrase(s) unmatched",
+      "technical_error": null,
+      "claim_slot_matches": [
+        {
+          "claim_id": "C1",
+          "lexical_answer_match": false,
+          "cited_gold_overlap": true
+        },
+        {
+          "claim_id": "C2",
+          "lexical_answer_match": false,
+          "cited_gold_overlap": true
+        }
+      ],
+      "repair_drift_kinds": []
+    },
+    {
+      "example_id": "qb2-014",
+      "slice": "conflict",
+      "category": "conflicting",
+      "answerable": true,
+      "product_status": "UNVERIFIED",
+      "primary_failure": "MISSING_CITATION",
+      "secondary_failures": [
+        "MISSING_CITATION"
+      ],
+      "gold_in_hybrid": true,
+      "gold_in_rerank": true,
+      "gold_chunk_selected": true,
+      "rendered_gold_any": true,
+      "rendered_gold_all": true,
+      "rendered_gold_passage_recall": 1.0,
+      "lexical_key_fact_recall": 1.0,
+      "validation_status": "missing_citations",
+      "cited_gold_passage_recall": 0.0,
+      "repair_attempts": 1,
+      "total_latency_ms": 18678.61393702333,
+      "diagnostic_reasons": [
+        "MISSING_CITATION",
+        "ANSWERABLE_NOT_GROUNDED",
+        "REQUIRED_CITED_GOLD_MISSING",
+        "LEXICAL_CLAIM_SLOT_UNMATCHED",
+        "CLAIM_SLOT_CITED_GOLD_MISSING"
+      ],
+      "diagnostic_note": "cited excerpts lack some/all required gold; authored claim-slot phrase(s) unmatched",
+      "technical_error": null,
+      "claim_slot_matches": [
+        {
+          "claim_id": "C1",
+          "lexical_answer_match": false,
+          "cited_gold_overlap": false
+        },
+        {
+          "claim_id": "C2",
+          "lexical_answer_match": false,
+          "cited_gold_overlap": false
+        }
+      ],
+      "repair_drift_kinds": []
+    },
+    {
+      "example_id": "qb2-015",
+      "slice": "conflict",
+      "category": "conflicting",
+      "answerable": true,
+      "product_status": "GROUNDED",
+      "primary_failure": "CONFLICT_HANDLING_FAILURE",
+      "secondary_failures": [],
+      "gold_in_hybrid": true,
+      "gold_in_rerank": true,
+      "gold_chunk_selected": true,
+      "rendered_gold_any": true,
+      "rendered_gold_all": true,
+      "rendered_gold_passage_recall": 1.0,
+      "lexical_key_fact_recall": 0.5,
+      "validation_status": "valid",
+      "cited_gold_passage_recall": 0.5,
+      "repair_attempts": 1,
+      "total_latency_ms": 15184.959961014101,
+      "diagnostic_reasons": [
+        "CONFLICT_HANDLING_FAILURE",
+        "LEXICAL_KEY_FACTS_UNMATCHED",
+        "REQUIRED_CITED_GOLD_MISSING",
+        "CONFLICT_NOT_REPORTED",
+        "LEXICAL_CLAIM_SLOT_UNMATCHED",
+        "CLAIM_SLOT_CITED_GOLD_MISSING"
+      ],
+      "diagnostic_note": "lexical answer label(s) unmatched; cited excerpts lack some/all required gold; no lexical conflict marker; authored claim-slot phrase(s) unmatched",
+      "technical_error": null,
+      "claim_slot_matches": [
+        {
+          "claim_id": "C1",
+          "lexical_answer_match": false,
+          "cited_gold_overlap": true
+        },
+        {
+          "claim_id": "C2",
+          "lexical_answer_match": false,
+          "cited_gold_overlap": false
+        }
+      ],
+      "repair_drift_kinds": [
+        "marker_only"
+      ]
+    },
+    {
+      "example_id": "qb2-019",
+      "slice": "longdoc",
+      "category": "multi_paragraph",
+      "answerable": true,
+      "product_status": "GROUNDED",
+      "primary_failure": null,
+      "secondary_failures": [],
+      "gold_in_hybrid": true,
+      "gold_in_rerank": true,
+      "gold_chunk_selected": true,
+      "rendered_gold_any": true,
+      "rendered_gold_all": true,
+      "rendered_gold_passage_recall": 1.0,
+      "lexical_key_fact_recall": 1.0,
+      "validation_status": "valid",
+      "cited_gold_passage_recall": 1.0,
+      "repair_attempts": 0,
+      "total_latency_ms": 8954.379485017853,
+      "diagnostic_reasons": [
+        "LEXICAL_CLAIM_SLOT_UNMATCHED"
+      ],
+      "diagnostic_note": "authored claim-slot phrase(s) unmatched",
+      "technical_error": null,
+      "claim_slot_matches": [
+        {
+          "claim_id": "C1",
+          "lexical_answer_match": false,
+          "cited_gold_overlap": true
+        },
+        {
+          "claim_id": "C2",
+          "lexical_answer_match": false,
+          "cited_gold_overlap": true
+        }
+      ],
+      "repair_drift_kinds": []
+    },
+    {
+      "example_id": "qb2-021",
+      "slice": "followup",
+      "category": "followup",
+      "answerable": true,
+      "product_status": "NOT_ENOUGH_EVIDENCE",
+      "primary_failure": "QUERY_REWRITE_ERROR",
+      "secondary_failures": [
+        "FOLLOWUP_RESOLUTION_FAILURE"
+      ],
+      "gold_in_hybrid": true,
+      "gold_in_rerank": true,
+      "gold_chunk_selected": true,
+      "rendered_gold_any": true,
+      "rendered_gold_all": true,
+      "rendered_gold_passage_recall": 1.0,
+      "lexical_key_fact_recall": 0.0,
+      "validation_status": "insufficient_evidence",
+      "cited_gold_passage_recall": 0.0,
+      "repair_attempts": 0,
+      "total_latency_ms": 5544.127070024842,
+      "diagnostic_reasons": [
+        "QUERY_REWRITE_ERROR",
+        "FOLLOWUP_RESOLUTION_FAILURE",
+        "ANSWERABLE_NOT_GROUNDED",
+        "LEXICAL_KEY_FACTS_UNMATCHED",
+        "REQUIRED_CITED_GOLD_MISSING"
+      ],
+      "diagnostic_note": "all gold rendered but model abstained; cited excerpts lack some/all required gold",
+      "technical_error": null,
+      "claim_slot_matches": [],
+      "repair_drift_kinds": []
+    },
+    {
+      "example_id": "qb2-023",
+      "slice": "unanswerable",
+      "category": "insufficient",
+      "answerable": false,
+      "product_status": "GROUNDED",
+      "primary_failure": "FALSE_ANSWER_WITHOUT_SUPPORT",
+      "secondary_failures": [],
+      "gold_in_hybrid": null,
+      "gold_in_rerank": null,
+      "gold_chunk_selected": null,
+      "rendered_gold_any": null,
+      "rendered_gold_all": null,
+      "rendered_gold_passage_recall": null,
+      "lexical_key_fact_recall": null,
+      "validation_status": "valid",
+      "cited_gold_passage_recall": null,
+      "repair_attempts": 0,
+      "total_latency_ms": 7259.85824703821,
+      "diagnostic_reasons": [
+        "FALSE_ANSWER_WITHOUT_SUPPORT",
+        "UNANSWERABLE_NOT_ABSTAINED"
+      ],
+      "diagnostic_note": "unanswerable item did not abstain",
+      "technical_error": null,
+      "claim_slot_matches": [],
+      "repair_drift_kinds": []
+    },
+    {
+      "example_id": "qb2-034",
+      "slice": "hard_negative",
+      "category": "comparison",
+      "answerable": true,
+      "product_status": "UNVERIFIED",
+      "primary_failure": "MISSING_CITATION",
+      "secondary_failures": [
+        "MISSING_CITATION"
+      ],
+      "gold_in_hybrid": true,
+      "gold_in_rerank": true,
+      "gold_chunk_selected": true,
+      "rendered_gold_any": true,
+      "rendered_gold_all": true,
+      "rendered_gold_passage_recall": 1.0,
+      "lexical_key_fact_recall": 1.0,
+      "validation_status": "missing_citations",
+      "cited_gold_passage_recall": 0.0,
+      "repair_attempts": 1,
+      "total_latency_ms": 17842.096736014355,
+      "diagnostic_reasons": [
+        "MISSING_CITATION",
+        "ANSWERABLE_NOT_GROUNDED",
+        "REQUIRED_CITED_GOLD_MISSING",
+        "REPAIR_CONTENT_DRIFT"
+      ],
+      "diagnostic_note": "cited excerpts lack some/all required gold; repair content-drift diagnostic",
+      "technical_error": null,
+      "claim_slot_matches": [],
+      "repair_drift_kinds": [
+        "paraphrase",
+        "added_factual_claim"
+      ]
+    },
+    {
+      "example_id": "qb2-035",
+      "slice": "multisource",
+      "category": "multi_source",
+      "answerable": true,
+      "product_status": "GROUNDED",
+      "primary_failure": "MULTISOURCE_SYNTHESIS_FAILURE",
+      "secondary_failures": [],
+      "gold_in_hybrid": true,
+      "gold_in_rerank": true,
+      "gold_chunk_selected": true,
+      "rendered_gold_any": true,
+      "rendered_gold_all": true,
+      "rendered_gold_passage_recall": 1.0,
+      "lexical_key_fact_recall": 0.3333333333333333,
+      "validation_status": "valid",
+      "cited_gold_passage_recall": 1.0,
+      "repair_attempts": 0,
+      "total_latency_ms": 13874.747578025563,
+      "diagnostic_reasons": [
+        "MULTISOURCE_SYNTHESIS_FAILURE",
+        "LEXICAL_KEY_FACTS_UNMATCHED",
+        "LEXICAL_CLAIM_SLOT_UNMATCHED"
+      ],
+      "diagnostic_note": "lexical answer label(s) unmatched; authored claim-slot phrase(s) unmatched",
+      "technical_error": null,
+      "claim_slot_matches": [
+        {
+          "claim_id": "C1",
+          "lexical_answer_match": false,
+          "cited_gold_overlap": true
+        },
+        {
+          "claim_id": "C2",
+          "lexical_answer_match": false,
+          "cited_gold_overlap": true
+        }
+      ],
+      "repair_drift_kinds": []
+    },
+    {
+      "example_id": "qb2-036",
+      "slice": "conflict",
+      "category": "conflicting",
+      "answerable": true,
+      "product_status": "GROUNDED",
+      "primary_failure": "WRONG_ANSWER",
+      "secondary_failures": [],
+      "gold_in_hybrid": true,
+      "gold_in_rerank": true,
+      "gold_chunk_selected": true,
+      "rendered_gold_any": true,
+      "rendered_gold_all": true,
+      "rendered_gold_passage_recall": 1.0,
+      "lexical_key_fact_recall": 0.0,
+      "validation_status": "valid",
+      "cited_gold_passage_recall": 1.0,
+      "repair_attempts": 1,
+      "total_latency_ms": 16168.216224992648,
+      "diagnostic_reasons": [
+        "WRONG_ANSWER",
+        "LEXICAL_KEY_FACTS_UNMATCHED",
+        "LEXICAL_CLAIM_SLOT_UNMATCHED"
+      ],
+      "diagnostic_note": "lexical answer label(s) unmatched; authored claim-slot phrase(s) unmatched",
+      "technical_error": null,
+      "claim_slot_matches": [
+        {
+          "claim_id": "C1",
+          "lexical_answer_match": false,
+          "cited_gold_overlap": true
+        },
+        {
+          "claim_id": "C2",
+          "lexical_answer_match": false,
+          "cited_gold_overlap": true
+        }
+      ],
+      "repair_drift_kinds": [
+        "marker_only"
+      ]
+    },
+    {
+      "example_id": "qb2-037",
+      "slice": "conflict",
+      "category": "conflicting",
+      "answerable": true,
+      "product_status": "NOT_ENOUGH_EVIDENCE",
+      "primary_failure": "FALSE_ABSTENTION_WITH_GOLD_CONTEXT",
+      "secondary_failures": [],
+      "gold_in_hybrid": true,
+      "gold_in_rerank": true,
+      "gold_chunk_selected": true,
+      "rendered_gold_any": true,
+      "rendered_gold_all": true,
+      "rendered_gold_passage_recall": 1.0,
+      "lexical_key_fact_recall": 0.0,
+      "validation_status": "insufficient_evidence",
+      "cited_gold_passage_recall": 0.0,
+      "repair_attempts": 0,
+      "total_latency_ms": 4421.673500008183,
+      "diagnostic_reasons": [
+        "FALSE_ABSTENTION_WITH_GOLD_CONTEXT",
+        "ANSWERABLE_NOT_GROUNDED",
+        "LEXICAL_KEY_FACTS_UNMATCHED",
+        "REQUIRED_CITED_GOLD_MISSING",
+        "CONFLICT_NOT_REPORTED",
+        "LEXICAL_CLAIM_SLOT_UNMATCHED",
+        "CLAIM_SLOT_CITED_GOLD_MISSING"
+      ],
+      "diagnostic_note": "all gold rendered but model abstained; cited excerpts lack some/all required gold; no lexical conflict marker; authored claim-slot phrase(s) unmatched",
+      "technical_error": null,
+      "claim_slot_matches": [
+        {
+          "claim_id": "C1",
+          "lexical_answer_match": false,
+          "cited_gold_overlap": false
+        },
+        {
+          "claim_id": "C2",
+          "lexical_answer_match": false,
+          "cited_gold_overlap": false
+        }
+      ],
+      "repair_drift_kinds": []
+    },
+    {
+      "example_id": "qb2-041",
+      "slice": "longdoc",
+      "category": "multi_paragraph",
+      "answerable": true,
+      "product_status": "GROUNDED",
+      "primary_failure": "MULTISOURCE_SYNTHESIS_FAILURE",
+      "secondary_failures": [],
+      "gold_in_hybrid": true,
+      "gold_in_rerank": true,
+      "gold_chunk_selected": true,
+      "rendered_gold_any": true,
+      "rendered_gold_all": true,
+      "rendered_gold_passage_recall": 1.0,
+      "lexical_key_fact_recall": 0.3333333333333333,
+      "validation_status": "valid",
+      "cited_gold_passage_recall": 1.0,
+      "repair_attempts": 0,
+      "total_latency_ms": 10102.637961041182,
+      "diagnostic_reasons": [
+        "MULTISOURCE_SYNTHESIS_FAILURE",
+        "LEXICAL_KEY_FACTS_UNMATCHED",
+        "LEXICAL_CLAIM_SLOT_UNMATCHED"
+      ],
+      "diagnostic_note": "lexical answer label(s) unmatched; authored claim-slot phrase(s) unmatched",
+      "technical_error": null,
+      "claim_slot_matches": [
+        {
+          "claim_id": "C1",
+          "lexical_answer_match": false,
+          "cited_gold_overlap": true
+        },
+        {
+          "claim_id": "C2",
+          "lexical_answer_match": false,
+          "cited_gold_overlap": true
+        }
+      ],
+      "repair_drift_kinds": []
+    },
+    {
+      "example_id": "qb2-043",
+      "slice": "subset",
+      "category": "subset",
+      "answerable": true,
+      "product_status": "GROUNDED",
+      "primary_failure": "INCOMPLETE_ANSWER",
+      "secondary_failures": [],
+      "gold_in_hybrid": true,
+      "gold_in_rerank": true,
+      "gold_chunk_selected": true,
+      "rendered_gold_any": true,
+      "rendered_gold_all": true,
+      "rendered_gold_passage_recall": 1.0,
+      "lexical_key_fact_recall": 0.5,
+      "validation_status": "valid",
+      "cited_gold_passage_recall": 1.0,
+      "repair_attempts": 1,
+      "total_latency_ms": 12856.888928974513,
+      "diagnostic_reasons": [
+        "INCOMPLETE_ANSWER",
+        "LEXICAL_KEY_FACTS_UNMATCHED"
+      ],
+      "diagnostic_note": "lexical answer label(s) unmatched",
+      "technical_error": null,
+      "claim_slot_matches": [],
+      "repair_drift_kinds": [
+        "marker_only"
+      ]
+    },
+    {
+      "example_id": "qb2-045",
+      "slice": "followup",
+      "category": "followup",
+      "answerable": true,
+      "product_status": "NOT_ENOUGH_EVIDENCE",
+      "primary_failure": "FALSE_ABSTENTION_WITH_GOLD_CONTEXT",
+      "secondary_failures": [],
+      "gold_in_hybrid": true,
+      "gold_in_rerank": true,
+      "gold_chunk_selected": true,
+      "rendered_gold_any": true,
+      "rendered_gold_all": true,
+      "rendered_gold_passage_recall": 1.0,
+      "lexical_key_fact_recall": 0.0,
+      "validation_status": "insufficient_evidence",
+      "cited_gold_passage_recall": 0.0,
+      "repair_attempts": 0,
+      "total_latency_ms": 5546.623344969703,
+      "diagnostic_reasons": [
+        "FALSE_ABSTENTION_WITH_GOLD_CONTEXT",
+        "ANSWERABLE_NOT_GROUNDED",
+        "LEXICAL_KEY_FACTS_UNMATCHED",
+        "REQUIRED_CITED_GOLD_MISSING"
+      ],
+      "diagnostic_note": "all gold rendered but model abstained; cited excerpts lack some/all required gold",
+      "technical_error": null,
+      "claim_slot_matches": [],
+      "repair_drift_kinds": []
+    },
+    {
+      "example_id": "qb2-059",
+      "slice": "core",
+      "category": "methodology",
+      "answerable": true,
+      "product_status": "UNVERIFIED",
+      "primary_failure": "MISSING_CITATION",
+      "secondary_failures": [
+        "MISSING_CITATION"
+      ],
+      "gold_in_hybrid": true,
+      "gold_in_rerank": true,
+      "gold_chunk_selected": true,
+      "rendered_gold_any": true,
+      "rendered_gold_all": true,
+      "rendered_gold_passage_recall": 1.0,
+      "lexical_key_fact_recall": 1.0,
+      "validation_status": "missing_citations",
+      "cited_gold_passage_recall": 0.0,
+      "repair_attempts": 1,
+      "total_latency_ms": 22852.964193036314,
+      "diagnostic_reasons": [
+        "MISSING_CITATION",
+        "ANSWERABLE_NOT_GROUNDED",
+        "REQUIRED_CITED_GOLD_MISSING"
+      ],
+      "diagnostic_note": "cited excerpts lack some/all required gold",
+      "technical_error": null,
+      "claim_slot_matches": [],
+      "repair_drift_kinds": []
+    },
+    {
+      "example_id": "qb2-060",
+      "slice": "core",
+      "category": "limitation",
+      "answerable": true,
+      "product_status": "UNVERIFIED",
+      "primary_failure": "WRONG_ANSWER",
+      "secondary_failures": [
+        "MISSING_CITATION"
+      ],
+      "gold_in_hybrid": true,
+      "gold_in_rerank": true,
+      "gold_chunk_selected": true,
+      "rendered_gold_any": true,
+      "rendered_gold_all": true,
+      "rendered_gold_passage_recall": 1.0,
+      "lexical_key_fact_recall": 0.0,
+      "validation_status": "missing_citations",
+      "cited_gold_passage_recall": 0.0,
+      "repair_attempts": 1,
+      "total_latency_ms": 23356.174672022462,
+      "diagnostic_reasons": [
+        "WRONG_ANSWER",
+        "MISSING_CITATION",
+        "ANSWERABLE_NOT_GROUNDED",
+        "LEXICAL_KEY_FACTS_UNMATCHED",
+        "REQUIRED_CITED_GOLD_MISSING",
+        "REPAIR_CONTENT_DRIFT"
+      ],
+      "diagnostic_note": "lexical answer label(s) unmatched; cited excerpts lack some/all required gold; repair content-drift diagnostic",
+      "technical_error": null,
+      "claim_slot_matches": [],
+      "repair_drift_kinds": [
+        "polarity_change",
+        "entity_change",
+        "added_factual_claim"
+      ]
+    },
+    {
+      "example_id": "qb2-061",
+      "slice": "multisource",
+      "category": "comparison",
+      "answerable": true,
+      "product_status": "UNVERIFIED",
+      "primary_failure": "MISSING_CITATION",
+      "secondary_failures": [
+        "MISSING_CITATION"
+      ],
+      "gold_in_hybrid": true,
+      "gold_in_rerank": true,
+      "gold_chunk_selected": true,
+      "rendered_gold_any": true,
+      "rendered_gold_all": true,
+      "rendered_gold_passage_recall": 1.0,
+      "lexical_key_fact_recall": 1.0,
+      "validation_status": "missing_citations",
+      "cited_gold_passage_recall": 0.0,
+      "repair_attempts": 1,
+      "total_latency_ms": 20274.730469973292,
+      "diagnostic_reasons": [
+        "MISSING_CITATION",
+        "ANSWERABLE_NOT_GROUNDED",
+        "REQUIRED_CITED_GOLD_MISSING",
+        "LEXICAL_CLAIM_SLOT_UNMATCHED",
+        "CLAIM_SLOT_CITED_GOLD_MISSING"
+      ],
+      "diagnostic_note": "cited excerpts lack some/all required gold; authored claim-slot phrase(s) unmatched",
+      "technical_error": null,
+      "claim_slot_matches": [
+        {
+          "claim_id": "C1",
+          "lexical_answer_match": false,
+          "cited_gold_overlap": false
+        },
+        {
+          "claim_id": "C2",
+          "lexical_answer_match": false,
+          "cited_gold_overlap": false
+        }
+      ],
+      "repair_drift_kinds": []
+    },
+    {
+      "example_id": "qb2-062",
+      "slice": "conflict",
+      "category": "conflicting",
+      "answerable": true,
+      "product_status": "UNVERIFIED",
+      "primary_failure": "MISSING_CITATION",
+      "secondary_failures": [
+        "MISSING_CITATION"
+      ],
+      "gold_in_hybrid": true,
+      "gold_in_rerank": true,
+      "gold_chunk_selected": true,
+      "rendered_gold_any": true,
+      "rendered_gold_all": true,
+      "rendered_gold_passage_recall": 1.0,
+      "lexical_key_fact_recall": 1.0,
+      "validation_status": "missing_citations",
+      "cited_gold_passage_recall": 0.0,
+      "repair_attempts": 1,
+      "total_latency_ms": 21457.287442026427,
+      "diagnostic_reasons": [
+        "MISSING_CITATION",
+        "ANSWERABLE_NOT_GROUNDED",
+        "REQUIRED_CITED_GOLD_MISSING",
+        "CONFLICT_NOT_REPORTED",
+        "LEXICAL_CLAIM_SLOT_UNMATCHED",
+        "CLAIM_SLOT_CITED_GOLD_MISSING"
+      ],
+      "diagnostic_note": "cited excerpts lack some/all required gold; no lexical conflict marker; authored claim-slot phrase(s) unmatched",
+      "technical_error": null,
+      "claim_slot_matches": [
+        {
+          "claim_id": "C1",
+          "lexical_answer_match": false,
+          "cited_gold_overlap": false
+        },
+        {
+          "claim_id": "C2",
+          "lexical_answer_match": false,
+          "cited_gold_overlap": false
+        }
+      ],
+      "repair_drift_kinds": []
+    },
+    {
+      "example_id": "qb2-066",
+      "slice": "longdoc",
+      "category": "multi_paragraph",
+      "answerable": true,
+      "product_status": "UNVERIFIED",
+      "primary_failure": "MULTISOURCE_SYNTHESIS_FAILURE",
+      "secondary_failures": [
+        "MISSING_CITATION"
+      ],
+      "gold_in_hybrid": true,
+      "gold_in_rerank": true,
+      "gold_chunk_selected": true,
+      "rendered_gold_any": true,
+      "rendered_gold_all": true,
+      "rendered_gold_passage_recall": 1.0,
+      "lexical_key_fact_recall": 0.75,
+      "validation_status": "missing_citations",
+      "cited_gold_passage_recall": 0.0,
+      "repair_attempts": 1,
+      "total_latency_ms": 17370.510611013742,
+      "diagnostic_reasons": [
+        "MULTISOURCE_SYNTHESIS_FAILURE",
+        "MISSING_CITATION",
+        "ANSWERABLE_NOT_GROUNDED",
+        "LEXICAL_KEY_FACTS_UNMATCHED",
+        "REQUIRED_CITED_GOLD_MISSING",
+        "LEXICAL_CLAIM_SLOT_UNMATCHED",
+        "CLAIM_SLOT_CITED_GOLD_MISSING"
+      ],
+      "diagnostic_note": "lexical answer label(s) unmatched; cited excerpts lack some/all required gold; authored claim-slot phrase(s) unmatched",
+      "technical_error": null,
+      "claim_slot_matches": [
+        {
+          "claim_id": "C1",
+          "lexical_answer_match": false,
+          "cited_gold_overlap": false
+        },
+        {
+          "claim_id": "C2",
+          "lexical_answer_match": false,
+          "cited_gold_overlap": false
+        }
+      ],
+      "repair_drift_kinds": []
+    },
+    {
+      "example_id": "qb2-067",
+      "slice": "subset",
+      "category": "subset",
+      "answerable": true,
+      "product_status": "NOT_ENOUGH_EVIDENCE",
+      "primary_failure": "FALSE_ABSTENTION_WITH_GOLD_CONTEXT",
+      "secondary_failures": [],
+      "gold_in_hybrid": true,
+      "gold_in_rerank": true,
+      "gold_chunk_selected": true,
+      "rendered_gold_any": true,
+      "rendered_gold_all": true,
+      "rendered_gold_passage_recall": 1.0,
+      "lexical_key_fact_recall": 0.0,
+      "validation_status": "insufficient_evidence",
+      "cited_gold_passage_recall": 0.0,
+      "repair_attempts": 0,
+      "total_latency_ms": 5899.750147014856,
+      "diagnostic_reasons": [
+        "FALSE_ABSTENTION_WITH_GOLD_CONTEXT",
+        "ANSWERABLE_NOT_GROUNDED",
+        "LEXICAL_KEY_FACTS_UNMATCHED",
+        "REQUIRED_CITED_GOLD_MISSING"
+      ],
+      "diagnostic_note": "all gold rendered but model abstained; cited excerpts lack some/all required gold",
+      "technical_error": null,
+      "claim_slot_matches": [],
+      "repair_drift_kinds": []
+    },
+    {
+      "example_id": "qb2-068",
+      "slice": "followup",
+      "category": "followup",
+      "answerable": true,
+      "product_status": "NOT_ENOUGH_EVIDENCE",
+      "primary_failure": "FALSE_ABSTENTION_WITH_GOLD_CONTEXT",
+      "secondary_failures": [],
+      "gold_in_hybrid": true,
+      "gold_in_rerank": true,
+      "gold_chunk_selected": true,
+      "rendered_gold_any": true,
+      "rendered_gold_all": true,
+      "rendered_gold_passage_recall": 1.0,
+      "lexical_key_fact_recall": 0.0,
+      "validation_status": "insufficient_evidence",
+      "cited_gold_passage_recall": 0.0,
+      "repair_attempts": 0,
+      "total_latency_ms": 6230.350992991589,
+      "diagnostic_reasons": [
+        "FALSE_ABSTENTION_WITH_GOLD_CONTEXT",
+        "ANSWERABLE_NOT_GROUNDED",
+        "LEXICAL_KEY_FACTS_UNMATCHED",
+        "REQUIRED_CITED_GOLD_MISSING"
+      ],
+      "diagnostic_note": "all gold rendered but model abstained; cited excerpts lack some/all required gold",
+      "technical_error": null,
+      "claim_slot_matches": [],
+      "repair_drift_kinds": []
+    },
+    {
+      "example_id": "qb2-079",
+      "slice": "paraphrase",
+      "category": "paraphrase",
+      "answerable": true,
+      "product_status": "UNVERIFIED",
+      "primary_failure": "INCOMPLETE_ANSWER",
+      "secondary_failures": [
+        "MISSING_CITATION"
+      ],
+      "gold_in_hybrid": true,
+      "gold_in_rerank": true,
+      "gold_chunk_selected": true,
+      "rendered_gold_any": true,
+      "rendered_gold_all": true,
+      "rendered_gold_passage_recall": 1.0,
+      "lexical_key_fact_recall": 0.5,
+      "validation_status": "missing_citations",
+      "cited_gold_passage_recall": 0.0,
+      "repair_attempts": 1,
+      "total_latency_ms": 22751.38705599238,
+      "diagnostic_reasons": [
+        "INCOMPLETE_ANSWER",
+        "MISSING_CITATION",
+        "ANSWERABLE_NOT_GROUNDED",
+        "LEXICAL_KEY_FACTS_UNMATCHED",
+        "REQUIRED_CITED_GOLD_MISSING",
+        "UNSTABLE_PARAPHRASE_GROUP",
+        "REPAIR_CONTENT_DRIFT"
+      ],
+      "diagnostic_note": "lexical answer label(s) unmatched; cited excerpts lack some/all required gold; member of an unstable paraphrase group; repair content-drift diagnostic",
+      "technical_error": null,
+      "claim_slot_matches": [],
+      "repair_drift_kinds": [
+        "entity_change",
+        "added_factual_claim"
+      ]
+    },
+    {
+      "example_id": "qb2-080",
+      "slice": "paraphrase",
+      "category": "paraphrase",
+      "answerable": true,
+      "product_status": "UNVERIFIED",
+      "primary_failure": "WRONG_ANSWER",
+      "secondary_failures": [
+        "MISSING_CITATION"
+      ],
+      "gold_in_hybrid": true,
+      "gold_in_rerank": true,
+      "gold_chunk_selected": true,
+      "rendered_gold_any": true,
+      "rendered_gold_all": true,
+      "rendered_gold_passage_recall": 1.0,
+      "lexical_key_fact_recall": 0.0,
+      "validation_status": "missing_citations",
+      "cited_gold_passage_recall": 0.0,
+      "repair_attempts": 1,
+      "total_latency_ms": 12807.175751018804,
+      "diagnostic_reasons": [
+        "WRONG_ANSWER",
+        "MISSING_CITATION",
+        "ANSWERABLE_NOT_GROUNDED",
+        "LEXICAL_KEY_FACTS_UNMATCHED",
+        "REQUIRED_CITED_GOLD_MISSING",
+        "UNSTABLE_PARAPHRASE_GROUP"
+      ],
+      "diagnostic_note": "lexical answer label(s) unmatched; cited excerpts lack some/all required gold; member of an unstable paraphrase group",
+      "technical_error": null,
+      "claim_slot_matches": [],
+      "repair_drift_kinds": []
+    },
+    {
+      "example_id": "qb2-081",
+      "slice": "paraphrase",
+      "category": "paraphrase",
+      "answerable": true,
+      "product_status": "UNVERIFIED",
+      "primary_failure": "INCOMPLETE_ANSWER",
+      "secondary_failures": [
+        "MISSING_CITATION"
+      ],
+      "gold_in_hybrid": true,
+      "gold_in_rerank": true,
+      "gold_chunk_selected": true,
+      "rendered_gold_any": true,
+      "rendered_gold_all": true,
+      "rendered_gold_passage_recall": 1.0,
+      "lexical_key_fact_recall": 0.5,
+      "validation_status": "missing_citations",
+      "cited_gold_passage_recall": 0.0,
+      "repair_attempts": 1,
+      "total_latency_ms": 18480.12895800639,
+      "diagnostic_reasons": [
+        "INCOMPLETE_ANSWER",
+        "MISSING_CITATION",
+        "ANSWERABLE_NOT_GROUNDED",
+        "LEXICAL_KEY_FACTS_UNMATCHED",
+        "REQUIRED_CITED_GOLD_MISSING",
+        "UNSTABLE_PARAPHRASE_GROUP"
+      ],
+      "diagnostic_note": "lexical answer label(s) unmatched; cited excerpts lack some/all required gold; member of an unstable paraphrase group",
+      "technical_error": null,
+      "claim_slot_matches": [],
+      "repair_drift_kinds": []
+    },
+    {
+      "example_id": "qb2-083",
+      "slice": "versioning",
+      "category": "numeric",
+      "answerable": true,
+      "product_status": "NOT_ENOUGH_EVIDENCE",
+      "primary_failure": "FALSE_ABSTENTION_WITH_GOLD_CONTEXT",
+      "secondary_failures": [],
+      "gold_in_hybrid": true,
+      "gold_in_rerank": true,
+      "gold_chunk_selected": true,
+      "rendered_gold_any": true,
+      "rendered_gold_all": true,
+      "rendered_gold_passage_recall": 1.0,
+      "lexical_key_fact_recall": 0.0,
+      "validation_status": "insufficient_evidence",
+      "cited_gold_passage_recall": 0.0,
+      "repair_attempts": 0,
+      "total_latency_ms": 5667.394598043757,
+      "diagnostic_reasons": [
+        "FALSE_ABSTENTION_WITH_GOLD_CONTEXT",
+        "ANSWERABLE_NOT_GROUNDED",
+        "LEXICAL_KEY_FACTS_UNMATCHED",
+        "REQUIRED_CITED_GOLD_MISSING"
+      ],
+      "diagnostic_note": "all gold rendered but model abstained; cited excerpts lack some/all required gold",
+      "technical_error": null,
+      "claim_slot_matches": [],
+      "repair_drift_kinds": []
+    },
+    {
+      "example_id": "qb2-084",
+      "slice": "conflict",
+      "category": "conflicting",
+      "answerable": true,
+      "product_status": "NOT_ENOUGH_EVIDENCE",
+      "primary_failure": "FALSE_ABSTENTION_WITH_GOLD_CONTEXT",
+      "secondary_failures": [],
+      "gold_in_hybrid": true,
+      "gold_in_rerank": true,
+      "gold_chunk_selected": true,
+      "rendered_gold_any": true,
+      "rendered_gold_all": true,
+      "rendered_gold_passage_recall": 1.0,
+      "lexical_key_fact_recall": 0.0,
+      "validation_status": "insufficient_evidence",
+      "cited_gold_passage_recall": 0.0,
+      "repair_attempts": 0,
+      "total_latency_ms": 5680.939837970072,
+      "diagnostic_reasons": [
+        "FALSE_ABSTENTION_WITH_GOLD_CONTEXT",
+        "ANSWERABLE_NOT_GROUNDED",
+        "LEXICAL_KEY_FACTS_UNMATCHED",
+        "REQUIRED_CITED_GOLD_MISSING",
+        "CONFLICT_NOT_REPORTED",
+        "LEXICAL_CLAIM_SLOT_UNMATCHED",
+        "CLAIM_SLOT_CITED_GOLD_MISSING"
+      ],
+      "diagnostic_note": "all gold rendered but model abstained; cited excerpts lack some/all required gold; no lexical conflict marker; authored claim-slot phrase(s) unmatched",
+      "technical_error": null,
+      "claim_slot_matches": [
+        {
+          "claim_id": "C1",
+          "lexical_answer_match": false,
+          "cited_gold_overlap": false
+        },
+        {
+          "claim_id": "C2",
+          "lexical_answer_match": false,
+          "cited_gold_overlap": false
+        }
+      ],
+      "repair_drift_kinds": []
+    },
+    {
+      "example_id": "qb2-087",
+      "slice": "core",
+      "category": "methodology",
+      "answerable": true,
+      "product_status": "GROUNDED",
+      "primary_failure": "WRONG_ANSWER",
+      "secondary_failures": [],
+      "gold_in_hybrid": true,
+      "gold_in_rerank": true,
+      "gold_chunk_selected": true,
+      "rendered_gold_any": true,
+      "rendered_gold_all": true,
+      "rendered_gold_passage_recall": 1.0,
+      "lexical_key_fact_recall": 0.0,
+      "validation_status": "valid",
+      "cited_gold_passage_recall": 1.0,
+      "repair_attempts": 1,
+      "total_latency_ms": 10087.525112990988,
+      "diagnostic_reasons": [
+        "WRONG_ANSWER",
+        "LEXICAL_KEY_FACTS_UNMATCHED",
+        "REPAIR_CONTENT_DRIFT"
+      ],
+      "diagnostic_note": "lexical answer label(s) unmatched; repair content-drift diagnostic",
+      "technical_error": null,
+      "claim_slot_matches": [],
+      "repair_drift_kinds": [
+        "polarity_change",
+        "entity_change"
+      ]
+    },
+    {
+      "example_id": "qb2-088",
+      "slice": "multisource",
+      "category": "comparison",
+      "answerable": true,
+      "product_status": "UNVERIFIED",
+      "primary_failure": "WRONG_ANSWER",
+      "secondary_failures": [
+        "MISSING_CITATION"
+      ],
+      "gold_in_hybrid": true,
+      "gold_in_rerank": true,
+      "gold_chunk_selected": true,
+      "rendered_gold_any": true,
+      "rendered_gold_all": true,
+      "rendered_gold_passage_recall": 1.0,
+      "lexical_key_fact_recall": 0.0,
+      "validation_status": "missing_citations",
+      "cited_gold_passage_recall": 0.0,
+      "repair_attempts": 1,
+      "total_latency_ms": 14727.533931960352,
+      "diagnostic_reasons": [
+        "WRONG_ANSWER",
+        "MISSING_CITATION",
+        "ANSWERABLE_NOT_GROUNDED",
+        "LEXICAL_KEY_FACTS_UNMATCHED",
+        "REQUIRED_CITED_GOLD_MISSING",
+        "LEXICAL_CLAIM_SLOT_UNMATCHED",
+        "CLAIM_SLOT_CITED_GOLD_MISSING"
+      ],
+      "diagnostic_note": "lexical answer label(s) unmatched; cited excerpts lack some/all required gold; authored claim-slot phrase(s) unmatched",
+      "technical_error": null,
+      "claim_slot_matches": [
+        {
+          "claim_id": "C1",
+          "lexical_answer_match": false,
+          "cited_gold_overlap": false
+        },
+        {
+          "claim_id": "C2",
+          "lexical_answer_match": false,
+          "cited_gold_overlap": false
+        }
+      ],
+      "repair_drift_kinds": [
+        "paraphrase"
+      ]
+    },
+    {
+      "example_id": "qb2-089",
+      "slice": "multisource",
+      "category": "multi_source",
+      "answerable": true,
+      "product_status": "NOT_ENOUGH_EVIDENCE",
+      "primary_failure": "CONTEXT_BUDGET_DROP",
+      "secondary_failures": [],
+      "gold_in_hybrid": true,
+      "gold_in_rerank": true,
+      "gold_chunk_selected": true,
+      "rendered_gold_any": true,
+      "rendered_gold_all": false,
+      "rendered_gold_passage_recall": 0.5,
+      "lexical_key_fact_recall": 0.0,
+      "validation_status": "insufficient_evidence",
+      "cited_gold_passage_recall": 0.0,
+      "repair_attempts": 0,
+      "total_latency_ms": 5532.43808800471,
+      "diagnostic_reasons": [
+        "CONTEXT_BUDGET_DROP",
+        "ANSWERABLE_NOT_GROUNDED",
+        "REQUIRED_RENDERED_GOLD_MISSING",
+        "LEXICAL_KEY_FACTS_UNMATCHED",
+        "REQUIRED_CITED_GOLD_MISSING",
+        "LEXICAL_CLAIM_SLOT_UNMATCHED",
+        "CLAIM_SLOT_CITED_GOLD_MISSING"
+      ],
+      "diagnostic_note": "gold passage dropped between rerank and rendered context; answerable item abstained with incomplete rendered gold; cited excerpts lack some/all required gold; authored claim-slot phrase(s) unmatched",
+      "technical_error": null,
+      "claim_slot_matches": [
+        {
+          "claim_id": "C1",
+          "lexical_answer_match": false,
+          "cited_gold_overlap": false
+        },
+        {
+          "claim_id": "C2",
+          "lexical_answer_match": false,
+          "cited_gold_overlap": false
+        }
+      ],
+      "repair_drift_kinds": []
+    },
+    {
+      "example_id": "qb2-091",
+      "slice": "longdoc",
+      "category": "numeric",
+      "answerable": true,
+      "product_status": "GROUNDED",
+      "primary_failure": "WRONG_ANSWER",
+      "secondary_failures": [],
+      "gold_in_hybrid": true,
+      "gold_in_rerank": true,
+      "gold_chunk_selected": true,
+      "rendered_gold_any": true,
+      "rendered_gold_all": true,
+      "rendered_gold_passage_recall": 1.0,
+      "lexical_key_fact_recall": 0.0,
+      "validation_status": "valid",
+      "cited_gold_passage_recall": 1.0,
+      "repair_attempts": 0,
+      "total_latency_ms": 7302.882681018673,
+      "diagnostic_reasons": [
+        "WRONG_ANSWER",
+        "LEXICAL_KEY_FACTS_UNMATCHED"
+      ],
+      "diagnostic_note": "lexical answer label(s) unmatched",
+      "technical_error": null,
+      "claim_slot_matches": [],
+      "repair_drift_kinds": []
+    },
+    {
+      "example_id": "qb2-093",
+      "slice": "longdoc",
+      "category": "summarization",
+      "answerable": true,
+      "product_status": "UNVERIFIED",
+      "primary_failure": "WRONG_ANSWER",
+      "secondary_failures": [
+        "MISSING_CITATION"
+      ],
+      "gold_in_hybrid": true,
+      "gold_in_rerank": true,
+      "gold_chunk_selected": true,
+      "rendered_gold_any": true,
+      "rendered_gold_all": true,
+      "rendered_gold_passage_recall": 1.0,
+      "lexical_key_fact_recall": 0.0,
+      "validation_status": "missing_citations",
+      "cited_gold_passage_recall": 0.0,
+      "repair_attempts": 1,
+      "total_latency_ms": 29717.512188013643,
+      "diagnostic_reasons": [
+        "WRONG_ANSWER",
+        "MISSING_CITATION",
+        "ANSWERABLE_NOT_GROUNDED",
+        "LEXICAL_KEY_FACTS_UNMATCHED",
+        "REQUIRED_CITED_GOLD_MISSING",
+        "LEXICAL_CLAIM_SLOT_UNMATCHED",
+        "CLAIM_SLOT_CITED_GOLD_MISSING"
+      ],
+      "diagnostic_note": "lexical answer label(s) unmatched; cited excerpts lack some/all required gold; authored claim-slot phrase(s) unmatched",
+      "technical_error": null,
+      "claim_slot_matches": [
+        {
+          "claim_id": "C1",
+          "lexical_answer_match": false,
+          "cited_gold_overlap": false
+        },
+        {
+          "claim_id": "C2",
+          "lexical_answer_match": false,
+          "cited_gold_overlap": false
+        }
+      ],
+      "repair_drift_kinds": []
+    }
+  ],
+  "metric_notes": {
+    "abstention_positive": "Insufficient evidence / abstention, not an attempted answer. TP=correct abstention; FP=false abstention; FN=false answer; TN=answerable item not abstained.",
+    "lexical": "Substring key-fact/claim-slot matches and token F1 are diagnostics, not semantic correctness. Forbidden hits can flag a correct contrast.",
+    "gold": "Any-gold chunk membership differs from all exact rendered/cited passage coverage. Coverage and citation validity do not prove entailment.",
+    "latency": "Raw report summaries preserved, including cold first and warm statistics. Row total = evidence retrieval + reranker inference + generation/repair; it excludes preparation, model loading outside timers, extra diagnostic searches and other evaluator overhead. Wall time covers the entire CLI. Missing/failed generation timing may be zero; technical failures must be read separately."
+  }
+}
