@@ -46,6 +46,9 @@ unimplemented next experiment. It does not rerun or replace the frozen baseline.
 The [single-run sufficiency experiment](experiments/qualitybench_v2_dev_sufficiency_v6.md)
 records the v6 DEV comparison and its rejection for factual and citation guardrail failures.
 The candidate was not promoted; production remains on `grounded.answerability.v5`.
+The [first-pass citation-compliance experiment](experiments/qualitybench_v2_dev_citation_compliance_v7.md)
+records one v7 DEV run: citation targets passed, but factual and final-citation
+guardrails failed, so the candidate was rejected.
 A future live run needs a separate workspace when the embedding configuration differs.
 
 ## Isolated workspace
