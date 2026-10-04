@@ -109,6 +109,11 @@ class GenerationDiagnostics:
     first_pass_answer_text: str = ""
     first_pass_generation_ms: float = 0.0
     repair_ms: float = 0.0
+    citation_repair_accepted: bool = False
+    citation_repair_rejection_reason: str = ""
+    citation_repair_content_preserved: bool | None = None
+    citation_repair_input_tokens: int | None = None
+    citation_repair_output_tokens: int | None = None
     claim_sources: tuple[tuple[str, tuple[str, ...]], ...] = ()
     sources_disagree: bool | None = None
 
@@ -146,6 +151,11 @@ class GenerationDiagnostics:
             "first_pass_answer_text": self.first_pass_answer_text,
             "first_pass_generation_ms": round(self.first_pass_generation_ms, 2),
             "repair_ms": round(self.repair_ms, 2),
+            "citation_repair_accepted": self.citation_repair_accepted,
+            "citation_repair_rejection_reason": self.citation_repair_rejection_reason,
+            "citation_repair_content_preserved": self.citation_repair_content_preserved,
+            "citation_repair_input_tokens": self.citation_repair_input_tokens,
+            "citation_repair_output_tokens": self.citation_repair_output_tokens,
             "claim_sources": [
                 {"claim": claim, "source_ids": list(ids)} for claim, ids in self.claim_sources
             ],

@@ -28,6 +28,7 @@ from research_assistant.generation.prompt import (
     estimated_prompt_tokens,
 )
 from research_assistant.generation.protocol import LLMClient
+from research_assistant.generation.repair import validate_citation_repair
 
 logger = get_logger("research_assistant.generation")
 
@@ -120,13 +121,19 @@ class GroundedGenerationService:
         repair_ms = 0.0
         first_pass_status = status.value
         first_pass_answer = answer_text
+        repair_accepted = False
+        repair_rejection_reason = ""
+        repair_content_preserved = None
+        repair_input_tokens = None
+        repair_output_tokens = None
         if (
             status is ValidationStatus.MISSING_CITATIONS
             and self._settings.llm_citation_repair
+            and not format_repair_attempted
         ):
             repair_attempts = 1
             repair_request = build_repair_request(
-                question, bundle, identity, response.text
+                bundle, identity, first_pass_answer
             )
             repair_engine = self._repair_engine()
             try:
@@ -140,15 +147,24 @@ class GroundedGenerationService:
                 ) from exc
             repair_ms = repaired.generation_ms
             generation_ms += repair_ms
-            parsed = parse_model_output(repaired.text)
-            answer_text = parsed.answer
-            status, citations, invalid, malformed = validate_citations(
-                answer_text,
-                bundle,
-                insufficient_evidence=parsed.insufficient_evidence,
-                malformed_output=parsed.malformed,
+            repair_input_tokens = repaired.input_tokens
+            repair_output_tokens = repaired.output_tokens
+            repair_validation = validate_citation_repair(
+                first_pass_answer, repaired.text, bundle
             )
-            response = repaired
+            repair_accepted = repair_validation.accepted
+            repair_rejection_reason = repair_validation.rejection_reason
+            repair_content_preserved = repair_validation.content_preserved
+            if repair_accepted:
+                parsed = repair_validation.parsed
+                answer_text = parsed.answer
+                status, citations, invalid, malformed = validate_citations(
+                    answer_text,
+                    bundle,
+                    insufficient_evidence=parsed.insufficient_evidence,
+                    malformed_output=parsed.malformed,
+                )
+                response = repaired
         diagnostics = GenerationDiagnostics(
             llm_id=identity.llm_id,
             provider=identity.provider,
@@ -184,12 +200,18 @@ class GroundedGenerationService:
             first_pass_answer_text=first_pass_answer if repair_attempts else "",
             first_pass_generation_ms=first_pass_generation_ms,
             repair_ms=repair_ms,
+            citation_repair_accepted=repair_accepted,
+            citation_repair_rejection_reason=repair_rejection_reason,
+            citation_repair_content_preserved=repair_content_preserved,
+            citation_repair_input_tokens=repair_input_tokens,
+            citation_repair_output_tokens=repair_output_tokens,
             claim_sources=parsed.claim_sources,
             sources_disagree=parsed.sources_disagree,
         )
         logger.info(
             "generation_completed status=%s protocol=%s category=%s citations=%s invalid=%s "
-            "ms=%.1f first_pass_ms=%.1f repair_ms=%.1f repair=%s",
+            "ms=%.1f first_pass_ms=%.1f repair_ms=%.1f repair=%s "
+            "repair_accepted=%s repair_rejection=%s",
             status.value,
             parsed.protocol_status,
             parsed.raw_output_category,
@@ -199,6 +221,8 @@ class GroundedGenerationService:
             first_pass_generation_ms,
             repair_ms,
             repair_attempts,
+            repair_accepted,
+            repair_rejection_reason,
         )
         return GroundedAnswer(
             question=question,

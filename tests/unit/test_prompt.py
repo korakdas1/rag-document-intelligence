@@ -1,3 +1,5 @@
+import json
+
 from research_assistant.context.builder import CitationAwareContextBuilder
 from research_assistant.core.settings import Settings
 from research_assistant.generation.identity import LLMIdentity
@@ -121,16 +123,22 @@ def test_repair_request_keeps_same_evidence_and_not_chat_history() -> None:
         [_hit()], query="What is self-attention?"
     )
     request = build_repair_request(
-        "What is self-attention?",
         bundle,
         _identity(),
-        '{"answer": "Self-attention connects tokens.", "insufficient_evidence": false}',
+        "  Self-attention connects tokens.\n",
     )
-    evidence = request.messages[3].content
-    previous = request.messages[4].content
+    evidence = request.messages[1].content
+    original = json.loads(request.messages[2].content)
     assert evidence == build_request("What is self-attention?", bundle, _identity()).messages[2].content
     assert "They do not marry" not in evidence
-    assert "previous_output" in previous
+    assert original["original_answer"] == "  Self-attention connects tokens.\n"
+    assert original["allowed_citation_ids"] == ["S1"]
+    assert [message.role for message in request.messages] == ["system", "user", "user"]
+    assert all(SYSTEM_INSTRUCTIONS not in message.content for message in request.messages)
+    blob = " ".join(message.content for message in request.messages)
+    assert QUESTION_OPEN not in blob
+    assert "What is self-attention?" not in blob
+    assert "previous_output" not in blob
     assert request.allowed_citation_ids == ("S1",)
 
 
