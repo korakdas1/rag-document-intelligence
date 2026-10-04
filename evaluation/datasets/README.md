@@ -1,6 +1,6 @@
 # ragbench_v1
 
-Small committed retrieval benchmark. **Not** a public leaderboard dataset.
+Historical/smaller committed retrieval benchmark. **Not** a public leaderboard dataset.
 
 - **Documents:** 13 original synthetic markdown notes under `evaluation/corpus/` (top-level files only)
 - **Questions:** 47 (`dev` 12, `test` 35)
@@ -17,7 +17,21 @@ Do not auto-label gold with the retriever being evaluated.
 
 Answer/citation quality set. Lives under `evaluation/corpus/quality/` so it is **not** mixed into ragbench_v1 `prepare_corpus` of the top-level corpus directory. See `qualitybench_v1.md`.
 
-This is the curated public quality suite (test **n=57**).
+This historical/smaller quality suite (test **n=57**) remains unchanged for regression
+checks and reproduction of its earlier results.
+
+# qualitybench_v2
+
+A harder, project-owned synthetic benchmark for future comparative RAG experiments:
+**20 documents**, **96 questions** (**24 dev / 72 test**), with **80 answerable /
+16 unanswerable** items. The separate `evaluation/corpus/quality_v2/` corpus covers
+four engineering/research families with revisions, hard negatives, numeric units,
+unresolved conflicts, selected-document scope, follow-ups, and long-document
+synthesis. It does not replace either v1 suite.
+
+See the [benchmark card](qualitybench_v2.md) for construction policy, gold provenance,
+distributions, split discipline, and limitations. It is synthetic, not a claim of
+production accuracy. No live baseline numbers are published with this addition.
 
 # qualitybench_phrase_extra
 

@@ -10,11 +10,37 @@ embeddings, overlap reranking, and scripted generation; no GPU or Ollama is need
 | Suite | Dataset | Corpus |
 | --- | --- | --- |
 | ragbench | `datasets/ragbench_v1.jsonl` | `corpus/` (top-level documents) |
-| qualitybench | `datasets/qualitybench_v1.jsonl` | `corpus/quality/` |
+| qualitybench v1 (historical/smaller) | `datasets/qualitybench_v1.jsonl` | `corpus/quality/` |
+| qualitybench v2 | `datasets/qualitybench_v2.jsonl` | `corpus/quality_v2/` |
 | Follow-up resolver | `datasets/ragbench_followup_v1.jsonl` | No generation |
 
 The fixed-context genbench scripts are separate optional experiments. Dataset notes:
 [datasets/README.md](datasets/README.md). Do not place user uploads in benchmark corpora.
+
+## Qualitybench v2 development check
+
+The [v2 benchmark card](datasets/qualitybench_v2.md) documents the harder synthetic
+corpus, distributions, gold policy, and limitations. Keep v1 inputs and historical
+results unchanged. For an offline **dev-only** pipeline check:
+
+```bash
+python -m pytest -s tests/unit/test_qualitybench_v2.py
+RESEARCH_ASSISTANT_LLM_PROVIDER=scripted python -m research_assistant evaluate \
+  --dataset evaluation/datasets/qualitybench_v2.jsonl \
+  --corpus evaluation/corpus/quality_v2 \
+  --workspace evaluation/workspaces/qualitybench_v2_offline_smoke \
+  --prepare --stage full --split dev \
+  --embedding-model hashing --reranker overlap --llm-model scripted.v1
+```
+
+This checks preparation, isolated persistence, gold resolution, and report
+serialization. Scripted outputs are not a model-performance baseline. Reports
+identify `qualitybench_v2` / `qualitybench.v2` and retain `evidence-metrics.v2`.
+The integrity test resolves both splits without retrieval; the command evaluates
+only dev. Do not use held-out retrieval or generation results to rewrite test
+questions or gold. The live v2 test baseline is reserved for a separate measurement
+after the benchmark is merged; none is run or published in this addition. A future
+live run needs a separate workspace when the embedding configuration differs.
 
 ## Isolated workspace
 
