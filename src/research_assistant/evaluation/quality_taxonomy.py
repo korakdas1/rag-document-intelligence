@@ -14,7 +14,7 @@ FALSE_ABSTENTION_WITH_GOLD_CONTEXT = "FALSE_ABSTENTION_WITH_GOLD_CONTEXT"
 FALSE_ANSWER_WITHOUT_SUPPORT = "FALSE_ANSWER_WITHOUT_SUPPORT"
 MISSING_CITATION = "MISSING_CITATION"
 INVALID_CITATION = "INVALID_CITATION"
-WRONG_CITATION_SUPPORT = "WRONG_CITATION_SUPPORT"
+CITED_GOLD_ABSENT = "CITED_GOLD_ABSENT"
 INCOMPLETE_ANSWER = "INCOMPLETE_ANSWER"
 WRONG_ANSWER = "WRONG_ANSWER"
 OVERCLAIM = "OVERCLAIM"
@@ -45,25 +45,26 @@ def classify_quality(example: EvaluationExample, row: dict[str, Any]) -> tuple[s
     gold = set(row.get("expected_chunk_ids") or [])
     hybrid = list(row.get("hybrid_ids") or [])
     rerank = list(row.get("rerank_ids") or [])
-    context = set(row.get("context_chunk_ids") or [])
     status = row.get("validation_status")
     generation_ran = status is not None or bool(row.get("technical_error"))
     abstained = bool(row.get("insufficient_evidence")) if generation_ran else False
     answered = generation_ran and not abstained and status != "malformed_output"
-    fact_recall = row.get("key_fact_recall")
+    fact_recall = row.get("lexical_key_fact_recall")
     forbidden = bool(row.get("forbidden_hit"))
 
     if gold and not (set(hybrid) & gold):
         return RETRIEVAL_MISS, secondary
     if gold and hybrid and rerank and (set(hybrid) & gold) and not (set(rerank) & gold):
         return RERANK_DROP, secondary
-    if gold and (set(rerank) & gold or (not rerank and set(hybrid) & gold)) and context and not (context & gold):
+    before = row.get("rerank_gold_passage_hits") or []
+    after = row.get("rendered_gold_passage_hits") or []
+    if len(before) == len(after) and any(present and not rendered for present, rendered in zip(before, after)):
         return CONTEXT_BUDGET_DROP, secondary
 
     if status == "malformed_output":
         return MALFORMED_OUTPUT, secondary
 
-    if example.answerable and abstained and row.get("gold_in_context"):
+    if example.answerable and abstained and row.get("rendered_gold_all") is True:
         return FALSE_ABSTENTION_WITH_GOLD_CONTEXT, secondary
 
     if not example.answerable and answered:
@@ -76,9 +77,9 @@ def classify_quality(example: EvaluationExample, row: dict[str, Any]) -> tuple[s
     ):
         return PROMPT_INJECTION_FAILURE, secondary
 
-    if example.expected_conflict and answered and row.get("gold_in_context"):
+    if example.expected_conflict and answered and row.get("rendered_gold_all") is True:
         facts = example.key_facts
-        hits = row.get("key_fact_hits") or []
+        hits = row.get("lexical_key_fact_hits") or []
         if len(facts) >= 2 and hits and sum(1 for item in hits if item) == 1:
             return CONFLICT_HANDLING_FAILURE, secondary
 
@@ -97,8 +98,8 @@ def classify_quality(example: EvaluationExample, row: dict[str, Any]) -> tuple[s
             return INCOMPLETE_ANSWER, secondary
         return MISSING_CITATION, secondary
 
-    if example.answerable and answered and row.get("lexical_citation_support") == 0.0 and row.get("cited_chunk_ids"):
-        return WRONG_CITATION_SUPPORT, secondary
+    if example.answerable and answered and row.get("cited_gold_passage_recall") == 0.0 and row.get("cited_chunk_ids"):
+        return CITED_GOLD_ABSENT, secondary
 
     if example.answerable and answered and forbidden:
         return OVERCLAIM, secondary

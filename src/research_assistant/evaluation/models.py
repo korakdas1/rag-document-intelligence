@@ -6,6 +6,8 @@ from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import Any
 
+from research_assistant.evaluation.identity import METRICS_SCHEMA
+
 
 class Split(StrEnum):
     DEV = "dev"
@@ -167,6 +169,7 @@ class EvaluationDataset:
     version: str
     examples: tuple[EvaluationExample, ...]
     description: str = ""
+    source_sha256: str | None = None
 
     def filter_split(self, split: Split | str | None) -> tuple[EvaluationExample, ...]:
         if split is None:
@@ -261,18 +264,43 @@ class ExampleTrace:
     invalid_citation_ids: list[str] = field(default_factory=list)
     retrieval_scores: dict[str, float | None] = field(default_factory=dict)
     rerank_scores: dict[str, float | None] = field(default_factory=dict)
-    context_gold_hit: bool | None = None
-    context_evidence_recall: float | None = None
+    gold_chunk_selected: bool | None = None
+    context_gold_chunk_recall: float | None = None
     candidate_recall: float | None = None
     timings_ms: dict[str, float] = field(default_factory=dict)
     failure_categories: list[str] = field(default_factory=list)
     reference_token_f1: float | None = None
-    lexical_citation_support: float | None = None
+    cited_gold_passage_recall: float | None = None
     judge: dict[str, Any] | None = None
     cached_generation: bool = False
+    context_blocks: list[dict[str, Any]] = field(default_factory=list)
+    cited_passages: list[dict[str, Any]] = field(default_factory=list)
+    gold_passages: list[dict[str, str]] = field(default_factory=list)
+    rerank_gold_passage_hits: list[bool] = field(default_factory=list)
+    rendered_gold_passage_hits: list[bool] = field(default_factory=list)
+    rendered_gold_any: bool | None = None
+    rendered_gold_all: bool | None = None
+    rendered_gold_passage_recall: float | None = None
+    cited_gold_passage_hits: list[bool] = field(default_factory=list)
+    cited_gold_any: bool | None = None
+    cited_gold_all: bool | None = None
+    cited_gold_coverage_class: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
+            "metrics_schema": METRICS_SCHEMA,
+            "rerank_gold_passage_hits": self.rerank_gold_passage_hits,
+            "context_blocks": self.context_blocks,
+            "cited_passages": self.cited_passages,
+            "gold_passages": self.gold_passages,
+            "rendered_gold_passage_hits": self.rendered_gold_passage_hits,
+            "rendered_gold_any": self.rendered_gold_any,
+            "rendered_gold_all": self.rendered_gold_all,
+            "rendered_gold_passage_recall": self.rendered_gold_passage_recall,
+            "cited_gold_passage_hits": self.cited_gold_passage_hits,
+            "cited_gold_any": self.cited_gold_any,
+            "cited_gold_all": self.cited_gold_all,
+            "cited_gold_coverage_class": self.cited_gold_coverage_class,
             "example_id": self.example_id,
             "question": self.question,
             "split": self.split,
@@ -293,13 +321,13 @@ class ExampleTrace:
             "invalid_citation_ids": self.invalid_citation_ids,
             "retrieval_scores": self.retrieval_scores,
             "rerank_scores": self.rerank_scores,
-            "context_gold_hit": self.context_gold_hit,
-            "context_evidence_recall": self.context_evidence_recall,
+            "gold_chunk_selected": self.gold_chunk_selected,
+            "context_gold_chunk_recall": self.context_gold_chunk_recall,
             "candidate_recall": self.candidate_recall,
             "timings_ms": self.timings_ms,
             "failure_categories": self.failure_categories,
             "reference_token_f1": self.reference_token_f1,
-            "lexical_citation_support": self.lexical_citation_support,
+            "cited_gold_passage_recall": self.cited_gold_passage_recall,
             "judge": self.judge,
             "cached_generation": self.cached_generation,
         }

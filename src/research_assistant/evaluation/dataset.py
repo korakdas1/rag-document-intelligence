@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 from collections.abc import Sequence
 from pathlib import Path
 
@@ -55,6 +56,7 @@ def load_dataset(path: Path | str) -> EvaluationDataset:
         version=version,
         examples=tuple(examples),
         description=f"Loaded from {target}",
+        source_sha256=hashlib.sha256(target.read_bytes()).hexdigest(),
     )
 
 

@@ -6,7 +6,46 @@ import hashlib
 import json
 import subprocess
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
+
+from research_assistant.core.errors import EvaluationError
+
+METRICS_SCHEMA = "evidence-metrics.v2"
+
+
+def corpus_files(directory: Path) -> list[Path]:
+    """The same top-level document set consumed by corpus preparation."""
+    if not directory.is_dir():
+        raise EvaluationError(f"Corpus directory missing: {directory}", code="corpus_missing")
+    files = sorted(
+        path for path in directory.iterdir()
+        if path.is_file() and path.suffix.lower() in {".md", ".txt", ".pdf"}
+    )
+    if not files:
+        raise EvaluationError(f"No documents in {directory}", code="empty_corpus")
+    return files
+
+
+def corpus_fingerprint(directory: Path) -> str:
+    entries = [
+        [path.name, hashlib.sha256(path.read_bytes()).hexdigest()]
+        for path in corpus_files(directory)
+    ]
+    return hashlib.sha256(json.dumps(entries, ensure_ascii=False).encode("utf-8")).hexdigest()
+
+
+def report_metadata(dataset, metadata: dict[str, Any] | None = None) -> dict[str, Any]:
+    """File digest when loaded from JSONL; explicit canonical fallback for fixtures."""
+    canonical = json.dumps([item.to_dict() for item in dataset.examples], sort_keys=True)
+    return {
+        **(metadata or {}),
+        "metrics_schema": METRICS_SCHEMA,
+        "dataset_sha256": dataset.source_sha256 or hashlib.sha256(canonical.encode()).hexdigest(),
+        "dataset_hash_kind": "file_bytes" if dataset.source_sha256 else "canonical_examples_json",
+        "corpus_sha256": (metadata or {}).get("corpus_sha256"),
+        "workspace": (metadata or {}).get("workspace"),
+    }
 
 
 def utc_stamp() -> str:

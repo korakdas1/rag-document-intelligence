@@ -52,7 +52,7 @@ A valid `[S#]` means the ID exists in context. It does **not** prove the passage
 
 ## Evaluation
 
-On **qualitybench_v1** (57 synthetic test questions; 50 answerable, 7 unanswerable), the current configuration reached gold evidence in the context bundle for **50/50** answerable items, produced **0/7** false answers on unanswerable items, and **3/3** leak-control abstentions. Among answers that needed citations, coverage was **35/43 (~81%)** with **0** invalid IDs and **0** malformed outputs. Product GROUNDED / UNVERIFIED / insufficient-evidence was **35 / 8 / 14**. Under the project’s lexical support audit, **33/35** GROUNDED answers were supported; **7/50** answerable items still false-abstained with gold in context.
+A **historical qualitybench_v1** run (57 synthetic test questions; 50 answerable, 7 unanswerable) selected a gold **chunk** for **50/50** answerable items. That ID-based result did not establish that each full gold passage survived context truncation. Historical outputs included **0/7** false answers, **3/3** leak-control abstentions, citation coverage **35/43 (~81%)**, and product GROUNDED / UNVERIFIED / insufficient-evidence **35 / 8 / 14**. The old **33/35** lexical audit was not an entailment measurement; **7/50** abstentions had a selected gold chunk. These numbers have not been regenerated under `evidence-metrics.v2`; exact rendered-evidence results require a new live run.
 
 **81% is citation coverage among answerable non-abstaining items, not overall accuracy.**
 
