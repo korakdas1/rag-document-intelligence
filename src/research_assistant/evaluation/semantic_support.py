@@ -1,7 +1,6 @@
-"""Eval-only semantic citation support and repair-drift helpers.
+"""Evaluation-only lexical overlap, legacy coverage adapter, and repair drift.
 
-Not used in production generation. Gold labels are authoritative.
-Lexical overlap is a lower bound, not entailment.
+None of these diagnostics measures entailment. Production generation is unchanged.
 """
 
 from __future__ import annotations
@@ -13,9 +12,19 @@ from typing import Any
 from research_assistant.evaluation.quality_metrics import conflict_reported, normalize_text
 from research_assistant.generation.citations import CITATION_RE
 
-SUPPORTED = "SUPPORTED"
-PARTIALLY_SUPPORTED = "PARTIALLY_SUPPORTED"
-UNSUPPORTED = "UNSUPPORTED"
+from research_assistant.evaluation.evidence_metrics import (
+    FULL_GOLD_PASSAGE_COVERAGE, PARTIAL_GOLD_PASSAGE_COVERAGE,
+    NO_GOLD_PASSAGE_COVERAGE,
+)
+
+# Legacy import aliases for old offline scripts; new reports use coverage names.
+SUPPORTED = FULL_GOLD_PASSAGE_COVERAGE
+PARTIALLY_SUPPORTED = PARTIAL_GOLD_PASSAGE_COVERAGE
+UNSUPPORTED = NO_GOLD_PASSAGE_COVERAGE
+FULL_LEXICAL_OVERLAP = "FULL_LEXICAL_OVERLAP"
+PARTIAL_LEXICAL_OVERLAP = "PARTIAL_LEXICAL_OVERLAP"
+NO_LEXICAL_OVERLAP = "NO_LEXICAL_OVERLAP"
+POLARITY_MISMATCH = "POLARITY_MISMATCH"
 UNCLEAR = "UNCLEAR"
 
 _MARKER_SPACE_RE = re.compile(r"\s+([.,;:])")
@@ -33,7 +42,7 @@ _DATE_RE = re.compile(
 )
 _NUMBER_RE = re.compile(r"\b\d+(?:,\d{3})*(?:\.\d+)?\b")
 _POLARITY_RE = re.compile(
-    r"\b(no|not|never|cannot|can't|don't|does not|do not|denied|approved)\b",
+    r"\b(no|not|never|cannot|can't|don't|does not|do not|denied|rejected|approved)\b",
     re.IGNORECASE,
 )
 _ENTITYISH_RE = re.compile(r"\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,3})\b")
@@ -74,7 +83,12 @@ def classify_cited_support(
     cited_texts: Sequence[str],
     has_valid_citation: bool,
 ) -> str:
-    """Question-level support: do cited passages contain gold, not merely a valid ID."""
+    """Legacy text-only adapter; deprecated, lacks provenance and is not entailment.
+
+    New reports use classify_cited_gold_coverage on provenance-aware excerpt metrics.
+    """
+    import warnings
+    warnings.warn("Legacy text-only coverage adapter; use provenance-aware cited gold metrics", DeprecationWarning, stacklevel=2)
     if product_status != "GROUNDED" or not has_valid_citation:
         return UNCLEAR
     needles = [text for text in gold_passages if str(text).strip()]
@@ -88,28 +102,65 @@ def classify_cited_support(
     return SUPPORTED
 
 
-def classify_claim_support(
-    claim_text: str,
-    cited_texts: Sequence[str],
-) -> str:
-    """Utterance-level lower bound: claim tokens vs cited passage. Not entailment."""
-    body = normalize_text(claim_text)
-    if not body or not cited_texts:
+_NEGATIVE = frozenset({"not", "no", "never", "cannot", "denied", "rejected", "without", "unable", "prohibited"})
+_POSITIVE = frozenset({"approved", "accepted", "allowed", "authorized", "permitted"})
+
+
+def _tokens(text: str) -> set[str]:
+    text = normalize_text(text).replace("’", "'")
+    text = re.sub(r"\b\w+n't\b", "not", text)
+    return set(re.findall(r"[a-z]+|\d+(?:[,.]\d+)*", text))
+
+
+def _explicit_polarities(text: str) -> set[bool]:
+    tokens = _tokens(text)
+    negative = bool(tokens & _NEGATIVE)
+    result = {negative}
+    if negative:
+        words = re.findall(r"[a-z]+", normalize_text(text))
+        negators = {"not", "no", "never", "cannot", "without", "unable"}
+        # Conservatively detect both "approved" and "not approved" in one
+        # sentence. Nearby negation can be ambiguous; never infer entailment.
+        for index, word in enumerate(words):
+            if word in _POSITIVE and not set(words[max(0, index - 3):index]) & negators:
+                result.add(False)
+    return result
+
+
+def classify_claim_overlap(claim_text: str, cited_texts: Sequence[str]) -> str:
+    """Token overlap with conservative explicit polarity/number checks, not entailment.
+
+    Conflicting relevant sentences or double negatives are unclear. This does not
+    resolve negation scope, paraphrases, or implicit contradictions.
+    """
+    content = _tokens(claim_text) - _STOP
+    if not content or not any(text.strip() for text in cited_texts):
         return UNCLEAR
-    joined = " ".join(normalize_text(item) for item in cited_texts)
-    if not joined:
+    anchors = content - _NEGATIVE - _POSITIVE
+    relevant: list[set[str]] = []
+    polarities: set[bool] = set()
+    for text in cited_texts:
+        for sentence in re.split(r"(?<=[.!?;])\s+|\n+", text):
+            tokens = _tokens(sentence) - _STOP
+            if anchors and len(anchors & tokens) / len(anchors) >= 0.5:
+                relevant.append(tokens)
+                polarities.update(_explicit_polarities(sentence))
+    if not relevant:
+        return NO_LEXICAL_OVERLAP
+    if len(polarities) > 1:
         return UNCLEAR
-    tokens = [tok for tok in re.findall(r"[a-z0-9]+", body) if len(tok) > 2]
-    content = [tok for tok in tokens if tok not in _STOP]
-    if not content:
+    if "not" in content and content & {"denied", "rejected", "prohibited"}:
         return UNCLEAR
-    overlap = sum(1 for tok in content if tok in joined)
-    ratio = overlap / len(content)
-    if ratio >= 0.7:
-        return SUPPORTED
+    if bool(content & _NEGATIVE) not in polarities:
+        return POLARITY_MISMATCH
+    # Do not assemble a full claim from words scattered across separate passages.
+    ratio = max(len(content & tokens) / len(content) for tokens in relevant)
+    numbers = set(_NUMBER_RE.findall(claim_text))
+    if any(len(content & tokens) / len(content) >= 0.7 and numbers <= tokens for tokens in relevant):
+        return FULL_LEXICAL_OVERLAP
     if ratio >= 0.3:
-        return PARTIALLY_SUPPORTED
-    return UNSUPPORTED
+        return PARTIAL_LEXICAL_OVERLAP
+    return NO_LEXICAL_OVERLAP
 
 
 _STOP = frozenset(
@@ -123,7 +174,6 @@ _STOP = frozenset(
         "that",
         "this",
         "from",
-        "not",
         "are",
         "has",
         "had",
@@ -138,7 +188,6 @@ _STOP = frozenset(
         "after",
         "before",
         "between",
-        "without",
         "about",
         "their",
         "there",
@@ -190,21 +239,3 @@ def repair_drift(first: str, final: str) -> dict[str, Any]:
     if len(a_body.split()) > len(b_body.split()) + 4:
         kinds.append("removed_factual_claim")
     return {"changed": True, "kinds": kinds}
-
-
-def support_summary(rows: Sequence[dict[str, Any]]) -> dict[str, Any]:
-    grounded = [row for row in rows if row.get("product_status") == "GROUNDED"]
-    counts = {SUPPORTED: 0, PARTIALLY_SUPPORTED: 0, UNSUPPORTED: 0, UNCLEAR: 0}
-    for row in grounded:
-        label = row.get("support_class") or UNCLEAR
-        counts[label] = counts.get(label, 0) + 1
-    n = len(grounded)
-    return {
-        "product_grounded": n,
-        "supported": counts[SUPPORTED],
-        "partially_supported": counts[PARTIALLY_SUPPORTED],
-        "unsupported": counts[UNSUPPORTED],
-        "unclear": counts[UNCLEAR],
-        "fully_supported_cited_rate": (counts[SUPPORTED] / n) if n else None,
-        "unsupported_cited_rate": (counts[UNSUPPORTED] / n) if n else None,
-    }

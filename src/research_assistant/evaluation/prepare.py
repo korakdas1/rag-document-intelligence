@@ -8,6 +8,7 @@ from typing import Any
 from research_assistant.app import Application
 from research_assistant.chunking.config import ChunkingConfig, default_config
 from research_assistant.core.errors import EvaluationError
+from research_assistant.evaluation.identity import corpus_files
 
 
 def prepare_corpus(
@@ -17,16 +18,8 @@ def prepare_corpus(
     chunking: ChunkingConfig | None = None,
 ) -> dict[str, Any]:
     directory = Path(corpus_dir)
-    if not directory.is_dir():
-        raise EvaluationError(f"Corpus directory missing: {directory}", code="corpus_missing")
     config = chunking or default_config()
-    files = sorted(
-        path
-        for path in directory.iterdir()
-        if path.is_file() and path.suffix.lower() in {".md", ".txt", ".pdf"}
-    )
-    if not files:
-        raise EvaluationError(f"No documents in {directory}", code="empty_corpus")
+    files = corpus_files(directory)
     document_ids: list[str] = []
     for path in files:
         ingested = app.ingest.ingest(path)
@@ -54,6 +47,7 @@ def prepare_corpus(
         "index_id": indexed.index_id,
         "embedding_model_id": indexed.embedding_model_id,
         "document_count": len(document_ids),
+        "document_ids": sorted(document_ids),
         "chunk_count": len(chunks),
         "indexed_count": indexed.indexed_count,
         "files": [path.name for path in files],

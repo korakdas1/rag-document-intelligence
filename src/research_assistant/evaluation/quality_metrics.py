@@ -8,7 +8,8 @@ from typing import Any
 
 from research_assistant.evaluation.latency import summarize_latency
 from research_assistant.evaluation.metrics import abstention_counts, mean, rate, token_f1
-from research_assistant.evaluation.models import EvaluationExample
+from research_assistant.evaluation.models import EvaluationExample, GoldPassage
+from research_assistant.evaluation.evidence_metrics import passage_hits
 
 PRODUCT_GROUNDED = "GROUNDED"
 PRODUCT_UNVERIFIED = "UNVERIFIED"
@@ -64,32 +65,20 @@ def conflict_reported(answer: str) -> bool:
 
 
 def slot_results(
-    answer: str,
-    example: EvaluationExample,
-    cited_chunk_ids: Sequence[str],
-    store: Any | None = None,
+    answer: str, example: EvaluationExample, cited_blocks: Sequence[dict[str, Any]],
 ) -> list[dict[str, Any]]:
-    """Per-claim answered / cited-gold overlap. Lexical lower bound, not entailment."""
-    slots: list[dict[str, Any]] = []
-    cited_texts: list[str] = []
-    if store is not None:
-        for chunk_id in cited_chunk_ids:
-            chunk = store.get_chunk(chunk_id)
-            if chunk is not None:
-                cited_texts.append(normalize_text(chunk.text))
+    """Substring label matches and provenance-aware cited excerpt overlap only."""
     body = normalize_text(answer)
-    for claim in example.claims:
-        answered = bool(claim.text) and normalize_text(claim.text) in body
-        gold = normalize_text(claim.gold_text)
-        cited_supports = bool(gold) and any(gold in text for text in cited_texts)
-        slots.append(
-            {
-                "claim_id": claim.claim_id,
-                "answered": answered,
-                "cited_gold_overlap": cited_supports,
-            }
-        )
-    return slots
+    return [
+        {
+            "claim_id": claim.claim_id,
+            "lexical_answer_match": bool(claim.text) and normalize_text(claim.text) in body,
+            "cited_gold_overlap": passage_hits(
+                [GoldPassage(claim.filename, claim.gold_text)], cited_blocks,
+            )[0] if claim.filename and claim.gold_text else None,
+        }
+        for claim in example.claims
+    ]
 
 
 def product_status(validation_status: str | None, *, technical: bool = False) -> str:
@@ -165,9 +154,9 @@ def quality_aggregates(
     primary = Counter(row.get("primary_failure") for row in rows if row.get("primary_failure"))
     unverified = Counter(row.get("unverified_reason") for row in rows if row.get("unverified_reason"))
     gold_ctx = [
-        1.0 if row.get("gold_in_context") else 0.0
+        1.0 if row.get("gold_chunk_selected") else 0.0
         for row in answerable_rows
-        if row.get("gold_in_context") is not None
+        if row.get("gold_chunk_selected") is not None
     ]
     gold_hybrid = [
         1.0 if row.get("gold_in_hybrid") else 0.0
@@ -179,7 +168,7 @@ def quality_aggregates(
         for row in answerable_rows
         if row.get("gold_in_rerank") is not None
     ]
-    fact_recalls = [row.get("key_fact_recall") for row in answerable_rows]
+    fact_recalls = [row.get("lexical_key_fact_recall") for row in answerable_rows]
     cited = [
         row
         for row in answerable_rows
@@ -191,10 +180,10 @@ def quality_aggregates(
     missing = sum(1 for row in rows if row.get("validation_status") == "missing_citations")
     invalid = sum(1 for row in rows if row.get("validation_status") == "invalid_citation")
     malformed = sum(1 for row in rows if row.get("validation_status") == "malformed_output")
-    support_scores = [row.get("lexical_citation_support") for row in rows]
+    support_scores = [row.get("cited_gold_passage_recall") for row in rows]
     grounded = [row for row in rows if row.get("product_status") == PRODUCT_GROUNDED]
-    semantic_grounded = sum(1 for row in grounded if row.get("semantically_supported_grounded"))
-    unsupported_grounded = sum(1 for row in grounded if row.get("product_grounded_unsupported"))
+    grounded_full_gold = sum(1 for row in grounded if row.get("product_grounded_with_full_cited_gold"))
+    grounded_no_gold = sum(1 for row in grounded if row.get("product_grounded_without_cited_gold"))
     conflict_rows = [row for row in rows if by_id[row["example_id"]].expected_conflict]
     non_conflict_answered = [
         row
@@ -213,11 +202,11 @@ def quality_aggregates(
         if not slots:
             continue
         slot_total += 1
-        if slots and all(item.get("answered") for item in slots):
+        if slots and all(item.get("lexical_answer_match") for item in slots):
             slot_complete += 1
         for item in slots:
             slot_n += 1
-            if item.get("answered"):
+            if item.get("lexical_answer_match"):
                 slot_answered += 1
             if item.get("cited_gold_overlap"):
                 slot_cited += 1
@@ -229,7 +218,7 @@ def quality_aggregates(
     stable_groups = 0
     for items in phrase_groups.values():
         statuses = {item.get("product_status") for item in items}
-        facts = {item.get("key_fact_recall") for item in items}
+        facts = {item.get("lexical_key_fact_recall") for item in items}
         if len(statuses) == 1 and len(facts) == 1:
             stable_groups += 1
     phrase_stats = {
@@ -238,7 +227,7 @@ def quality_aggregates(
         "consistency_rate": rate(stable_groups, len(phrase_groups)),
     }
     repair_runs = [row for row in rows if (row.get("repair_attempts") or 0) > 0]
-    support_counts = Counter(row.get("support_class") for row in grounded if row.get("support_class"))
+    support_counts = Counter(row.get("cited_gold_coverage_class") for row in grounded if row.get("cited_gold_coverage_class"))
     drift_kinds: Counter[str] = Counter()
     false_grounding_repair = 0
     for row in rows:
@@ -248,7 +237,7 @@ def quality_aggregates(
         if (
             row.get("repair_attempts")
             and row.get("product_status") == PRODUCT_GROUNDED
-            and row.get("support_class") == "UNSUPPORTED"
+            and row.get("cited_gold_coverage_class") == "NO_GOLD_PASSAGE_COVERAGE"
             and (row.get("first_pass_validation_status") == "missing_citations")
         ):
             false_grounding_repair += 1
@@ -268,7 +257,7 @@ def quality_aggregates(
     false_abs_with_ctx = sum(
         1
         for row in answerable_rows
-        if row.get("insufficient_evidence") and row.get("gold_in_context")
+        if row.get("insufficient_evidence") and row.get("rendered_gold_all") is True
     )
     latencies: dict[str, list[float]] = {
         "retrieval_ms": [],
@@ -304,11 +293,15 @@ def quality_aggregates(
         "retrieval_to_context": {
             "gold_in_hybrid_rate": mean(gold_hybrid),
             "gold_in_rerank_rate": mean(gold_rerank),
-            "gold_in_context_rate": mean(gold_ctx),
+            "gold_chunk_selected_rate": mean(gold_ctx),
+            "context_gold_chunk_recall": mean([row.get("context_gold_chunk_recall") for row in answerable_rows]),
+            "rendered_gold_any_rate": mean([float(row["rendered_gold_any"]) for row in answerable_rows if row.get("rendered_gold_any") is not None]),
+            "rendered_gold_all_rate": mean([float(row["rendered_gold_all"]) for row in answerable_rows if row.get("rendered_gold_all") is not None]),
+            "rendered_gold_passage_recall": mean([row.get("rendered_gold_passage_recall") for row in answerable_rows]),
         },
         "answer_content": {
-            "key_fact_recall": mean(fact_recalls),
-            "complete_key_facts": rate(
+            "lexical_key_fact_recall": mean(fact_recalls),
+            "all_lexical_key_facts_matched": rate(
                 sum(1 for item in fact_recalls if item == 1.0),
                 sum(1 for item in fact_recalls if item is not None),
             ),
@@ -321,10 +314,10 @@ def quality_aggregates(
             "missing_citation_count": missing,
             "invalid_citation_count": invalid,
             "malformed_count": malformed,
-            "lexical_citation_support": mean(support_scores),
+            "cited_gold_passage_recall": mean(support_scores),
             "product_grounded": len(grounded),
-            "semantically_supported_grounded": semantic_grounded,
-            "product_grounded_unsupported": unsupported_grounded,
+            "product_grounded_with_full_cited_gold": grounded_full_gold,
+            "product_grounded_without_cited_gold": grounded_no_gold,
         },
         "conflict": {
             "n_expected_conflict": len(conflict_rows),
@@ -332,7 +325,7 @@ def quality_aggregates(
             "true_conflict_both_key_facts": sum(
                 1
                 for row in conflict_rows
-                if row.get("key_fact_recall") == 1.0
+                if row.get("lexical_key_fact_recall") == 1.0
             ),
             "collapsed": sum(
                 1
@@ -353,15 +346,15 @@ def quality_aggregates(
         },
         "multi_source": {
             "items_with_slots": slot_total,
-            "all_slots_answered": slot_complete,
-            "all_slots_answered_rate": rate(slot_complete, slot_total),
+            "all_slots_lexically_matched": slot_complete,
+            "all_slots_lexically_matched_rate": rate(slot_complete, slot_total),
             "slot_count": slot_n,
-            "slots_answered": slot_answered,
-            "slot_answered_rate": rate(slot_answered, slot_n),
+            "slots_lexically_matched": slot_answered,
+            "lexical_slot_match_rate": rate(slot_answered, slot_n),
             "slots_cited_gold": slot_cited,
             "slot_cited_gold_rate": rate(slot_cited, slot_n),
-            "omitted_supported_slots": max(slot_n - slot_answered, 0),
-            "items_with_unsupported_addition": sum(
+            "unmatched_labeled_slots": max(slot_n - slot_answered, 0),
+            "items_with_forbidden_phrase": sum(
                 1
                 for row in rows
                 if (row.get("claim_slots") or []) and row.get("forbidden_hit")
@@ -372,16 +365,16 @@ def quality_aggregates(
             "invocation_count": len(repair_runs),
             "invocation_rate": rate(len(repair_runs), n),
             "drift_kinds": dict(drift_kinds),
-            "false_grounding_from_repair": false_grounding_repair,
+            "repair_grounded_without_cited_gold": false_grounding_repair,
         },
-        "semantic_support": {
+        "cited_gold_coverage": {
             "product_grounded": len(grounded),
-            "supported": support_counts.get("SUPPORTED", 0),
-            "partially_supported": support_counts.get("PARTIALLY_SUPPORTED", 0),
-            "unsupported": support_counts.get("UNSUPPORTED", 0),
-            "unclear": support_counts.get("UNCLEAR", 0),
-            "semantically_supported_grounded": semantic_grounded,
-            "product_grounded_unsupported": unsupported_grounded,
+            "full_gold_passage_coverage": support_counts.get("FULL_GOLD_PASSAGE_COVERAGE", 0),
+            "partial_gold_passage_coverage": support_counts.get("PARTIAL_GOLD_PASSAGE_COVERAGE", 0),
+            "no_gold_passage_coverage": support_counts.get("NO_GOLD_PASSAGE_COVERAGE", 0),
+            "not_applicable": support_counts.get("NOT_APPLICABLE", 0),
+            "product_grounded_with_full_cited_gold": grounded_full_gold,
+            "product_grounded_without_cited_gold": grounded_no_gold,
         },
         "llm_calls": {
             "mean": mean([float(item) for item in call_counts if item is not None]),

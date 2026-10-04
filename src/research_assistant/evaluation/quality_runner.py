@@ -13,7 +13,8 @@ from research_assistant.conversation.models import ConversationTurn
 from research_assistant.core.errors import EvaluationError, GenerationError
 from research_assistant.core.types import RetrievalMode
 from research_assistant.evaluation.gold import contribution_label, resolve_gold
-from research_assistant.evaluation.identity import git_commit, make_run_id, utc_stamp
+from research_assistant.evaluation.identity import git_commit, make_run_id, utc_stamp, report_metadata
+from research_assistant.evaluation.evidence_metrics import context_blocks, passage_metrics, passage_hits, classify_cited_gold_coverage
 from research_assistant.evaluation.metrics import recall_at_k, token_f1
 from research_assistant.evaluation.models import EvalStage, EvaluationDataset, EvaluationExample, Split
 from research_assistant.evaluation.quality_metrics import (
@@ -29,9 +30,10 @@ from research_assistant.evaluation.quality_metrics import (
     unverified_reason,
 )
 from research_assistant.evaluation.quality_taxonomy import classify_quality
-from research_assistant.evaluation.runner import _citation_support, _ids, _score_list
+from research_assistant.evaluation.runner import _ids, _score_list
 from research_assistant.evaluation.semantic_support import (
-    classify_cited_support,
+    claim_spans,
+    classify_claim_overlap,
     repair_drift,
 )
 from research_assistant.generation import prompt as prompt_mod
@@ -46,10 +48,12 @@ class QualityEvaluationRunner:
         dataset: EvaluationDataset,
         *,
         chunker_id: str,
+        run_metadata: dict[str, Any] | None = None,
     ) -> None:
         self._app = app
         self._dataset = dataset
         self._chunker_id = chunker_id
+        self._metadata = report_metadata(dataset, run_metadata)
         self._resolver = HeuristicQueryResolver(window=app.settings.conversation_window)
 
     def run(
@@ -92,6 +96,7 @@ class QualityEvaluationRunner:
         pool_k = candidate_k if candidate_k is not None else settings.rerank_candidate_k
         use_rerank = settings.rerank_enabled if rerank_enabled is None else rerank_enabled
         config = {
+            "metrics_schema": self._metadata["metrics_schema"],
             "dataset_id": self._dataset.dataset_id,
             "dataset_version": self._dataset.version,
             "family": "qualitybench",
@@ -141,6 +146,7 @@ class QualityEvaluationRunner:
                     )
                 )
         report = {
+            **self._metadata,
             "run_id": rid,
             "date": stamp,
             "git_commit": git_commit(),
@@ -203,6 +209,8 @@ class QualityEvaluationRunner:
         lexical_ids = _ids(lexical.hits)
         primary_ids = _ids(primary.hits)
         row: dict[str, Any] = {
+            "metrics_schema": self._metadata["metrics_schema"],
+            "gold_passages": [item.to_dict() for item in example.gold_passages],
             "example_id": example.example_id,
             "question": example.question,
             "resolved_query": retrieval_query,
@@ -269,20 +277,15 @@ class QualityEvaluationRunner:
         ).to_dict()
         row["context_chunk_ids"] = context_ids
         row["context_citation_ids"] = [item.citation_id for item in evidence.context.items]
-        row["context_blocks"] = [
-            {
-                "citation_id": item.citation_id,
-                "chunk_id": item.source.chunk_id,
-                "text": item.text,
-            }
-            for item in evidence.context.items
-        ]
+        row["rerank_gold_passage_hits"] = passage_hits(example.gold_passages, [hit.to_dict() for hit in evidence.rerank.hits])
+        row["context_blocks"] = context_blocks(evidence.context)
+        row.update(passage_metrics(example, row["context_blocks"]))
         row["gold_in_rerank"] = gold_present(rerank_ids, gold.chunk_ids)
         row["gold_rank_rerank"] = first_gold_rank(rerank_ids, gold.chunk_ids)
-        row["gold_in_context"] = bool(gold.chunk_ids & set(context_ids)) if gold.chunk_ids else None
-        row["gold_rank_context"] = first_gold_rank(context_ids, gold.chunk_ids)
+        row["gold_chunk_selected"] = bool(gold.chunk_ids & set(context_ids)) if gold.chunk_ids else None
+        row["gold_chunk_rank_context"] = first_gold_rank(context_ids, gold.chunk_ids)
         denom = max(len(context_ids), 1)
-        row["context_evidence_recall"] = recall_at_k(context_ids, gold.chunk_ids, denom)
+        row["context_gold_chunk_recall"] = recall_at_k(context_ids, gold.chunk_ids, denom)
         row["timings_ms"]["rerank_ms"] = evidence.rerank.diagnostics.inference_ms
         row["timings_ms"]["retrieval_ms"] = evidence.search.diagnostics.total_ms
         if stage in {EvalStage.RERANK, EvalStage.CONTEXT}:
@@ -355,48 +358,33 @@ class QualityEvaluationRunner:
             row["claim_sources_field"] = []
             row["sources_disagree_field"] = None
             row["llm_calls"] = 0
-        row["key_fact_hits"] = key_fact_hits(row.get("answer_text") or "", example.key_facts)
-        row["key_fact_recall"] = key_fact_recall(row.get("answer_text") or "", example.key_facts)
+        row["lexical_key_fact_hits"] = key_fact_hits(row.get("answer_text") or "", example.key_facts)
+        row["lexical_key_fact_recall"] = key_fact_recall(row.get("answer_text") or "", example.key_facts)
         row["forbidden_hit"] = forbidden_hit(row.get("answer_text") or "", example.forbidden_facts)
-        row["lexical_citation_support"] = _citation_support(
-            example, tuple(row.get("cited_chunk_ids") or ()), self._app.store
-        )
+        cited_ids = set(row.get("cited_citation_ids") or [])
+        row["cited_passages"] = [block for block in row["context_blocks"] if block["citation_id"] in cited_ids]
+        row.update(passage_metrics(example, row["cited_passages"], prefix="cited_gold"))
         row["conflict_reported"] = conflict_reported(row.get("answer_text") or "")
-        row["claim_slots"] = slot_results(
-            row.get("answer_text") or "",
-            example,
-            tuple(row.get("cited_chunk_ids") or ()),
-            self._app.store,
-        )
+        row["claim_slots"] = slot_results(row.get("answer_text") or "", example, row["cited_passages"])
         row["reference_token_f1"] = token_f1(row.get("answer_text") or "", example.reference_answer or "")
         row["product_status"] = product_status(
             row.get("validation_status"),
             technical=bool(row.get("technical_error")),
         )
-        row["semantically_supported_grounded"] = (
-            row.get("product_status") == "GROUNDED"
-            and (row.get("lexical_citation_support") or 0) > 0
+        row["cited_gold_coverage_class"] = classify_cited_gold_coverage(row["cited_gold_passage_recall"])
+        row["product_grounded_with_full_cited_gold"] = (
+            row["product_status"] == "GROUNDED" and row["cited_gold_all"] is True
         )
-        row["product_grounded_unsupported"] = (
-            row.get("product_status") == "GROUNDED"
-            and row.get("lexical_citation_support") == 0.0
+        row["product_grounded_without_cited_gold"] = (
+            row["product_status"] == "GROUNDED" and row["cited_gold_any"] is False
         )
-        cited_ids = list(row.get("cited_citation_ids") or [])
-        blocks = {
-            str(item.get("citation_id")): str(item.get("text") or "")
-            for item in row.get("context_blocks") or []
-        }
-        cited_texts = [blocks[cid] for cid in cited_ids if cid in blocks]
-        row["cited_passages"] = [
-            {"citation_id": cid, "text": blocks.get(cid, "")} for cid in cited_ids
+        blocks_by_id = {block["citation_id"]: block for block in row["context_blocks"]}
+        row["lexical_claim_overlap"] = [
+            {**span, "classification": classify_claim_overlap(
+                span["claim"], [blocks_by_id[cid]["text"] for cid in span["source_ids"] if cid in blocks_by_id],
+            )}
+            for span in claim_spans(row.get("answer_text") or "")
         ]
-        row["support_class"] = classify_cited_support(
-            product_status=row.get("product_status"),
-            gold_passages=[item.text for item in example.gold_passages],
-            cited_texts=cited_texts,
-            has_valid_citation=bool(cited_ids)
-            and row.get("validation_status") == "valid",
-        )
         if row.get("repair_attempts"):
             row["repair_drift"] = repair_drift(
                 str(row.get("first_pass_answer_text") or ""),
@@ -406,7 +394,7 @@ class QualityEvaluationRunner:
             row["repair_drift"] = {"changed": False, "kinds": []}
         row["unverified_reason"] = unverified_reason(
             validation_status=row.get("validation_status"),
-            key_fact_recall_value=row.get("key_fact_recall"),
+            key_fact_recall_value=row.get("lexical_key_fact_recall"),
         )
         row["timings_ms"]["total_ms"] = (
             row["timings_ms"]["retrieval_ms"]
@@ -437,53 +425,36 @@ class QualityEvaluationRunner:
 
 
 def write_citation_review_csv(report: dict[str, Any], path: Path) -> None:
+    """Human review worksheet with current exact cited excerpts, never full chunks."""
     import csv
 
     path.parent.mkdir(parents=True, exist_ok=True)
-    rows: list[dict[str, str]] = []
+    rows: list[dict[str, Any]] = []
     for item in report.get("examples") or []:
-        claims_n = max(len(item.get("cited_citation_ids") or [None]), 1)
-        answer = str(item.get("answer_text") or "")
-        citations = item.get("cited_citation_ids") or []
-        if not citations:
-            rows.append(
-                {
-                    "question_id": item.get("example_id") or "",
-                    "claim_id": "",
-                    "claim_text": answer[:240],
-                    "citation_id": "",
-                    "source_locator": ",".join(item.get("expected_filenames") or []),
-                    "supported": "unclear",
-                    "notes": item.get("product_status") or "",
-                }
-            )
-            continue
-        for citation_id in citations:
-            rows.append(
-                {
-                    "question_id": item.get("example_id") or "",
-                    "claim_id": "",
-                    "claim_text": answer[:240],
-                    "citation_id": str(citation_id),
-                    "source_locator": ",".join(item.get("expected_filenames") or []),
-                    "supported": "unclear",
-                    "notes": "fill during human review",
-                }
-            )
-        _ = claims_n
+        for block in item.get("cited_passages") or [{}]:
+            rows.append({
+                "metrics_schema": report.get("metrics_schema"),
+                "dataset_sha256": report.get("dataset_sha256"),
+                "corpus_sha256": report.get("corpus_sha256"),
+                "git_commit": report.get("git_commit"),
+                "question_id": item.get("example_id") or "",
+                "claim_id": "",
+                "claim_text": str(item.get("answer_text") or "")[:240],
+                "citation_id": block.get("citation_id", ""),
+                "source_locator": block.get("filename", ""),
+                "chunk_id": block.get("chunk_id", ""),
+                "excerpt": block.get("text", ""),
+                "truncated": block.get("truncated", ""),
+                "human_support_label": "",
+                "notes": "fill during human review",
+            })
+    fields = [
+        "metrics_schema", "dataset_sha256", "corpus_sha256", "git_commit",
+        "question_id", "claim_id", "claim_text", "citation_id", "source_locator",
+        "chunk_id", "excerpt", "truncated", "human_support_label", "notes",
+    ]
     with path.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(
-            handle,
-            fieldnames=[
-                "question_id",
-                "claim_id",
-                "claim_text",
-                "citation_id",
-                "source_locator",
-                "supported",
-                "notes",
-            ],
-        )
+        writer = csv.DictWriter(handle, fieldnames=fields)
         writer.writeheader()
         writer.writerows(rows)
 
@@ -541,12 +512,12 @@ def _paraphrase_stability(
     out: dict[str, Any] = {}
     for name, items in groups.items():
         statuses = {item.get("product_status") for item in items}
-        facts = {item.get("key_fact_recall") for item in items}
+        facts = {item.get("lexical_key_fact_recall") for item in items}
         out[name] = {
             "n": len(items),
             "distinct_product_status": len(statuses),
             "status_set": sorted(str(item) for item in statuses),
-            "distinct_key_fact_recall": len(facts),
+            "distinct_lexical_key_fact_recall": len(facts),
             "stable": len(statuses) == 1 and len(facts) == 1,
         }
     return out

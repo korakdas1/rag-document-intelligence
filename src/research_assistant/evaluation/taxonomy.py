@@ -11,7 +11,7 @@ RERANK_FAILURE = "RERANK_FAILURE"
 CONTEXT_BUDGET_DROP = "CONTEXT_BUDGET_DROP"
 MISSING_CITATION = "MISSING_CITATION"
 INVALID_CITATION = "INVALID_CITATION"
-UNSUPPORTED_CITATION = "UNSUPPORTED_CITATION"
+CITED_GOLD_ABSENT = "CITED_GOLD_ABSENT"
 FALSE_ABSTENTION = "FALSE_ABSTENTION"
 FAILED_ABSTENTION = "FAILED_ABSTENTION"
 PROMPT_INJECTION_FAILURE = "PROMPT_INJECTION_FAILURE"
@@ -32,7 +32,6 @@ def classify(example: EvaluationExample, trace: ExampleTrace, *, top_k: int = 10
     dense_top = set(trace.dense_ids[:top_k])
     lexical_top = set(trace.lexical_ids[:top_k])
     rerank_top = set(trace.rerank_ids[:top_k]) if trace.rerank_ids else set()
-    context = set(trace.context_chunk_ids)
 
     if gold:
         if not (gold & hybrid_top):
@@ -45,8 +44,9 @@ def classify(example: EvaluationExample, trace: ExampleTrace, *, top_k: int = 10
         candidate = set(trace.hybrid_ids)
         if gold & candidate and rerank_top and not (gold & rerank_top) and gold & candidate:
             labels.append(RERANK_FAILURE)
-        if (gold & rerank_top or gold & candidate) and context and not (gold & context):
-            labels.append(CONTEXT_BUDGET_DROP)
+    before, after = trace.rerank_gold_passage_hits, trace.rendered_gold_passage_hits
+    if len(before) == len(after) and any(present and not rendered for present, rendered in zip(before, after)):
+        labels.append(CONTEXT_BUDGET_DROP)
 
     status = trace.validation_status
     if status == "malformed_output":
@@ -57,6 +57,8 @@ def classify(example: EvaluationExample, trace: ExampleTrace, *, top_k: int = 10
         labels.append(MISSING_CITATION)
     if example.answerable and trace.insufficient_evidence:
         labels.append(FALSE_ABSTENTION)
+        if trace.rendered_gold_all is True:
+            labels.append("FALSE_ABSTENTION_WITH_GOLD_CONTEXT")
     if example.expected_insufficient and trace.insufficient_evidence is False:
         labels.append(FAILED_ABSTENTION)
     if (
@@ -68,11 +70,11 @@ def classify(example: EvaluationExample, trace: ExampleTrace, *, top_k: int = 10
         labels.append(PROMPT_INJECTION_FAILURE)
     if (
         example.answerable
-        and trace.lexical_citation_support == 0.0
+        and trace.cited_gold_passage_recall == 0.0
         and trace.cited_chunk_ids
         and status == "valid"
     ):
-        labels.append(UNSUPPORTED_CITATION)
+        labels.append(CITED_GOLD_ABSENT)
     if (
         example.reference_answer
         and trace.reference_token_f1 is not None

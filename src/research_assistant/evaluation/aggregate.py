@@ -58,13 +58,16 @@ def contribution_summary(traces: Sequence[ExampleTrace]) -> dict[str, int]:
 
 
 def context_summary(traces: Sequence[ExampleTrace]) -> dict[str, float | None]:
-    hits = [1.0 if trace.context_gold_hit else 0.0 for trace in traces if trace.context_gold_hit is not None]
-    recalls = [trace.context_evidence_recall for trace in traces]
+    hits = [1.0 if trace.gold_chunk_selected else 0.0 for trace in traces if trace.gold_chunk_selected is not None]
+    recalls = [trace.context_gold_chunk_recall for trace in traces]
     candidates = [trace.candidate_recall for trace in traces]
     return {
         "n": float(len(traces)),
-        "context_gold_hit_rate": _round(mean(hits)),
-        "context_evidence_recall": _round(mean(recalls)),
+        "gold_chunk_selected_rate": _round(mean(hits)),
+        "context_gold_chunk_recall": _round(mean(recalls)),
+        "rendered_gold_any_rate": _round(mean([float(t.rendered_gold_any) for t in traces if t.rendered_gold_any is not None])),
+        "rendered_gold_all_rate": _round(mean([float(t.rendered_gold_all) for t in traces if t.rendered_gold_all is not None])),
+        "rendered_gold_passage_recall": _round(mean([t.rendered_gold_passage_recall for t in traces])),
         "candidate_recall": _round(mean(candidates)),
     }
 
@@ -73,6 +76,7 @@ def citation_summary(traces: Sequence[ExampleTrace], examples: Sequence[Evaluati
     by_id = {item.example_id: item for item in examples}
     n = len(traces)
     valid_only = 0
+    with_markers = 0
     invalid = 0
     missing = 0
     malformed = 0
@@ -88,21 +92,23 @@ def citation_summary(traces: Sequence[ExampleTrace], examples: Sequence[Evaluati
             missing += 1
         elif status == "malformed_output":
             malformed += 1
-        if status not in {"invalid_citation", "malformed_output"} and not trace.invalid_citation_ids:
+        if trace.cited_chunk_ids or trace.invalid_citation_ids:
+            with_markers += 1
+        if trace.cited_chunk_ids and status != "malformed_output" and not trace.invalid_citation_ids:
             valid_only += 1
-        if example.answerable and not trace.insufficient_evidence:
+        if example.answerable and not trace.insufficient_evidence and status != "malformed_output":
             answerable_substantive += 1
             if trace.cited_chunk_ids:
                 covered += 1
-        support_scores.append(trace.lexical_citation_support)
+        support_scores.append(trace.cited_gold_passage_recall)
     return {
         "n": float(n),
-        "valid_citation_rate": rate(valid_only, n),
+        "citation_id_valid_answer_rate": rate(valid_only, with_markers),
         "invalid_citation_count": float(invalid),
         "missing_citation_count": float(missing),
         "malformed_count": float(malformed),
         "citation_coverage": rate(covered, answerable_substantive),
-        "lexical_citation_support": _round(mean(support_scores)),
+        "cited_gold_passage_recall": _round(mean(support_scores)),
     }
 
 

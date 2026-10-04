@@ -250,6 +250,10 @@ def main(argv: list[str] | None = None) -> int:
     eval_p.add_argument("--max-context-tokens", type=int, default=None)
     eval_p.add_argument("--cache-dir", type=Path, default=None)
     eval_p.add_argument(
+        "--workspace", type=Path, default=None,
+        help="Isolated evaluation storage (default: evaluation/workspaces/<dataset-stem>)",
+    )
+    eval_p.add_argument(
         "--judge",
         action="store_true",
         help="Run the optional LLM judge (same provider unless tests inject a client)",
@@ -283,6 +287,11 @@ def main(argv: list[str] | None = None) -> int:
     )
 
     args = parser.parse_args(argv)
+    if args.command == "evaluate" and (args.db is not None or args.index_path is not None):
+        return _print_error(EvaluationError(
+            "evaluate does not accept --db or --index-path; use --workspace for isolated storage.",
+            code="evaluation_storage_flags",
+        ))
     llm_provider = None
     llm_model = getattr(args, "llm_model", None)
     if llm_model and llm_model.startswith("scripted"):
@@ -307,6 +316,8 @@ def main(argv: list[str] | None = None) -> int:
     configure_logging(settings.log_level)
     if args.command == "serve":
         return _cmd_serve(args, settings)
+    if args.command == "evaluate":
+        return _cmd_evaluate(settings, args)
     app = create_application(settings)
 
     if args.command == "ingest":
@@ -325,8 +336,6 @@ def main(argv: list[str] | None = None) -> int:
         return _cmd_context(app.evidence, args)
     if args.command == "ask":
         return _cmd_ask(app.rag, args)
-    if args.command == "evaluate":
-        return _cmd_evaluate(app, args)
     parser.error(f"unknown command {args.command}")
     return 2
 
@@ -718,31 +727,32 @@ def _cmd_ask(rag: RAGService, args) -> int:
     return 0
 
 
-def _cmd_evaluate(app, args) -> int:
+def _cmd_evaluate(settings, args) -> int:
     from research_assistant.chunking.config import default_config
     from research_assistant.evaluation.dataset import load_dataset, validate_dataset
-    from research_assistant.evaluation.prepare import prepare_corpus
     from research_assistant.evaluation.runner import EvaluationRunner
+    from research_assistant.evaluation.workspace import open_workspace, validate_workspace_paths
 
+    app = None
     try:
         dataset = load_dataset(args.dataset)
         validate_dataset(dataset, corpus_dir=args.corpus)
         config = default_config(strategy=args.chunk_strategy)
-        if args.prepare:
-            prepared = prepare_corpus(app, args.corpus, chunking=config)
-            chunker_id = prepared["chunker_id"]
-        else:
-            chunker_id = config.chunker_id
-            if not app.store.list_chunks_for_chunker(chunker_id):
-                raise EvaluationError(
-                    "No chunks for this chunker. Re-run with --prepare.",
-                    code="corpus_not_prepared",
-                )
+        workspace, cache_dir, output_dir = validate_workspace_paths(
+            settings, corpus=args.corpus,
+            workspace=args.workspace or Path("evaluation/workspaces") / dataset.dataset_id,
+            cache_dir=args.cache_dir, output_dir=args.output,
+        )
+        app, metadata = open_workspace(
+            settings, dataset, corpus=args.corpus, chunking=config,
+            path=workspace, prepare=args.prepare,
+        )
+        chunker_id = config.chunker_id
         split = None if args.split == "all" else args.split
         if dataset.dataset_id.startswith("qualitybench"):
             from research_assistant.evaluation.quality_runner import QualityEvaluationRunner
 
-            runner = QualityEvaluationRunner(app, dataset, chunker_id=chunker_id)
+            runner = QualityEvaluationRunner(app, dataset, chunker_id=chunker_id, run_metadata=metadata)
             report = runner.run(
                 stage=args.stage,
                 mode=args.mode,
@@ -753,7 +763,7 @@ def _cmd_evaluate(app, args) -> int:
                 rerank_enabled=False if getattr(args, "disable_rerank", False) else None,
                 repeat=int(getattr(args, "repeat", 1) or 1),
                 tag=getattr(args, "tag", None),
-                output_dir=args.output,
+                output_dir=output_dir,
             )
         else:
             judge = None
@@ -765,8 +775,9 @@ def _cmd_evaluate(app, args) -> int:
                 app,
                 dataset,
                 chunker_id=chunker_id,
-                cache_dir=args.cache_dir,
+                cache_dir=cache_dir,
                 judge=judge,
+                run_metadata=metadata,
             )
             report = runner.run(
                 stage=args.stage,
@@ -775,15 +786,24 @@ def _cmd_evaluate(app, args) -> int:
                 candidate_k=args.candidate_k,
                 rerank_top_k=args.rerank_top_k,
                 max_context_tokens=args.max_context_tokens,
-                output_dir=args.output,
+                output_dir=output_dir,
             )
     except EvaluationError as exc:
         return _print_error(exc)
     except (RetrievalError, RerankError, ContextError, GenerationError) as exc:
         return _print_error(exc)
+    finally:
+        if app is not None:
+            app.indexing.vector_store.close()
+            app.store.close()
     summary = {
         "ok": True,
         "run_id": report["run_id"],
+        "metrics_schema": report["metrics_schema"],
+        "workspace": report["workspace"],
+        "dataset_sha256": report["dataset_sha256"],
+        "corpus_sha256": report["corpus_sha256"],
+        "git_commit": report["git_commit"],
         "output_path": report.get("output_path"),
         "config": report["config"],
         "identities": report["identities"],

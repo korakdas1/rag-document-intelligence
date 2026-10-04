@@ -22,7 +22,8 @@ from research_assistant.evaluation.aggregate import (
 )
 from research_assistant.evaluation.cache import GenerationCache, cache_key, context_identity
 from research_assistant.evaluation.gold import contribution_label, resolve_gold
-from research_assistant.evaluation.identity import git_commit, make_run_id, utc_stamp
+from research_assistant.evaluation.identity import git_commit, make_run_id, utc_stamp, report_metadata
+from research_assistant.evaluation.evidence_metrics import context_blocks, passage_metrics, passage_hits, classify_cited_gold_coverage
 from research_assistant.evaluation.judge import evaluator_id, judge_answer
 from research_assistant.evaluation.metrics import (
     hit_rate_at_k,
@@ -43,6 +44,7 @@ from research_assistant.evaluation.models import (
 )
 from research_assistant.evaluation.taxonomy import classify
 from research_assistant.generation.models import GroundedAnswer, ValidationStatus
+from research_assistant.generation.citations import extract_citations
 from research_assistant.generation.protocol import LLMClient
 from research_assistant.retrieval.models import RetrievalHit
 
@@ -56,12 +58,14 @@ class EvaluationRunner:
         chunker_id: str,
         cache_dir: Path | None = None,
         judge: LLMClient | None = None,
+        run_metadata: dict[str, Any] | None = None,
     ) -> None:
         self._app = app
         self._dataset = dataset
         self._chunker_id = chunker_id
         self._cache = GenerationCache(cache_dir)
         self._judge = judge
+        self._metadata = report_metadata(dataset, run_metadata)
 
     def run(
         self,
@@ -85,6 +89,7 @@ class EvaluationRunner:
         settings = self._app.settings
         pool_k = candidate_k if candidate_k is not None else settings.rerank_candidate_k
         config = {
+            "metrics_schema": self._metadata["metrics_schema"],
             "dataset_id": self._dataset.dataset_id,
             "dataset_version": self._dataset.version,
             "stage": resolved_stage.value,
@@ -119,6 +124,7 @@ class EvaluationRunner:
             for example in examples
         ]
         report = {
+            **self._metadata,
             "run_id": rid,
             "date": stamp,
             "git_commit": git_commit(),
@@ -173,6 +179,7 @@ class EvaluationRunner:
             category=example.category,
             expected_chunk_ids=sorted(gold.chunk_ids),
             expected_filenames=list(example.relevant_filenames),
+            gold_passages=[item.to_dict() for item in example.gold_passages],
             dense_ids=dense_ids,
             lexical_ids=lexical_ids,
             hybrid_ids=primary_ids,
@@ -209,9 +216,13 @@ class EvaluationRunner:
         ).to_dict()
         trace.context_chunk_ids = context_ids
         trace.context_citation_ids = [item.citation_id for item in evidence.context.items]
-        trace.context_gold_hit = bool(gold.chunk_ids & set(context_ids)) if gold.chunk_ids else None
+        trace.rerank_gold_passage_hits = passage_hits(example.gold_passages, [hit.to_dict() for hit in evidence.rerank.hits])
+        trace.context_blocks = context_blocks(evidence.context)
+        for name, value in passage_metrics(example, trace.context_blocks).items():
+            setattr(trace, name, value)
+        trace.gold_chunk_selected = bool(gold.chunk_ids & set(context_ids)) if gold.chunk_ids else None
         denom = max(len(context_ids), 1)
-        trace.context_evidence_recall = recall_at_k(context_ids, gold.chunk_ids, denom)
+        trace.context_gold_chunk_recall = recall_at_k(context_ids, gold.chunk_ids, denom)
         trace.timings_ms["rerank_ms"] = evidence.rerank.diagnostics.inference_ms
         trace.timings_ms["retrieval_ms"] = evidence.search.diagnostics.total_ms
         if stage in {EvalStage.RERANK, EvalStage.CONTEXT}:
@@ -228,9 +239,10 @@ class EvaluationRunner:
         trace.cited_chunk_ids = list(cited_ids)
         trace.invalid_citation_ids = list(answer.invalid_citation_ids)
         trace.reference_token_f1 = token_f1(answer.answer_text, example.reference_answer or "")
-        trace.lexical_citation_support = _citation_support(
-            example, cited_ids, self._app.store
-        )
+        trace.cited_passages = [block for block in trace.context_blocks if block["chunk_id"] in cited_ids]
+        for name, value in passage_metrics(example, trace.cited_passages, prefix="cited_gold").items():
+            setattr(trace, name, value)
+        trace.cited_gold_coverage_class = classify_cited_gold_coverage(trace.cited_gold_passage_recall)
         trace.cached_generation = cached_payload
         trace.timings_ms["generation_ms"] = answer.diagnostics.generation_ms
         trace.timings_ms["total_ms"] = (
@@ -272,7 +284,14 @@ class EvaluationRunner:
                 ),
                 raw_response=hit.get("raw_response") or "",
             )
-            return True, cached, tuple(hit.get("cited_chunk_ids") or ())
+            # Rebind cached markers to current excerpts; never reuse cached metrics
+            # or chunk provenance, which can change without changing rendered text.
+            if "cited_citation_ids" in hit:
+                marker_ids = set(hit["cited_citation_ids"])
+            else:
+                marker_ids = set(extract_citations(cached.answer_text).ids) if hit.get("cited_chunk_ids") else set()
+            cited = tuple(item.source.chunk_id for item in bundle.items if item.citation_id in marker_ids)
+            return True, cached, cited
         answer = self._app.generation.generate(question, bundle)
         cited = tuple(item.source.chunk_id for item in answer.citations)
         self._cache.put(
@@ -284,6 +303,7 @@ class EvaluationRunner:
                 "validation_status": answer.validation_status.value,
                 "invalid_citation_ids": list(answer.invalid_citation_ids),
                 "cited_chunk_ids": list(cited),
+                "cited_citation_ids": [item.citation_id for item in answer.citations],
                 "generation_ms": answer.diagnostics.generation_ms,
                 "raw_response": answer.raw_response,
                 "llm_id": identity.llm_id,
@@ -333,27 +353,6 @@ class EvaluationRunner:
                 [trace.reference_token_f1 for trace in traces]
             )
         return payload
-
-
-def _citation_support(
-    example: EvaluationExample,
-    cited_chunk_ids: tuple[str, ...] | list[str],
-    store,
-) -> float | None:
-    if not cited_chunk_ids:
-        return None
-    needles = [_normalize(passage.text) for passage in example.gold_passages]
-    if not needles:
-        return None
-    supported = 0
-    for chunk_id in cited_chunk_ids:
-        chunk = store.get_chunk(chunk_id)
-        if chunk is None:
-            continue
-        body = _normalize(chunk.text)
-        if any(text in body for text in needles):
-            supported += 1
-    return supported / len(cited_chunk_ids)
 
 
 def answer_diagnostics_from_cache(
@@ -409,7 +408,3 @@ def _score_list(
         document_recall_at_5=recall_at_k(doc_ids, gold_documents, 5),
         document_recall_at_10=recall_at_k(doc_ids, gold_documents, 10),
     )
-
-
-def _normalize(text: str) -> str:
-    return " ".join(text.split())
