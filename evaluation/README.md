@@ -45,6 +45,7 @@ records one unchanged-defaults DEV run, manual failure/repair analysis, and one
 unimplemented next experiment. It does not rerun or replace the frozen baseline.
 The [single-run sufficiency experiment](experiments/qualitybench_v2_dev_sufficiency_v6.md)
 records the v6 DEV comparison and its rejection for factual and citation guardrail failures.
+The candidate was not promoted; production remains on `grounded.answerability.v5`.
 A future live run needs a separate workspace when the embedding configuration differs.
 
 ## Isolated workspace

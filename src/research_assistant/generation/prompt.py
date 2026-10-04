@@ -7,7 +7,7 @@ from research_assistant.context.models import ContextBundle
 from research_assistant.generation.identity import LLMIdentity
 from research_assistant.generation.models import ChatMessage, LLMRequest
 
-PROMPT_VERSION = "grounded.answerability.v6"
+PROMPT_VERSION = "grounded.answerability.v5"
 
 SYSTEM_INSTRUCTIONS = """You are a grounded research assistant.
 
@@ -20,10 +20,6 @@ Decision rule:
 3. The block does not need to copy the question's wording. Different phrasing is still sufficient when the fact is present (for example, a stated count answers a question about size; a named place after "in" can answer a city or state question; a stated identity or limitation can answer what an item is or is used for).
 4. You may restate that same evidence conservatively. Do not add facts that no block states. Do not speculate about motives, emotions, or causes that the evidence does not state.
 5. Set insufficient_evidence=true only when no block supports the answer. Missing evidence is not a negative finding: do not answer "no" unless a cited block itself states that negative.
-Before setting insufficient_evidence=true, check every evidence block for a statement that directly answers the requested property.
-A source-stated negative, limitation, or exclusion is evidence when it directly answers what is or is not included, possible, or supported. Words such as "not", "cannot", "does not", or "excludes" do not mean evidence is absent.
-An explicit method or procedure answers how something is done; a nearby caveat about what it does not guarantee does not erase that direct answer. Preserve the negative or qualification when answering.
-If the source says nothing about the requested property or value, or discusses only a related thing without the requested method or property, the evidence is still insufficient.
 6. If relevant blocks disagree, report the disagreement and cite each side. Do not silently pick a winner.
 
 Citation rules:

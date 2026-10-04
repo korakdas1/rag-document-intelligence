@@ -5,7 +5,22 @@ three to two by replacing a refusal with an unsupported, uncited answer. It
 does not increase the manually correct answerable count: that remains 17/20.
 Required guardrails B (no unsupported factual answer) and D (100% final citation
 coverage) fail. No second prompt variant or additional live run was attempted.
-The candidate is retained on an unmerged experiment branch for review.
+The v6 candidate was rejected and was not promoted. Production remains on
+`grounded.answerability.v5`.
+
+## Finalization
+
+The experimental v6 implementation was evaluated once on DEV and rejected.
+Before merge, its implementation, prompt tests, and generation README were
+restored exactly to main commit `e0d903b28404743f9de2cf5be193de0711f8c1ad`.
+Production remains on v5. The final PR contains experiment records only;
+merging it promotes no rejected behavioral change. No live DEV rerun or held-out
+TEST evaluation was performed during finalization.
+
+The experiment sections below, including configuration and validation, describe
+the historical candidate at implementation commit
+`666e18b1368ecc5bd92448a28fd8b7b4975bef27`, not the restored production state.
+Historical metrics, run identities, hashes, and judgments are preserved.
 
 ## Identity and execution
 
@@ -291,8 +306,9 @@ rests on factual and citation failures, independently of timing.
 **REJECT EXPERIMENT.** Neither primary target becomes correctly answered with
 citations. The apparent improvement in refusal count is an unsafe answerability
 transition, with no increase in correct answerable responses. Citation coverage
-also falls below the required threshold. The candidate prompt was not edited
-after the completed run; no rescue change, second variant, or rerun followed.
+also falls below the required threshold. The evaluated candidate was not tuned
+or rerun after completion; no rescue change or second variant followed.
+Finalization restored v5 instead of promoting the rejected candidate.
 
 ## Limitations and held-out test policy
 
@@ -308,7 +324,7 @@ Benchmark, corpus, gold, key facts, references, and historical diagnosis/baselin
 bytes remain unchanged. Ordinary offline unit/integration tests are separate
 from held-out live evaluation. No other prompt experiment was started.
 
-## Validation
+## Experiment validation (historical)
 
 | Check | Result |
 | --- | --- |
@@ -324,11 +340,12 @@ from held-out live evaluation. No other prompt experiment was started.
 | Static experiment audit | All raw fields, historical judgments, changed outputs, repair pairs, and excerpt offsets verified; DEV aggregates and slice reports recomputed exactly |
 | Protected-file hashes | All 26 benchmark/card/corpus/baseline/diagnosis files unchanged |
 
-The full workspace run is **not green**. Its five failures are in untouched
+The full workspace run was **not green**. Its five failures were in untouched
 private/untracked tests: two expect legacy evidence/slot metrics and already
-failed before this experiment; three hard-code v5 and now fail because of the
-required v6 version bump. Those files were not edited to suppress the failures.
-The public snapshot includes the implementation and report files while excluding
-private artifacts. Subsequent report edits only append these validation results.
-The 70 existing private files and 81 serving-storage files retain their pre-task
-hashes. The candidate prompt still matches the pre-run implementation commit.
+failed before this experiment; three hard-code v5 and failed under the candidate's
+v6 version bump. Those files were not edited to suppress the failures.
+The public snapshot included the implementation and report files while excluding
+private artifacts. Subsequent report edits only appended these validation results.
+The 70 existing private files and 81 serving-storage files retained their pre-task
+hashes. At experiment validation time, the candidate prompt matched the pre-run
+implementation commit.

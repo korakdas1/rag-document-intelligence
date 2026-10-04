@@ -3772,5 +3772,25 @@
     "historical_diagnosis_unchanged": true,
     "candidate_prompt_unchanged_since_implementation_commit": true,
     "held_out_live_evaluation_run": false
+  },
+  "finalization": {
+    "note": "The experimental v6 implementation was evaluated once on DEV and rejected. Before merge, its implementation, prompt tests, and generation README were restored exactly to main. Production remains on grounded.answerability.v5. The final PR contains experiment records only; merging it promotes no rejected behavioral change.",
+    "historical_record_scope": "All preceding fields, including configuration and validation, describe the evaluated candidate and remain unchanged; they do not describe the restored production state.",
+    "restored_from_main_commit": "e0d903b28404743f9de2cf5be193de0711f8c1ad",
+    "production_prompt_id": "grounded.answerability.v5",
+    "restored_files": [
+      "src/research_assistant/generation/prompt.py",
+      "tests/unit/test_prompt.py",
+      "src/research_assistant/generation/README.md"
+    ],
+    "final_pr_files": [
+      "evaluation/README.md",
+      "evaluation/experiments/qualitybench_v2_dev_sufficiency_v6.md",
+      "evaluation/experiments/qualitybench_v2_dev_sufficiency_v6.json"
+    ],
+    "record_only": true,
+    "rejected_behavior_promoted": false,
+    "live_dev_rerun": false,
+    "held_out_test_run": false
   }
 }
