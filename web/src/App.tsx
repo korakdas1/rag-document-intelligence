@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { WorkspaceLayout, type WorkspacePane } from "./components/WorkspaceLayout";
 import { Dialog } from "./components/ui/Dialog";
 import { documentScope, scopePayload, ScopeSaveQueue, visibleSelection } from "./documentScope";
 import type { DocumentScope } from "./documentScope";
@@ -55,8 +56,6 @@ type Turn = {
   error: string | null;
   retryable?: boolean;
 };
-
-type MobilePane = "documents" | "workspace" | "evidence";
 
 const CONVERSATION_WINDOW = 4;
 const REINDEX_VISIBLE_MS = 400;
@@ -182,7 +181,7 @@ export default function App() {
   const [ready, setReady] = useState<ReadyResponse | null>(null);
   const [mode, setMode] = useState<RetrievalMode>("hybrid");
   const [rerank, setRerank] = useState(true);
-  const [pane, setPane] = useState<MobilePane>("workspace");
+  const [pane, setPane] = useState<WorkspacePane>("workspace");
   const [filter, setFilter] = useState("");
   const [busyDocumentId, setBusyDocumentId] = useState<string | null>(null);
   const [busyKind, setBusyKind] = useState<"reindex" | "delete" | null>(null);
@@ -952,30 +951,7 @@ export default function App() {
           library.
         </div>
       ) : null}
-      <nav className="mobile-nav" aria-label="Sections">
-        <button
-          type="button"
-          aria-pressed={pane === "documents"}
-          onClick={() => setPane("documents")}
-        >
-          Documents
-        </button>
-        <button
-          type="button"
-          aria-pressed={pane === "workspace"}
-          onClick={() => setPane("workspace")}
-        >
-          Conversation
-        </button>
-        <button
-          type="button"
-          aria-pressed={pane === "evidence"}
-          onClick={() => setPane("evidence")}
-        >
-          Sources
-        </button>
-      </nav>
-      <div className={`layout pane-${pane}`}>
+      <WorkspaceLayout pane={pane} onPaneChange={setPane} documents={
         <DocumentSidebar
           documents={documents}
           selectedIds={selectedIds}
@@ -1009,6 +985,19 @@ export default function App() {
             setPendingDelete(document);
           }}
         />
+      } evidence={
+        <SourcePanel
+          sources={sources}
+          activeCitationId={activeCitationId}
+          knownDocumentIds={knownDocumentIds}
+          onSelect={(citationId) => {
+            setActiveCitationId(citationId);
+            if (activeTurn) {
+              setActiveTurnId(activeTurn.id);
+            }
+          }}
+        />
+      }>
         <main className="workspace" aria-label="Research conversation">
           <div
             className="pane-scroll"
@@ -1084,18 +1073,7 @@ export default function App() {
             </div>
           </div>
         </main>
-        <SourcePanel
-          sources={sources}
-          activeCitationId={activeCitationId}
-          knownDocumentIds={knownDocumentIds}
-          onSelect={(citationId) => {
-            setActiveCitationId(citationId);
-            if (activeTurn) {
-              setActiveTurnId(activeTurn.id);
-            }
-          }}
-        />
-      </div>
+      </WorkspaceLayout>
       {detail ? <DocumentDetails detail={detail} onClose={() => setDetail(null)} /> : null}
       {detailError ? (
         <Dialog title="Document details" onClose={() => setDetailError(null)}
