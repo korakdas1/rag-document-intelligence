@@ -6,7 +6,6 @@ from research_assistant.generation.prompt import (
     EVIDENCE_OPEN,
     QUESTION_CLOSE,
     QUESTION_OPEN,
-    REPAIR_INSTRUCTIONS,
     SYSTEM_INSTRUCTIONS,
     build_repair_request,
     build_request,
@@ -129,8 +128,6 @@ def test_repair_request_keeps_same_evidence_and_not_chat_history() -> None:
     )
     evidence = request.messages[3].content
     previous = request.messages[4].content
-    assert request.messages[0].content == SYSTEM_INSTRUCTIONS
-    assert request.messages[1].content == REPAIR_INSTRUCTIONS
     assert evidence == build_request("What is self-attention?", bundle, _identity()).messages[2].content
     assert "They do not marry" not in evidence
     assert "previous_output" in previous
@@ -140,7 +137,7 @@ def test_repair_request_keeps_same_evidence_and_not_chat_history() -> None:
 def test_prompt_version_and_json_examples() -> None:
     from research_assistant.generation.prompt import PROMPT_VERSION
 
-    assert PROMPT_VERSION == "grounded.answerability.v7"
+    assert PROMPT_VERSION == "grounded.answerability.v5"
     assert "No markdown fences" in SYSTEM_INSTRUCTIONS
     assert (
         '{"answer": "The system launched in March [S1].", "insufficient_evidence": false}'
@@ -153,49 +150,6 @@ def test_prompt_version_and_json_examples() -> None:
     assert "pebble" not in SYSTEM_INSTRUCTIONS.lower()
     assert "Do not silently pick a winner" in SYSTEM_INSTRUCTIONS
     assert "harry" not in SYSTEM_INSTRUCTIONS.lower()
-
-
-def test_answerability_decision_rules_are_unchanged() -> None:
-    rules = SYSTEM_INSTRUCTIONS.split("Decision rule:\n", 1)[1].split("\n\nCitation rules:", 1)[0]
-    assert rules == """1. Read every evidence block, including blocks after [S1]. An earlier off-topic block does not cancel a later supporting block.
-2. If any block contains the requested fact, you MUST answer. Set insufficient_evidence=false and cite that block.
-3. The block does not need to copy the question's wording. Different phrasing is still sufficient when the fact is present (for example, a stated count answers a question about size; a named place after "in" can answer a city or state question; a stated identity or limitation can answer what an item is or is used for).
-4. You may restate that same evidence conservatively. Do not add facts that no block states. Do not speculate about motives, emotions, or causes that the evidence does not state.
-5. Set insufficient_evidence=true only when no block supports the answer. Missing evidence is not a negative finding: do not answer "no" unless a cited block itself states that negative.
-6. If relevant blocks disagree, report the disagreement and cite each side. Do not silently pick a winner."""
-
-
-def test_final_citation_check_precedes_json_output_protocol() -> None:
-    check = SYSTEM_INSTRUCTIONS.split("Final citation check before returning JSON:\n", 1)[1]
-    check = check.split("\n\nReturn only a single JSON object.", 1)[0]
-    assert "If insufficient_evidence=false" in check
-    assert "answer string contains at least one valid [S#] marker from the supplied evidence" in check
-    assert "If a substantive answer has no citation marker, add its supporting marker(s) before returning JSON" in check
-    assert "Do not change or invent facts merely to add citations" in check
-    assert "Put each supporting marker next to the factual claim it supports" in check
-    assert "Use only citation IDs present in the evidence" in check
-    assert "If insufficient_evidence=true, do not invent citation markers" in check
-
-
-def test_citation_repair_instructions_are_unchanged() -> None:
-    assert REPAIR_INSTRUCTIONS == """The previous JSON answer used facts from the evidence but omitted required [S#] citation markers.
-
-Reformat that answer as JSON using ONLY the same facts. Do not add claims.
-Use only citation IDs that appear in the evidence. Do not invent citations.
-
-Respond with a single JSON object and no other prose:
-{"answer": "<same answer with [S#] markers>", "insufficient_evidence": <true|false>}"""
-
-
-def test_json_output_protocol_is_unchanged() -> None:
-    assert SYSTEM_INSTRUCTIONS.endswith("""Return only a single JSON object. No markdown fences. No text before or after the object.
-"answer" must be a JSON string. "insufficient_evidence" must be a JSON boolean (true or false), not a string and not a bare assignment such as insufficient_evidence=true.
-
-{"answer": "The system launched in March [S1].", "insufficient_evidence": false}
-
-{"answer": "The provided documents do not contain enough evidence to answer this.", "insufficient_evidence": true}
-
-If insufficient_evidence is true, the answer must say the provided documents are not enough, and it must not invent citations.""")
 
 
 def test_format_repair_has_no_evidence() -> None:

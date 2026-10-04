@@ -48,7 +48,8 @@ records the v6 DEV comparison and its rejection for factual and citation guardra
 The candidate was not promoted; production remains on `grounded.answerability.v5`.
 The [first-pass citation-compliance experiment](experiments/qualitybench_v2_dev_citation_compliance_v7.md)
 records one v7 DEV run: citation targets passed, but factual and final-citation
-guardrails failed, so the candidate was rejected.
+guardrails failed, so the candidate was rejected and reverted before merge.
+Production remains on `grounded.answerability.v5`; the v7 PR preserves records only.
 A future live run needs a separate workspace when the embedding configuration differs.
 
 ## Isolated workspace

@@ -1,7 +1,7 @@
 {
   "experiment_schema": "qualitybench-v2-dev-citation-compliance.v7",
   "decision": "REJECT EXPERIMENT",
-  "decision_rationale": "Both citation-improvement thresholds pass (14/17 same-population first-pass citations and 4/24 repairs), but qb2-028 replaces abstention with an unsupported, uncited answer. No-unsupported-answer and final-citation-coverage guardrails fail. Manual correct answerable count remains 17/20. No second prompt revision or live run was attempted; the candidate remains in the open experiment PR for review.",
+  "decision_rationale": "Both citation-improvement thresholds pass (14/17 same-population first-pass citations and 4/24 repairs), but qb2-028 replaces abstention with an unsupported, uncited answer. No-unsupported-answer and final-citation-coverage guardrails fail. Manual correct answerable count remains 17/20. No second prompt revision or live run was attempted. The rejected candidate was reverted before merge; production remains on grounded.answerability.v5.",
   "starting_main": {
     "commit": "bbcb15939e4766c6f789e02c5a5cb9306f0a27b6",
     "ci_run": 37198709348,
@@ -4904,7 +4904,7 @@
     "DEV contains no conflict items, one multi-source item, and one follow-up item with an unchanged resolver anomaly.",
     "Citation-ID validity is not semantic support; improved first-pass markers do not excuse the unsupported answer.",
     "The shared system prompt also appears during citation repair, although repair-specific instructions and logic are unchanged.",
-    "The candidate remains available in the open PR for external review despite rejection; it was not reverted or merged in this task."
+    "The v7 candidate was rejected and reverted before merge. The final PR contains experiment records only; no rejected behavioral change is promoted."
   ],
   "held_out_test_policy": {
     "live_test_evaluation_run": false,
@@ -5003,6 +5003,27 @@
     "dev_diagnosis_unchanged": true,
     "rejected_v6_record_unchanged": true,
     "candidate_prompt_unchanged_since_implementation_commit": true,
+    "held_out_test_run": false
+  },
+  "finalization": {
+    "note": "The experimental v7 implementation was evaluated once on DEV and rejected. Before merge, the prompt, prompt tests, and generation README were restored exactly to main. Production remains on grounded.answerability.v5. The final PR contains experiment records only; merging it promotes no rejected behavioral change.",
+    "historical_record_scope": "The preceding experiment fields, including one_run_policy and validation, describe the evaluated candidate before finalization. Historical measurements, judgments, implementation identity, and run provenance remain unchanged; they do not describe the restored production state.",
+    "restored_from_main_commit": "bbcb15939e4766c6f789e02c5a5cb9306f0a27b6",
+    "production_prompt_id": "grounded.answerability.v5",
+    "candidate_reverted_before_merge": true,
+    "restored_files": [
+      "src/research_assistant/generation/prompt.py",
+      "tests/unit/test_prompt.py",
+      "src/research_assistant/generation/README.md"
+    ],
+    "final_pr_files": [
+      "evaluation/README.md",
+      "evaluation/experiments/qualitybench_v2_dev_citation_compliance_v7.md",
+      "evaluation/experiments/qualitybench_v2_dev_citation_compliance_v7.json"
+    ],
+    "record_only": true,
+    "rejected_behavior_promoted": false,
+    "live_dev_rerun": false,
     "held_out_test_run": false
   }
 }

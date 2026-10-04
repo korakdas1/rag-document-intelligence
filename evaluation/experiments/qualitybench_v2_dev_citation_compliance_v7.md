@@ -8,8 +8,22 @@ to 17/18 (94.44%). The no-unsupported-answer and final-citation guardrails fail.
 Manually correct answerable items remain 17/20.
 
 Exactly one v7 DEV run completed, with no technical restart. No second prompt
-variant or rerun followed. The rejected candidate remains in the open experiment
-PR for external review; it was not reverted, merged, or promoted in this task.
+variant or rerun followed. The v7 candidate was rejected and reverted before
+merge. Production remains on `grounded.answerability.v5`.
+
+## Finalization
+
+The experimental v7 implementation was evaluated once on DEV and rejected.
+Before merge, the prompt, prompt tests, and generation README were restored
+exactly to main commit `bbcb15939e4766c6f789e02c5a5cb9306f0a27b6`.
+Production remains on `grounded.answerability.v5`. The final PR contains
+experiment records only; merging it promotes no rejected behavioral change.
+No live DEV rerun or held-out TEST evaluation was performed during finalization.
+
+The experiment sections below, including configuration and validation, describe
+the historical candidate at implementation commit
+`b743523cefa4c754d9fc9bd665a10ecfbad6a957`, not the restored production state.
+Historical metrics, run identities, hashes, and judgments are preserved.
 
 ## Identity and execution
 
@@ -334,8 +348,9 @@ latency benefit. Rejection rests on factual and citation failures, not timing.
 
 **REJECT EXPERIMENT.** Passing the citation and repair thresholds is insufficient
 when a new unsupported factual answer appears and final citation coverage
-falls below 100%. The candidate was not edited after evaluation, and no second
-variant or live run followed. It remains in the open PR for review as requested.
+falls below 100%. The evaluated candidate was not tuned or rerun after completion;
+no second variant followed. Finalization restored v5 instead of promoting the
+rejected candidate.
 
 ## Limitations and held-out TEST policy
 
@@ -353,7 +368,7 @@ and rejected v6 experiment record remain byte-identical. No other experiment
 was started. Ordinary offline unit/integration tests are separate from held-out
 live evaluation.
 
-## Validation
+## Experiment validation (historical)
 
 | Check | Result |
 | --- | --- |
@@ -369,14 +384,15 @@ live evaluation.
 | Static record audit | Raw identities, historical values, all published examples/excerpts, same-17 counts, changed outputs, repair pairs, and guardrails verified; saved DEV metrics and slices recomputed exactly |
 | Protected-file hashes | All 28 benchmark/card/corpus/baseline/diagnosis/v6-record files unchanged |
 
-The full workspace suite is **not green**. Its five failures are in unchanged
+The full workspace suite was **not green**. Its five failures were in unchanged
 private/untracked tests: two legacy evidence/slot-metric assertions already
-failed before this experiment, and three hard-code v5 and are incompatible
-with the required v7 identity. These files were not edited to suppress failures.
-The public snapshot includes all tracked files plus the new experiment records
+failed before this experiment, and three hard-code v5 and were incompatible
+with the candidate's v7 identity. These files were not edited to suppress failures.
+The public snapshot included all tracked files plus the new experiment records
 and README link, excluding pre-existing private artifacts. Subsequent edits
-only clarify report wording and append validation results.
+only clarified report wording and appended validation results.
 
-All 70 original private files and 81 serving-storage files retain their original
-hashes. The candidate prompt still matches the pre-run implementation commit.
+All 70 original private files and 81 serving-storage files retained their original
+hashes. At experiment validation time, the candidate prompt matched the pre-run
+implementation commit.
 No live evaluation was repeated during validation.
