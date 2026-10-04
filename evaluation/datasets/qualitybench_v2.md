@@ -142,6 +142,15 @@ Claims carry explicit `claim_id`, `text`, `filename`, and `gold_text`; multi-sou
 claims are attached to their own sources. Unanswerable items have no gold and
 explicitly set `expected_insufficient: true`.
 
+All **80 answerable examples** also include hand-authored lexical `key_facts`
+derived only from the existing gold/reference truth; the **16 unanswerable examples
+have none**. Compact labels preserve required units, qualifiers, and each answer
+component, including both sides of all six conflicts. Paraphrase-group members
+share identical labels. These support deterministic answer-content diagnostics;
+**key facts are not semantic entailment labels**. Substring matching can miss a
+correct paraphrase or match words in an incorrect assertion, so interpret these
+diagnostics alongside the source evidence.
+
 Concise reference answers help diagnostics; they are not the primary truth.
 Token F1 and lexical claim matching do not establish semantic correctness.
 The few `forbidden_facts` strings identify dangerous wrong-value substitutions.
@@ -176,7 +185,11 @@ python -m pytest -s tests/unit/test_qualitybench_v2.py
 They validate counts, unique questions/IDs, source existence, answerability,
 verbatim unique gold, compact spans, claims, subset scope, leakage, paraphrase
 groups, difficulty minima, source concentration, size bands, long-document
-positions, and v1/v2 version metadata. Category and slice counts are printed.
+positions, and v1/v2 version metadata. They also check lexical-label coverage,
+compactness, multi-component and conflict coverage, paraphrase consistency,
+serialization, and exclusion of execution results from dataset metadata. Direct
+metric fixtures verify that each conflict's one-sided answer is detected, without
+retrieval or generation. Category and slice counts are printed.
 Parsing and default structure chunking produce **141 chunks**; all **21 dev and
 75 test passage labels** resolve without retrieval.
 
@@ -187,6 +200,9 @@ The report carried the dataset/corpus hashes, correct v2 identity, and
 prepared store; deterministic resolution also covered all 60 answerable test
 examples without searching or generating answers for them. Serving storage
 remained unchanged. These are execution checks, **not model-quality scores**.
+That smoke predates the lexical-label completion and has not been rerun; its
+report retains the original dataset fingerprint. The label correction changes
+the dataset bytes, with serialization checked by the integrity tests above.
 
 See [execution instructions](../README.md#qualitybench-v2-development-check).
 The final live `qwen2.5-coder:7b` test baseline is **NOT RUN** in this benchmark
