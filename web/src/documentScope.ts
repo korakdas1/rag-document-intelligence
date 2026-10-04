@@ -25,6 +25,7 @@ type ScopeSave = {
   scope: DocumentScope;
   settled: Promise<string | null>;
   error: string | null;
+  pending: boolean;
 };
 
 /** Each session has an ordered queue; a failed latest save blocks Ask until corrected. */
@@ -37,14 +38,16 @@ export class ScopeSaveQueue {
 
   save(sessionId: string, scope: DocumentScope, persist: () => Promise<unknown>): ScopeSave {
     const previous = this.saves.get(sessionId)?.settled ?? Promise.resolve(null);
-    const entry: ScopeSave = { scope, settled: Promise.resolve(null), error: null };
+    const entry: ScopeSave = { scope, settled: Promise.resolve(null), error: null, pending: true };
     entry.settled = previous.then(async () => {
       try {
         await persist();
         return null;
       } catch {
-        entry.error = "Could not save document selection. Change the selection to retry before asking.";
+        entry.error = "Could not save document selection.";
         return entry.error;
+      } finally {
+        entry.pending = false;
       }
     });
     this.saves.set(sessionId, entry);

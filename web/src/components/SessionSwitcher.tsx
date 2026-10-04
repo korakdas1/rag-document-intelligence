@@ -28,7 +28,8 @@ export function SessionSwitcher({
   const [filter, setFilter] = useState("");
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
-  const menuId = useId();
+  const filterRef = useRef<HTMLInputElement>(null);
+  const panelId = useId();
   const filterId = useId();
   const query = filter.trim().toLowerCase();
   const visible = query
@@ -39,6 +40,7 @@ export function SessionSwitcher({
     if (!open) {
       return;
     }
+    filterRef.current?.focus();
     function onPointerDown(event: PointerEvent) {
       if (rootRef.current?.contains(event.target as Node)) {
         return;
@@ -67,9 +69,9 @@ export function SessionSwitcher({
         ref={triggerRef}
         type="button"
         className="btn btn-quiet"
-        aria-haspopup="menu"
+        aria-haspopup="dialog"
         aria-expanded={open}
-        aria-controls={open ? menuId : undefined}
+        aria-controls={open ? panelId : undefined}
         aria-label="History"
         title={currentTitle}
         disabled={disabled}
@@ -78,12 +80,13 @@ export function SessionSwitcher({
         History
       </button>
       {open ? (
-        <div id={menuId} className="session-menu" role="menu" aria-label="Research history">
+        <div id={panelId} className="session-menu" role="dialog" aria-label="Research history">
           <div className="session-menu-head">
             <label htmlFor={filterId} className="visually-hidden">
               Search sessions
             </label>
             <input
+              ref={filterRef}
               id={filterId}
               type="search"
               value={filter}
@@ -92,7 +95,11 @@ export function SessionSwitcher({
             />
           </div>
           {visible.length === 0 ? (
-            <p className="muted session-empty">No saved conversations yet.</p>
+            <p className="muted session-empty">
+              {sessions.length === 0
+                ? "No saved conversations yet."
+                : `No conversations match ‘${filter.trim()}’.`}
+            </p>
           ) : (
             <ul className="session-list">
               {visible.map((session) => {
@@ -102,8 +109,7 @@ export function SessionSwitcher({
                     <div className={`session-item${active ? " is-active" : ""}`}>
                       <button
                         type="button"
-                        role="menuitem"
-                        aria-current={active ? "true" : undefined}
+                        aria-current={active ? "page" : undefined}
                         onClick={() => {
                           setOpen(false);
                           onOpen(session.session_id);

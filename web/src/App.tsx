@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { WorkspaceLayout, type WorkspacePane } from "./components/WorkspaceLayout";
 import { Dialog } from "./components/ui/Dialog";
 import { documentScope, scopePayload, ScopeSaveQueue, visibleSelection } from "./documentScope";
@@ -40,6 +40,7 @@ import { DiagnosticsPanel } from "./components/DiagnosticsPanel";
 import { DocumentDetails } from "./components/DocumentDetails";
 import { DocumentSidebar } from "./components/DocumentSidebar";
 import { QuestionInput } from "./components/QuestionInput";
+import { ResearchContext } from "./components/ResearchContext";
 import { RenameSessionDialog } from "./components/RenameSessionDialog";
 import { SessionSwitcher } from "./components/SessionSwitcher";
 import { SourcePanel } from "./components/SourcePanel";
@@ -195,9 +196,9 @@ export default function App() {
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [activeTitle, setActiveTitle] = useState("New research");
-  const [missingSelected, setMissingSelected] = useState(0);
   const [sessionError, setSessionError] = useState<string | null>(null);
   const [scopeError, setScopeError] = useState<string | null>(null);
+  const [scopeSaving, setScopeSaving] = useState(false);
   const [sessionLoading, setSessionLoading] = useState(false);
   const [pendingRename, setPendingRename] = useState<SessionSummary | null>(null);
   const [pendingSessionDelete, setPendingSessionDelete] = useState<SessionSummary | null>(null);
@@ -226,6 +227,7 @@ export default function App() {
   const lastScrollTopRef = useRef(0);
   const pinPassRef = useRef(0);
   const [pinSpace, setPinSpace] = useState(0);
+  const questionContextId = useId();
 
   const activeTurn =
     turns.find((turn) => turn.id === activeTurnId) ?? turns[turns.length - 1] ?? null;
@@ -444,6 +446,7 @@ export default function App() {
         : documentScope(loaded.all_documents, loaded.selected_document_ids),
     );
     setScopeError(pending?.error ?? null);
+    setScopeSaving(Boolean(pending?.pending));
     setLibraryChanged(false);
   }
 
@@ -457,12 +460,12 @@ export default function App() {
     setActiveTurnId(null);
     setActiveCitationId(null);
     setLibraryChanged(false);
-    setMissingSelected(0);
     setActiveSessionId(null);
     activeSessionIdRef.current = null;
     setActiveTitle("New research");
     setSessionError(null);
     setScopeError(null);
+    setScopeSaving(false);
     applyScope(documentScope(true, []));
   }
 
@@ -474,7 +477,6 @@ export default function App() {
     const visible = visibleSelection(scope, knownIds);
     selectedIdsRef.current = visible;
     setSelectedIds(visible);
-    setMissingSelected(scope.mode === "subset" ? scope.documentIds.length - visible.length : 0);
   }
 
   function persistSelection(scope: DocumentScope) {
@@ -484,11 +486,19 @@ export default function App() {
     const entry = scopeSavesRef.current.save(sessionId, scope, () =>
       patchSession(sessionId, payload),
     );
+    if (
+      activeSessionIdRef.current === sessionId &&
+      scopeSavesRef.current.current(sessionId) === entry
+    ) {
+      setScopeSaving(true);
+      setScopeError(null);
+    }
     void entry.settled.then((error) => {
       if (
         activeSessionIdRef.current === sessionId &&
         scopeSavesRef.current.current(sessionId) === entry
       ) {
+        setScopeSaving(false);
         setScopeError(error);
       }
     });
@@ -497,7 +507,12 @@ export default function App() {
   function changeScope(scope: DocumentScope) {
     applyScope(scope);
     setScopeError(null);
+    setScopeSaving(false);
     persistSelection(scope);
+  }
+
+  function retryScopeSave() {
+    persistSelection(scopeRef.current);
   }
 
   function selectAllDocuments() {
@@ -908,7 +923,10 @@ export default function App() {
       <header className="shell-header">
         <div className="shell-brand">
           <h1>Research Assistant</h1>
-          <p>Ask questions across your indexed documents.</p>
+          <span className="shell-brand-separator" aria-hidden="true">·</span>
+          <p className="active-research-title" title={activeTitle} data-testid="active-research-title">
+            {sessionLoading ? "Loading research…" : activeTitle}
+          </p>
         </div>
         <div className="shell-actions">
           <SessionSwitcher
@@ -934,15 +952,6 @@ export default function App() {
       {sessionError && !pendingRename && !pendingSessionDelete ? (
         <div className="banner banner-warn" role="alert">
           {sessionError}
-        </div>
-      ) : null}
-      {scopeError ? (
-        <div className="banner banner-warn" role="alert">{scopeError}</div>
-      ) : null}
-      {missingSelected ? (
-        <div className="banner banner-warn" role="status">
-          {missingSelected} previously selected document
-          {missingSelected === 1 ? " is" : "s are"} no longer in the library.
         </div>
       ) : null}
       {libraryChanged ? (
@@ -1020,7 +1029,7 @@ export default function App() {
                     error={turn.error}
                     pending={asking && turn.id === activeTurnId}
                     retryable={turn.retryable !== false}
-                    retryDisabled={!canAsk || sessionLoading}
+                    retryDisabled={!canAsk || sessionLoading || Boolean(scopeError)}
                     activeCitationId={turn.id === activeTurn?.id ? activeCitationId : null}
                     onCitationClick={(citationId) => focusCitation(turn.id, citationId)}
                     onRetry={() => void requestAnswer(turn.question, turn.id)}
@@ -1046,6 +1055,16 @@ export default function App() {
           </div>
           <div className="composer-dock">
             <div className="measure">
+              <ResearchContext
+                id={questionContextId}
+                scope={scopeRef.current}
+                libraryCount={documents.length}
+                availableCount={selectedIds.length}
+                saving={scopeSaving}
+                error={scopeError}
+                loading={sessionLoading}
+                onRetry={retryScopeSave}
+              />
               {asking ? (
                 <p className="loading" role="status">
                   Working…
@@ -1058,7 +1077,8 @@ export default function App() {
               <QuestionInput
                 value={question}
                 disabled={asking}
-                submitDisabled={!canAsk || sessionLoading}
+                submitDisabled={!canAsk || sessionLoading || Boolean(scopeError)}
+                describedById={questionContextId}
                 textareaRef={composerRef}
                 onChange={setComposerValue}
                 onSubmit={(value) => {
