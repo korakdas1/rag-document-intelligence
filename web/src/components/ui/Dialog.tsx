@@ -1,8 +1,10 @@
 import { useId, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 import { createPortal } from "react-dom";
+import { canRestoreModalFocus, isTopModal, registerModal } from "./modalStack";
 
 type DialogProps = {
   title: string;
+  variant?: "dialog" | "drawer";
   onClose: () => void;
   children: ReactNode;
   initialFocusRef?: RefObject<HTMLElement | null>;
@@ -45,24 +47,29 @@ function tabStops(root: HTMLElement): HTMLElement[] {
  */
 export function Dialog({
   title, onClose, children, initialFocusRef, selectInitialText = false,
-  busy = false, dismissOnBackdrop = false, testId, backdropTestId,
+  busy = false, dismissOnBackdrop = false, testId, backdropTestId, variant = "dialog",
 }: DialogProps) {
   const titleId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
   const [host] = useState(() => document.createElement("div"));
   const mounted = useRef(false);
+  const openerRef = useRef<HTMLElement | null | undefined>(undefined);
   const latest = useRef({ onClose, busy, initialFocusRef, selectInitialText });
   latest.current = { onClose, busy, initialFocusRef, selectInitialText };
 
   useLayoutEffect(() => {
     mounted.current = true;
-    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    // Retain the original opener through StrictMode effect replay, including
+    // when another modal underneath recovers focus during replay cleanup.
+    if (openerRef.current === undefined) {
+      openerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    }
+    const opener = openerRef.current;
     const landmark = opener?.closest<HTMLElement>('aside, main, nav, header, [role="region"]');
     document.body.append(host);
     const panel = panelRef.current!;
     let lastFocused: HTMLElement | null = null;
-    const background = new Map<Element, { inert: string | null; hidden: string | null }>();
-    const overflow = document.body.style.overflow;
+    const unregister = registerModal(host);
 
     function focusInside() {
       const preferred = lastFocused ?? latest.current.initialFocusRef?.current;
@@ -71,16 +78,8 @@ export function Dialog({
       target.focus();
     }
 
-    function isolateBackground() {
-      for (const child of document.body.children) {
-        if (child === host || background.has(child)) continue;
-        background.set(child, { inert: child.getAttribute("inert"), hidden: child.getAttribute("aria-hidden") });
-        child.setAttribute("inert", "");
-        child.setAttribute("aria-hidden", "true");
-      }
-    }
-
     function containFocus(event: FocusEvent) {
+      if (!isTopModal(host)) return;
       if (event.target instanceof HTMLElement && panel.contains(event.target)) {
         lastFocused = event.target;
       } else {
@@ -89,6 +88,7 @@ export function Dialog({
     }
 
     function onKeyDown(event: KeyboardEvent) {
+      if (!isTopModal(host)) return;
       if (event.key === "Escape") {
         event.preventDefault();
         event.stopImmediatePropagation();
@@ -111,13 +111,11 @@ export function Dialog({
     if (latest.current.selectInitialText && document.activeElement instanceof HTMLInputElement) {
       document.activeElement.select();
     }
-    isolateBackground();
-    document.body.style.overflow = "hidden";
 
     // Busy updates can disable the focused button. Keep focus on the panel if
-    // no controls remain, and isolate siblings mounted while the modal is open.
+    // no controls remain. Background isolation is owned by modalStack.
     const observer = new MutationObserver(() => {
-      isolateBackground();
+      if (!isTopModal(host)) return;
       const active = document.activeElement;
       if (!(active instanceof HTMLElement) || !panel.contains(active) || !available(active)) {
         lastFocused = null;
@@ -132,18 +130,13 @@ export function Dialog({
       observer.disconnect();
       document.removeEventListener("focusin", containFocus, true);
       document.removeEventListener("keydown", onKeyDown, true);
-      for (const [element, saved] of background) {
-        if (saved.inert === null) element.removeAttribute("inert");
-        else element.setAttribute("inert", saved.inert);
-        if (saved.hidden === null) element.removeAttribute("aria-hidden");
-        else element.setAttribute("aria-hidden", saved.hidden);
-      }
-      document.body.style.overflow = overflow;
       host.remove();
+      unregister();
       // Wait for the closing render to remove deleted triggers / re-enable
       // busy controls. StrictMode's effect replay must not steal initial focus.
       queueMicrotask(() => {
-        if (mounted.current || document.querySelector('[role="dialog"][aria-modal="true"]')) return;
+        if (mounted.current) return;
+        if (!canRestoreModalFocus(landmark ?? opener ?? host)) return;
         if (opener && opener.matches(FOCUSABLE) && available(opener)) {
           opener.focus();
         } else if (landmark && available(landmark)) {
@@ -165,16 +158,16 @@ export function Dialog({
   }, [host]);
 
   return createPortal(
-    <div className="dialog-backdrop" data-testid={backdropTestId}
+    <div className={`dialog-backdrop${variant === "drawer" ? " drawer-backdrop" : ""}`} data-testid={backdropTestId}
       onMouseDown={(event) => {
-        if (event.target === event.currentTarget) {
+        if (event.target === event.currentTarget && isTopModal(host)) {
           // Otherwise the pointer's default focus action can overwrite focus
           // restoration after the closing render and leave focus on body.
           event.preventDefault();
           if (dismissOnBackdrop && !busy) onClose();
         }
       }}>
-      <div ref={panelRef} className="dialog" role="dialog" aria-modal="true"
+      <div ref={panelRef} className={`dialog${variant === "drawer" ? " drawer" : ""}`} role="dialog" aria-modal="true"
         aria-labelledby={titleId} aria-busy={busy} tabIndex={-1} data-testid={testId}>
         <h3 id={titleId}>{title}</h3>
         {children}

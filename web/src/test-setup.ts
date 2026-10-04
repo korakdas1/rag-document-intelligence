@@ -9,7 +9,9 @@ if (!Element.prototype.scrollIntoView) {
 if (typeof window.matchMedia !== "function") {
   window.matchMedia = (query: string) =>
     ({
-      matches: false,
+      // Existing application tests exercise the full desktop workspace.
+      // Shell tests override this with explicit media-query change events.
+      matches: query === "(min-width: 1280px)" || query === "(min-width: 900px)",
       media: query,
       onchange: null,
       addListener() {},

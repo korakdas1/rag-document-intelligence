@@ -677,7 +677,7 @@ describe("App", () => {
       const fresh = documentRow({ document_id: "doc-3", filename: "fresh.md" });
       mockedUpload.mockResolvedValue({ document: fresh, outcome: "created", warnings: [], request_id: "u1" });
       mockedList.mockResolvedValue({ documents: [documentRow(), documentRow({ document_id: "doc-2", filename: "other.md" }), fresh], chunker_id: "test", request_id: "d2" });
-      expect(screen.getByRole("checkbox", { name: "Ask across all documents" })).toHaveProperty("indeterminate", true);
+      await waitFor(() => expect(screen.getByRole("checkbox", { name: "Ask across all documents" })).toHaveProperty("indeterminate", true));
       await user.upload(document.querySelector('input[type="file"]') as HTMLInputElement, new File(["orchard"], "fresh.md", { type: "text/markdown" }));
       expect(await screen.findByRole("checkbox", { name: /fresh.md/ })).not.toBeChecked();
       expect(screen.getByRole("checkbox", { name: /attention.md/ })).toBeChecked();
@@ -1155,7 +1155,7 @@ describe("App", () => {
     );
     const user = userEvent.setup();
     render(<App />);
-    await user.click(screen.getByRole("button", { name: "Documents" }));
+    expect(screen.getByRole("complementary", { name: "Document library" })).toBeVisible();
     const input = document.querySelector('input[type="file"]') as HTMLInputElement;
     const file = new File(["not a supported payload"], "notes.md", {
       type: "text/markdown",
@@ -1174,7 +1174,7 @@ describe("App", () => {
     );
     const user = userEvent.setup();
     render(<App />);
-    await user.click(screen.getByRole("button", { name: "Documents" }));
+    expect(screen.getByRole("complementary", { name: "Document library" })).toBeVisible();
     const input = document.querySelector('input[type="file"]') as HTMLInputElement;
     await user.upload(input, new File(["x"], "paper.pdf", { type: "application/pdf" }));
     const error = await screen.findByTestId("upload-error");
