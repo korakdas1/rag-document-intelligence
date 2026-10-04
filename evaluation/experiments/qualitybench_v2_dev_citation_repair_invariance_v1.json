@@ -704,8 +704,8 @@
     "independent_observed_content_check": "Deleting observed S1 insertions and directly adjacent inserted spaces independently reconstructed all 13 original strings.",
     "protected_files": "64 protected tracked artifacts and 70 original private/untracked files retain their pre-task SHA-256 values; final diff additionally checked to contain only intended implementation/tests/replay/docs."
   },
-  "decision": "REJECT EXPERIMENT",
-  "decision_rationale": "The single fixed replay meets every repair target: 13/13 valid marker-only repairs, zero accepted content changes, and no third call; rejection paths pass focused tests. The public tracked-file suite passes all 584 tests. However, the explicitly required full workspace pytest run reports 609 passed and two failed private legacy-metric tests, both reproduced unchanged against starting main. The requested all-tests-pass gate is therefore not met. This rejection is a validation-gate decision, not an observed repair safety or efficacy failure. The candidate implementation remains present for external review, without a second variant or any merge.",
+  "decision": "ACCEPT EXPERIMENT",
+  "decision_rationale": "The candidate met every repair-specific target: 13/13 valid marker-only repairs, zero accepted content changes, and no third call; rejection paths pass focused tests. Public CI is green. The two full-workspace private-test failures reproduce unchanged on starting main and are pre-existing workspace debt, not candidate regressions. External review therefore reclassified the final decision as ACCEPT EXPERIMENT, with the candidate accepted for production review under the merge-readiness criterion of no new test regressions + green public CI. The original literal all-tests-pass gate would have rejected the candidate and did record REJECT EXPERIMENT; that history and both private failures remain documented. PR #11 remains open and unmerged for final re-review.",
   "limitations": [
     "Only the fixed 13 historical DEV citation failures were replayed once; no new first-pass generation or general answer-quality evaluation was performed.",
     "All replayed answers cite S1. Multi-citation, malformed-output, and rejection paths are covered by offline unit tests, not diverse live replay outcomes.",
@@ -740,5 +740,27 @@
     "rejected_repairs_preserve_original_and_fail_closed": true,
     "no_third_call": true,
     "all_requested_tests_pass": false
+  },
+  "external_review_reclassification": {
+    "review_url": "https://github.com/korakdas1/rag-document-intelligence/pull/11#issuecomment-5982297975",
+    "reviewed_commit": "01f2b24f31e368f2ca79c8b5606b526430cba098",
+    "original_decision": "REJECT EXPERIMENT",
+    "original_decision_rationale": "The single fixed replay meets every repair target: 13/13 valid marker-only repairs, zero accepted content changes, and no third call; rejection paths pass focused tests. The public tracked-file suite passes all 584 tests. However, the explicitly required full workspace pytest run reports 609 passed and two failed private legacy-metric tests, both reproduced unchanged against starting main. The requested all-tests-pass gate is therefore not met. This rejection is a validation-gate decision, not an observed repair safety or efficacy failure. The candidate implementation remains present for external review, without a second variant or any merge.",
+    "original_literal_all_tests_pass_gate_met": false,
+    "original_gate_would_reject": true,
+    "reviewed_decision": "ACCEPT EXPERIMENT",
+    "candidate_status": "accepted for production review; PR open and unmerged pending final re-review",
+    "merge_readiness_criterion": "no new test regressions + green public CI",
+    "private_failures_classification": "pre-existing workspace debt, reproduced unchanged on starting main; unrelated to the candidate",
+    "public_ci": {
+      "run_url": "https://github.com/korakdas1/rag-document-intelligence/actions/runs/37218176685",
+      "reviewed_commit": "01f2b24f31e368f2ca79c8b5606b526430cba098",
+      "python": "success",
+      "frontend": "success"
+    },
+    "historical_field_scope": "acceptance_gates and limitations preserve the original literal all-tests-pass gate and its wording unchanged. The external-review criterion supersedes that decision gate without altering recorded test outcomes, limitations, or private-failure details.",
+    "implementation_changed": false,
+    "repair_replay_rerun": false,
+    "dev_or_test_rerun": false
   }
 }

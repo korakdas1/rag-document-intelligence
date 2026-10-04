@@ -1,8 +1,16 @@
 # Citation-repair content invariance: fixed DEV replay
 
-**Decision: REJECT EXPERIMENT**
+**Decision: ACCEPT EXPERIMENT**
+
+The candidate met every repair-specific target: 13/13 valid marker-only repairs, zero accepted content changes, and no third call; rejection paths pass focused tests. Public CI is green. The two full-workspace private-test failures reproduce unchanged on starting main and are pre-existing workspace debt, not candidate regressions. External review therefore reclassified the final decision as ACCEPT EXPERIMENT, with the candidate accepted for production review under the merge-readiness criterion of no new test regressions + green public CI. The original literal all-tests-pass gate would have rejected the candidate and did record REJECT EXPERIMENT; that history and both private failures remain documented. PR #11 remains open and unmerged for final re-review.
+
+External review: [PR #11 decision reclassification](https://github.com/korakdas1/rag-document-intelligence/pull/11#issuecomment-5982297975). Public CI for the reviewed commit: [Python and frontend passed](https://github.com/korakdas1/rag-document-intelligence/actions/runs/37218176685).
+
+### Original decision (historical)
 
 The single fixed replay meets every repair target: 13/13 valid marker-only repairs, zero accepted content changes, and no third call; rejection paths pass focused tests. The public tracked-file suite passes all 584 tests. However, the explicitly required full workspace pytest run reports 609 passed and two failed private legacy-metric tests, both reproduced unchanged against starting main. The requested all-tests-pass gate is therefore not met. This rejection is a validation-gate decision, not an observed repair safety or efficacy failure. The candidate implementation remains present for external review, without a second variant or any merge.
+
+External review supersedes the original literal all-tests-pass decision gate because the two failures are baseline-reproduced and unrelated. The original `acceptance_gates` values and limitations remain unchanged in the JSON record; they describe the original gate, not the reviewed merge-readiness criterion. This update changes decision wording only: no implementation change, repair replay rerun, DEV run, or TEST run.
 
 This is a repair-only experiment. One fixed replay of 13 historical v5 DEV citation failures completed; no retrieval, first-pass model generation, full DEV run, or held-out TEST run occurred. The candidate remains present for external review in an open, unmerged PR. No second variant was tuned.
 
@@ -307,6 +315,8 @@ Focused tests passed before committing the implementation and before any live re
 - **protected files**: 64 protected tracked artifacts and 70 original private/untracked files retain their pre-task SHA-256 values; final diff additionally checked to contain only intended implementation/tests/replay/docs.
 
 ## Limitations and held-out policy
+
+The following limitations are preserved verbatim from the original record. The final bullet records the original literal gate; external review reclassified the decision as described above without changing the private-failure details or held-out policy.
 
 - Only the fixed 13 historical DEV citation failures were replayed once; no new first-pass generation or general answer-quality evaluation was performed.
 - All replayed answers cite S1. Multi-citation, malformed-output, and rejection paths are covered by offline unit tests, not diverse live replay outcomes.
