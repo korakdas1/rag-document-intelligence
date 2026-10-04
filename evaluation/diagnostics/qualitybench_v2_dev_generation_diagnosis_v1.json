@@ -1,0 +1,3018 @@
+{
+  "diagnosis_schema": "qualitybench-v2-dev-generation-diagnosis.v1",
+  "scope": "Single current-production DEV run; output-by-output manual review; analysis only, not independent human adjudication or a held-out benchmark claim.",
+  "identities": {
+    "source_main_commit": "e494fd685c31363aaffc6555a1ef064f5f01dc00",
+    "source_main_ci": {
+      "conclusion": "success",
+      "event": "push",
+      "head_sha": "e494fd685c31363aaffc6555a1ef064f5f01dc00",
+      "html_url": "https://github.com/korakdas1/rag-document-intelligence/actions/runs/37183151468",
+      "id": 37183151468,
+      "name": "CI",
+      "status": "completed"
+    },
+    "run_id": "eval_20261004T092610Z_7e617cae80ec",
+    "raw_report_path": "evaluation/results/qualitybench_v2_dev_generation_diagnosis/eval_20261004T092610Z_7e617cae80ec.json",
+    "raw_report_sha256": "befd206e7ff5b6d18f2e7672710a4f2f59b434ff5ca11482b778bf6e2bde2aa1",
+    "raw_report_bytes": 446360,
+    "dataset_id": "qualitybench_v2",
+    "dataset_version": "qualitybench.v2",
+    "dataset_sha256": "4ae148bb8c375d667e1803e72ce977431e5b54cf250122ceeaa5d7fde3ddcc9f",
+    "dataset_hash_kind": "file_bytes",
+    "corpus_sha256": "c9f92ea09c75cb2976201933c0f044be6b82a66491cc50b00d3783d2ea2f67cb",
+    "metrics_schema": "evidence-metrics.v2",
+    "chunker_id": "structure.v1:fc9ff956df32",
+    "embedding_model_id": "bge-small-en-v1.5:73115d06b057",
+    "index_id": "5a8ebe075cf9e5fb",
+    "reranker_id": "ms-marco-MiniLM-L-6-v2:603b5a7fd2cf",
+    "llm_id": "qwen2.5-coder-7b:8f6776b6b431",
+    "resolver_id": "followup.heuristic.v4",
+    "prompt_id": "grounded.answerability.v5",
+    "parser_id": "json.object.v2"
+  },
+  "execution": {
+    "started_at": "2026-10-04T09:26:01.220556+00:00",
+    "finished_at": "2026-10-04T09:29:54.374545+00:00",
+    "wall_seconds": 233.1539152059995,
+    "attempt": 1,
+    "repeat": 1,
+    "split": "dev",
+    "returncode": 0
+  },
+  "configuration": {
+    "runner": {
+      "metrics_schema": "evidence-metrics.v2",
+      "dataset_id": "qualitybench_v2",
+      "dataset_version": "qualitybench.v2",
+      "family": "qualitybench",
+      "stage": "full",
+      "mode": "hybrid",
+      "split": "dev",
+      "chunker_id": "structure.v1:fc9ff956df32",
+      "candidate_k": 20,
+      "dense_candidate_k": 20,
+      "lexical_candidate_k": 20,
+      "rrf_k": 60,
+      "rerank_enabled": true,
+      "reranker_model": "cross-encoder/ms-marco-MiniLM-L-6-v2",
+      "rerank_top_k": 8,
+      "max_context_tokens": 1024,
+      "embedding_model": "BAAI/bge-small-en-v1.5",
+      "llm_model": "qwen2.5-coder:7b",
+      "llm_provider": "openai_compatible",
+      "llm_temperature": 0.0,
+      "prompt_id": "grounded.answerability.v5",
+      "parser_id": "json.object.v2",
+      "resolver_id": "followup.heuristic.v4",
+      "llm_citation_repair": true,
+      "llm_keep_alive": "",
+      "llm_repair_model": "",
+      "repeat": 1,
+      "tag": null,
+      "example_ids": null
+    },
+    "serving_defaults_resolved": {
+      "database_path": "data/processed/research_assistant.db",
+      "log_level": "INFO",
+      "max_file_bytes": 52428800,
+      "embedding_model_name": "BAAI/bge-small-en-v1.5",
+      "embedding_device": "auto",
+      "embedding_batch_size": 32,
+      "embedding_normalize": true,
+      "vector_index_path": "data/indexes/qdrant",
+      "default_top_k": 5,
+      "bm25_k1": 1.2,
+      "bm25_b": 0.75,
+      "rrf_k": 60,
+      "dense_candidate_k": 20,
+      "lexical_candidate_k": 20,
+      "reranker_model_name": "cross-encoder/ms-marco-MiniLM-L-6-v2",
+      "reranker_device": "auto",
+      "reranker_batch_size": 8,
+      "reranker_max_length": 512,
+      "rerank_candidate_k": 20,
+      "rerank_top_k": 8,
+      "rerank_enabled": true,
+      "max_context_tokens": 1024,
+      "llm_provider": "openai_compatible",
+      "llm_model_name": "qwen2.5-coder:7b",
+      "llm_base_url": "http://127.0.0.1:11434/v1",
+      "llm_temperature": 0.0,
+      "llm_max_output_tokens": 512,
+      "llm_timeout_seconds": 120.0,
+      "llm_response_format": "json_object",
+      "upload_dir": "data/uploads",
+      "cors_origins": [
+        "http://127.0.0.1:5173",
+        "http://localhost:5173"
+      ],
+      "conversation_window": 4,
+      "llm_citation_repair": true,
+      "llm_format_repair": false,
+      "llm_keep_alive": "",
+      "llm_repair_model_name": "",
+      "app_env": "development",
+      "api_host": "127.0.0.1",
+      "api_port": 8000,
+      "max_question_chars": 8000,
+      "health_probe_timeout_seconds": 1.5,
+      "sqlite_busy_timeout_ms": 5000
+    },
+    "workspace": "evaluation/workspaces/qualitybench_v2_dev_generation_diagnosis",
+    "isolated_storage_overrides": {
+      "database_path": "evaluation/workspaces/qualitybench_v2_dev_generation_diagnosis/research_assistant.db",
+      "vector_index_path": "evaluation/workspaces/qualitybench_v2_dev_generation_diagnosis/indexes/qdrant",
+      "upload_dir": "evaluation/workspaces/qualitybench_v2_dev_generation_diagnosis/uploads"
+    },
+    "prepared_state": {
+      "documents": 20,
+      "chunks": 141,
+      "indexed_chunks": 141
+    },
+    "models": {
+      "embedding": {
+        "embedding_model_id": "bge-small-en-v1.5:73115d06b057",
+        "provider": "sentence-transformers",
+        "model_name": "BAAI/bge-small-en-v1.5",
+        "revision": "5c38ec7c405ec4b44b94cc5a9bb96e735b38267a",
+        "dimension": 384,
+        "normalize": true,
+        "query_prefix": "Represent this sentence for searching relevant passages: ",
+        "document_prefix": "",
+        "metric": "cosine"
+      },
+      "reranker": {
+        "reranker_id": "ms-marco-MiniLM-L-6-v2:603b5a7fd2cf",
+        "provider": "sentence-transformers-cross-encoder",
+        "model_name": "cross-encoder/ms-marco-MiniLM-L-6-v2",
+        "revision": "cross-encoder/ms-marco-MiniLM-L-6-v2",
+        "max_length": 512,
+        "batch_size": 8,
+        "scoring": "logit",
+        "device": "cuda"
+      },
+      "llm": {
+        "llm_id": "qwen2.5-coder-7b:8f6776b6b431",
+        "provider": "openai_compatible",
+        "model_name": "qwen2.5-coder:7b",
+        "temperature": 0.0,
+        "max_output_tokens": 512,
+        "response_format": "json_object",
+        "timeout_seconds": 120.0,
+        "base_url": "http://127.0.0.1:11434/v1"
+      },
+      "ollama": {
+        "version": "0.21.0",
+        "name": "qwen2.5-coder:7b",
+        "size": 4683087561,
+        "digest": "dae161e27b0e90dd1856c8bb3209201fd6736d8eb66298e75ed87571486f4364",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "qwen2",
+          "families": [
+            "qwen2"
+          ],
+          "parameter_size": "7.6B",
+          "quantization_level": "Q4_K_M"
+        }
+      }
+    },
+    "environment": {
+      "python": "3.13.12 | packaged by Anaconda, Inc. | (main, Feb 24 2026, 16:13:31) [GCC 14.3.0]",
+      "application_environment_overrides": {},
+      "execution_environment": {
+        "PYTHONPATH": "src",
+        "HF_HUB_OFFLINE": "1"
+      },
+      "packages": {
+        "torch": "2.13.0",
+        "sentence-transformers": "5.7.0",
+        "transformers": "5.15.0",
+        "numpy": "2.5.2",
+        "qdrant-client": "1.19.0",
+        "fastapi": "0.133.0",
+        "starlette": "1.3.1",
+        "pypdf": "6.19.0",
+        "python-multipart": "0.0.32",
+        "huggingface-hub": "1.27.0",
+        "tokenizers": "0.22.2"
+      }
+    },
+    "hardware": {
+      "gpu": "NVIDIA GeForce RTX 3050 Laptop GPU",
+      "vram_mib": 4096,
+      "driver": "595.91.07"
+    },
+    "default_config_verification": "Resolved settings matched defaults with application environment aliases removed; no model/retrieval/prompt overrides. Only persistence paths replaced by the evaluation CLI.",
+    "generation_cache": "Quality runner does not cache generation; fresh workspace, repeat=1.",
+    "optional_judge": false
+  },
+  "aggregate_dev_metrics": {
+    "n": 24,
+    "n_answerable": 20,
+    "n_unanswerable": 4,
+    "product_status": {
+      "GROUNDED": 17,
+      "NOT_ENOUGH_EVIDENCE": 7
+    },
+    "product_status_answerable": {
+      "GROUNDED": 17,
+      "NOT_ENOUGH_EVIDENCE": 3
+    },
+    "product_status_unanswerable": {
+      "NOT_ENOUGH_EVIDENCE": 4
+    },
+    "abstention": {
+      "true_positive": 4,
+      "false_positive": 3,
+      "false_negative": 0,
+      "true_negative": 17,
+      "precision": 0.5714285714285714,
+      "recall": 1.0,
+      "false_answer_rate": 0.0,
+      "false_abstention_rate": 0.15,
+      "false_abstention_with_gold_context": 3
+    },
+    "retrieval_to_context": {
+      "gold_in_hybrid_rate": 1.0,
+      "gold_in_rerank_rate": 1.0,
+      "gold_chunk_selected_rate": 1.0,
+      "context_gold_chunk_recall": 1.0,
+      "rendered_gold_any_rate": 1.0,
+      "rendered_gold_all_rate": 1.0,
+      "rendered_gold_passage_recall": 1.0
+    },
+    "answer_content": {
+      "lexical_key_fact_recall": 0.7,
+      "all_lexical_key_facts_matched": 0.7,
+      "reference_token_f1_diagnostic": 0.2861341389089067
+    },
+    "citations": {
+      "answers_requiring_citation": 17,
+      "answers_with_valid_citation": 17,
+      "citation_coverage": 1.0,
+      "missing_citation_count": 0,
+      "invalid_citation_count": 0,
+      "malformed_count": 0,
+      "cited_gold_passage_recall": 0.85,
+      "product_grounded": 17,
+      "product_grounded_with_full_cited_gold": 17,
+      "product_grounded_without_cited_gold": 0
+    },
+    "conflict": {
+      "n_expected_conflict": 0,
+      "true_conflict_reported": 0,
+      "true_conflict_both_key_facts": 0,
+      "collapsed": 0,
+      "incorrectly_abstained": 0,
+      "false_conflict_reported": 0
+    },
+    "ambiguity": {
+      "guessed_referent": 0
+    },
+    "multi_source": {
+      "items_with_slots": 1,
+      "all_slots_lexically_matched": 0,
+      "all_slots_lexically_matched_rate": 0.0,
+      "slot_count": 2,
+      "slots_lexically_matched": 0,
+      "lexical_slot_match_rate": 0.0,
+      "slots_cited_gold": 0,
+      "slot_cited_gold_rate": 0.0,
+      "unmatched_labeled_slots": 2,
+      "items_with_forbidden_phrase": 0
+    },
+    "phrase_consistency": {
+      "groups": 1,
+      "stable_groups": 1,
+      "consistency_rate": 1.0
+    },
+    "repair": {
+      "invocation_count": 13,
+      "invocation_rate": 0.5416666666666666,
+      "drift_kinds": {
+        "paraphrase": 2,
+        "marker_only": 11
+      },
+      "repair_grounded_without_cited_gold": 0
+    },
+    "cited_gold_coverage": {
+      "product_grounded": 17,
+      "full_gold_passage_coverage": 17,
+      "partial_gold_passage_coverage": 0,
+      "no_gold_passage_coverage": 0,
+      "not_applicable": 0,
+      "product_grounded_with_full_cited_gold": 17,
+      "product_grounded_without_cited_gold": 0
+    },
+    "llm_calls": {
+      "mean": 1.5416666666666667
+    },
+    "unverified": {},
+    "primary_failures": {
+      "WRONG_ANSWER": 3,
+      "FALSE_ABSTENTION_WITH_GOLD_CONTEXT": 3
+    },
+    "latency": {
+      "retrieval_ms": {
+        "n": 24,
+        "mean_ms": 28.98,
+        "median_ms": 28.46,
+        "p90_ms": 30.75,
+        "p95_ms": 35.5,
+        "min_ms": 24.92,
+        "max_ms": 36.5,
+        "cold_first_ms": 27.51,
+        "warm_n": 23,
+        "warm_mean_ms": 29.04,
+        "warm_median_ms": 28.58
+      },
+      "rerank_ms": {
+        "n": 24,
+        "mean_ms": 38.08,
+        "median_ms": 38.95,
+        "p90_ms": 41.88,
+        "p95_ms": 42.15,
+        "min_ms": 12.34,
+        "max_ms": 42.71,
+        "cold_first_ms": 34.72,
+        "warm_n": 23,
+        "warm_mean_ms": 38.23,
+        "warm_median_ms": 39.04
+      },
+      "generation_ms": {
+        "n": 24,
+        "mean_ms": 9124.94,
+        "median_ms": 11081.72,
+        "p90_ms": 12774.16,
+        "p95_ms": 12962.86,
+        "min_ms": 4250.0,
+        "max_ms": 13368.1,
+        "cold_first_ms": 8772.91,
+        "warm_n": 23,
+        "warm_mean_ms": 9140.24,
+        "warm_median_ms": 11089.49
+      },
+      "first_pass_generation_ms": {
+        "n": 24,
+        "mean_ms": 5677.34,
+        "median_ms": 5488.09,
+        "p90_ms": 6376.17,
+        "p95_ms": 6575.56,
+        "min_ms": 4250.0,
+        "max_ms": 8772.91,
+        "cold_first_ms": 8772.91,
+        "warm_n": 23,
+        "warm_mean_ms": 5542.75,
+        "warm_median_ms": 5488.09
+      },
+      "repair_ms": {
+        "n": 24,
+        "mean_ms": 3447.59,
+        "median_ms": 5810.01,
+        "p90_ms": 6710.01,
+        "p95_ms": 6890.05,
+        "min_ms": 0.0,
+        "max_ms": 7120.0,
+        "cold_first_ms": 0.0,
+        "warm_n": 23,
+        "warm_mean_ms": 3597.49,
+        "warm_median_ms": 5865.11
+      },
+      "total_ms": {
+        "n": 24,
+        "mean_ms": 9191.99,
+        "median_ms": 11150.92,
+        "p90_ms": 12838.91,
+        "p95_ms": 13041.08,
+        "min_ms": 4316.38,
+        "max_ms": 13437.64,
+        "cold_first_ms": 8835.14,
+        "warm_n": 23,
+        "warm_mean_ms": 9207.51,
+        "warm_median_ms": 11159.25
+      }
+    }
+  },
+  "manual_review": {
+    "reviewed_examples": 24,
+    "reviewed_rendered_blocks": 123,
+    "method": "Read every exact rendered context block, final output, and all 13 saved first-pass/repair pairs. Select bounded exact excerpts for this report; no full documents or raw candidate lists copied.",
+    "primary_bucket_policy": "Exactly one bucket for each suspicious row: substantive false abstention C first; lexical evaluator mismatch K next; otherwise repaired missing-citation defect I. Null means no observed defect. The qb2-026 resolver anomaly is recorded separately, not asserted to cause the abstention or double-counted as H.",
+    "primary_bucket_counts": {
+      "A. EVIDENCE_MISSING": 0,
+      "B. CONTEXT_PACKING": 0,
+      "C. FALSE_ABSTENTION": 3,
+      "D. WRONG_INTERPRETATION": 0,
+      "E. NEGATION_OR_QUALIFIER": 0,
+      "F. INCOMPLETE_MULTI_PART": 0,
+      "G. CONFLICT_COLLAPSE": 0,
+      "H. FOLLOWUP_REWRITE": 0,
+      "I. MISSING_CITATION_ONLY": 10,
+      "J. CITATION_REPAIR_DRIFT": 0,
+      "K. EVALUATOR_LEXICAL_FALSE_NEGATIVE": 3,
+      "L. OTHER": 0
+    },
+    "no_observed_defect_count": 8,
+    "correct_final_answers": 17,
+    "correct_abstentions": 4,
+    "false_abstentions": 3,
+    "non_abstaining_wrong_or_incomplete_answers": 0,
+    "lexical_false_negatives": 3,
+    "repair_invocations": 13,
+    "repair_needed_for_otherwise_correct_answer": 13,
+    "repair_classification_counts": {
+      "marker-only": 11,
+      "harmless formatting": 2,
+      "paraphrase": 2,
+      "changed entity": 0,
+      "changed number": 0,
+      "changed polarity": 0,
+      "added factual claim": 0,
+      "removed factual claim": 0,
+      "improved correctness": 0,
+      "worsened correctness": 0
+    },
+    "repair_substantive_changes": 0,
+    "repair_classes_may_overlap": true,
+    "first_pass_with_valid_citation": 4,
+    "first_pass_substantive_answers": 17,
+    "first_pass_citation_coverage": 0.23529411764705882,
+    "no_conflict_items": true,
+    "followup_items": 1,
+    "multisource_items": 1,
+    "first_pass_trace_limit": "The raw report stores parsed first-pass answer/status only when repair ran; it does not retain the original first-pass raw JSON envelope. No parser/format defect is evidenced by the saved missing-citations statuses and marker-free answer strings."
+  },
+  "prompt_audit": {
+    "file": "src/research_assistant/generation/prompt.py",
+    "prompt_id": "grounded.answerability.v5",
+    "observed_contract": "Read all blocks; must answer if any block contains the requested fact; different phrasing is sufficient; use conservative restatement; abstain only if no block supports the answer; source-stated negatives allowed; report disagreements and cite each side; cite factual claims; return strict JSON.",
+    "diagnosis": "All three false abstentions have full direct gold evidence. Two have unchanged standalone questions, and one has a malformed follow-up rewrite. Negative/qualified/methodological sufficiency is a plausible weakness, not a demonstrated internal cause. Correct negative answers on qb2-025 and qb2-076 show the weakness is not universal.",
+    "repair_contract": "Reformat that answer as JSON using ONLY the same facts. Do not add claims.",
+    "repair_observation": "11 marker-only and two grammar paraphrases; all 13 preserve substantive facts. Existing repair fixes citation compliance, not factual correctness, in this sample.",
+    "generation_input": "The resolved retrieval query is also the generation question; history is used by the resolver but not passed to build_request.",
+    "limitations": [
+      "No prompt variants or counterfactual runs",
+      "No independent human adjudication",
+      "No original raw first-pass JSON for repaired rows",
+      "Zero conflict questions",
+      "One follow-up and one multi-source item",
+      "Citation validity and gold coverage do not certify semantic entailment"
+    ]
+  },
+  "examples": [
+    {
+      "example_id": "qb2-001",
+      "category": "paraphrase",
+      "slice": "paraphrase",
+      "split": "dev",
+      "question": "At what temperature are Northstar baseline packs stored before screening?",
+      "answerable": true,
+      "resolver_method": "passthrough",
+      "rewrite_applied": false,
+      "rewrite_error": false,
+      "resolver_entities": [],
+      "followup_detected": false,
+      "ambiguous": false,
+      "gold_in_hybrid": true,
+      "gold_in_rerank": true,
+      "gold_chunk_selected": true,
+      "context_gold_chunk_recall": 1.0,
+      "rendered_gold_any": true,
+      "rendered_gold_all": true,
+      "rendered_gold_passage_recall": 1.0,
+      "product_status": "GROUNDED",
+      "validation_status": "valid",
+      "insufficient_evidence": false,
+      "lexical_key_fact_recall": 1.0,
+      "lexical_key_fact_hits": [
+        true
+      ],
+      "cited_gold_passage_recall": 1.0,
+      "primary_failure": null,
+      "secondary_failures": [],
+      "repair_attempts": 0,
+      "repair_drift": {
+        "changed": false,
+        "kinds": []
+      },
+      "first_pass_validation_status": "",
+      "first_pass_answer_text": "",
+      "llm_calls": 1,
+      "claim_slots": [],
+      "timings_ms": {
+        "dense_ms": 171.32373098866083,
+        "lexical_ms": 25.313277990790084,
+        "fusion_ms": 0.17484001000411808,
+        "retrieval_ms": 27.510000014444813,
+        "resolve_ms": 0.03327301237732172,
+        "rerank_ms": 34.719574003247544,
+        "generation_ms": 8772.906939993845,
+        "first_pass_generation_ms": 8772.906939993845,
+        "repair_ms": 0.0,
+        "total_ms": 8835.136514011538
+      },
+      "retrieval_query": "At what temperature are Northstar baseline packs stored before screening?",
+      "generation_question": "At what temperature are Northstar baseline packs stored before screening?",
+      "history": [],
+      "expected_resolver_hints": {
+        "contains": [],
+        "must_not": []
+      },
+      "key_facts": [
+        "18 degrees Celsius"
+      ],
+      "reference_answer": "18 degrees Celsius.",
+      "rendered_evidence_excerpts": [
+        {
+          "citation_id": "S1",
+          "filename": "northstar_protocol.md",
+          "chunk_id": "918d24697368265fc9fefddfad0c2072d70a71d39ebb6310455d0a65bec07c38",
+          "rendered_block_truncated": false,
+          "start_char": 22,
+          "end_char": 97,
+          "text": "Northstar baseline packs are stored at 18 degrees Celsius before screening."
+        }
+      ],
+      "rendered_blocks_reviewed": 5,
+      "final_answer": "Northstar baseline packs are stored at 18 degrees Celsius before screening [S1].",
+      "citations": [
+        "S1"
+      ],
+      "invalid_citations": [],
+      "final_repaired_answer": null,
+      "manual_diagnosis": {
+        "primary_bucket": null,
+        "verdict": "correct_answer",
+        "reason": "Correct 18 degrees Celsius preparation temperature, explicitly before screening; does not confuse the thermal alarm threshold with storage.",
+        "lexical_false_negative": false,
+        "first_pass_behavior": "not separately stored; no repair ran",
+        "repair_needed_for_otherwise_correct_answer": false,
+        "repair_classification": [],
+        "repair_substantive_change": null,
+        "repair_reason": null,
+        "resolver_anomaly": null
+      }
+    },
+    {
+      "example_id": "qb2-002",
+      "category": "paraphrase",
+      "slice": "paraphrase",
+      "split": "dev",
+      "question": "What storage temperature prepares the Northstar baseline packs for screening?",
+      "answerable": true,
+      "resolver_method": "passthrough",
+      "rewrite_applied": false,
+      "rewrite_error": false,
+      "resolver_entities": [],
+      "followup_detected": false,
+      "ambiguous": false,
+      "gold_in_hybrid": true,
+      "gold_in_rerank": true,
+      "gold_chunk_selected": true,
+      "context_gold_chunk_recall": 1.0,
+      "rendered_gold_any": true,
+      "rendered_gold_all": true,
+      "rendered_gold_passage_recall": 1.0,
+      "product_status": "GROUNDED",
+      "validation_status": "valid",
+      "insufficient_evidence": false,
+      "lexical_key_fact_recall": 1.0,
+      "lexical_key_fact_hits": [
+        true
+      ],
+      "cited_gold_passage_recall": 1.0,
+      "primary_failure": null,
+      "secondary_failures": [],
+      "repair_attempts": 0,
+      "repair_drift": {
+        "changed": false,
+        "kinds": []
+      },
+      "first_pass_validation_status": "",
+      "first_pass_answer_text": "",
+      "llm_calls": 1,
+      "claim_slots": [],
+      "timings_ms": {
+        "dense_ms": 19.721783028217033,
+        "lexical_ms": 9.00583399925381,
+        "fusion_ms": 0.1500100188422948,
+        "retrieval_ms": 28.239469014806673,
+        "resolve_ms": 0.030705006793141365,
+        "rerank_ms": 35.929678997490555,
+        "generation_ms": 6376.165501016658,
+        "first_pass_generation_ms": 6376.165501016658,
+        "repair_ms": 0.0,
+        "total_ms": 6440.334649028955
+      },
+      "retrieval_query": "What storage temperature prepares the Northstar baseline packs for screening?",
+      "generation_question": "What storage temperature prepares the Northstar baseline packs for screening?",
+      "history": [],
+      "expected_resolver_hints": {
+        "contains": [],
+        "must_not": []
+      },
+      "key_facts": [
+        "18 degrees Celsius"
+      ],
+      "reference_answer": "18 degrees Celsius.",
+      "rendered_evidence_excerpts": [
+        {
+          "citation_id": "S1",
+          "filename": "northstar_protocol.md",
+          "chunk_id": "918d24697368265fc9fefddfad0c2072d70a71d39ebb6310455d0a65bec07c38",
+          "rendered_block_truncated": false,
+          "start_char": 22,
+          "end_char": 97,
+          "text": "Northstar baseline packs are stored at 18 degrees Celsius before screening."
+        }
+      ],
+      "rendered_blocks_reviewed": 5,
+      "final_answer": "The Northstar baseline packs are stored at 18 degrees Celsius before screening [S1].",
+      "citations": [
+        "S1"
+      ],
+      "invalid_citations": [],
+      "final_repaired_answer": null,
+      "manual_diagnosis": {
+        "primary_bucket": null,
+        "verdict": "correct_answer",
+        "reason": "Correct storage-temperature paraphrase of S1; the preparation condition remains explicit.",
+        "lexical_false_negative": false,
+        "first_pass_behavior": "not separately stored; no repair ran",
+        "repair_needed_for_otherwise_correct_answer": false,
+        "repair_classification": [],
+        "repair_substantive_change": null,
+        "repair_reason": null,
+        "resolver_anomaly": null
+      }
+    },
+    {
+      "example_id": "qb2-003",
+      "category": "paraphrase",
+      "slice": "paraphrase",
+      "split": "dev",
+      "question": "How warm is the pre-screening storage environment for Northstar baseline packs?",
+      "answerable": true,
+      "resolver_method": "passthrough",
+      "rewrite_applied": false,
+      "rewrite_error": false,
+      "resolver_entities": [],
+      "followup_detected": false,
+      "ambiguous": false,
+      "gold_in_hybrid": true,
+      "gold_in_rerank": true,
+      "gold_chunk_selected": true,
+      "context_gold_chunk_recall": 1.0,
+      "rendered_gold_any": true,
+      "rendered_gold_all": true,
+      "rendered_gold_passage_recall": 1.0,
+      "product_status": "GROUNDED",
+      "validation_status": "valid",
+      "insufficient_evidence": false,
+      "lexical_key_fact_recall": 1.0,
+      "lexical_key_fact_hits": [
+        true
+      ],
+      "cited_gold_passage_recall": 1.0,
+      "primary_failure": null,
+      "secondary_failures": [],
+      "repair_attempts": 0,
+      "repair_drift": {
+        "changed": false,
+        "kinds": []
+      },
+      "first_pass_validation_status": "",
+      "first_pass_answer_text": "",
+      "llm_calls": 1,
+      "claim_slots": [],
+      "timings_ms": {
+        "dense_ms": 20.060066017322242,
+        "lexical_ms": 8.560665010008961,
+        "fusion_ms": 0.1383789931423962,
+        "retrieval_ms": 27.402723993873224,
+        "resolve_ms": 0.03554299473762512,
+        "rerank_ms": 38.82241700193845,
+        "generation_ms": 6575.558679993264,
+        "first_pass_generation_ms": 6575.558679993264,
+        "repair_ms": 0.0,
+        "total_ms": 6641.783820989076
+      },
+      "retrieval_query": "How warm is the pre-screening storage environment for Northstar baseline packs?",
+      "generation_question": "How warm is the pre-screening storage environment for Northstar baseline packs?",
+      "history": [],
+      "expected_resolver_hints": {
+        "contains": [],
+        "must_not": []
+      },
+      "key_facts": [
+        "18 degrees Celsius"
+      ],
+      "reference_answer": "18 degrees Celsius.",
+      "rendered_evidence_excerpts": [
+        {
+          "citation_id": "S1",
+          "filename": "northstar_protocol.md",
+          "chunk_id": "918d24697368265fc9fefddfad0c2072d70a71d39ebb6310455d0a65bec07c38",
+          "rendered_block_truncated": false,
+          "start_char": 22,
+          "end_char": 97,
+          "text": "Northstar baseline packs are stored at 18 degrees Celsius before screening."
+        }
+      ],
+      "rendered_blocks_reviewed": 5,
+      "final_answer": "The pre-screening storage environment for Northstar baseline packs is 18 degrees Celsius [S1].",
+      "citations": [
+        "S1"
+      ],
+      "invalid_citations": [],
+      "final_repaired_answer": null,
+      "manual_diagnosis": {
+        "primary_bucket": null,
+        "verdict": "correct_answer",
+        "reason": "Correct 18 degrees Celsius pre-screening environment; stable with the other two storage questions.",
+        "lexical_false_negative": false,
+        "first_pass_behavior": "not separately stored; no repair ran",
+        "repair_needed_for_otherwise_correct_answer": false,
+        "repair_classification": [],
+        "repair_substantive_change": null,
+        "repair_reason": null,
+        "resolver_anomaly": null
+      }
+    },
+    {
+      "example_id": "qb2-004",
+      "category": "identifier",
+      "slice": "core",
+      "split": "dev",
+      "question": "What project identifier belongs to the Northstar Battery Pilot?",
+      "answerable": true,
+      "resolver_method": "passthrough",
+      "rewrite_applied": false,
+      "rewrite_error": false,
+      "resolver_entities": [],
+      "followup_detected": false,
+      "ambiguous": false,
+      "gold_in_hybrid": true,
+      "gold_in_rerank": true,
+      "gold_chunk_selected": true,
+      "context_gold_chunk_recall": 1.0,
+      "rendered_gold_any": true,
+      "rendered_gold_all": true,
+      "rendered_gold_passage_recall": 1.0,
+      "product_status": "GROUNDED",
+      "validation_status": "valid",
+      "insufficient_evidence": false,
+      "lexical_key_fact_recall": 1.0,
+      "lexical_key_fact_hits": [
+        true
+      ],
+      "cited_gold_passage_recall": 1.0,
+      "primary_failure": null,
+      "secondary_failures": [],
+      "repair_attempts": 1,
+      "repair_drift": {
+        "changed": true,
+        "kinds": [
+          "paraphrase"
+        ]
+      },
+      "first_pass_validation_status": "missing_citations",
+      "first_pass_answer_text": "The project identifier belongs to the Northstar Battery Pilot is NBP-24C.",
+      "llm_calls": 2,
+      "claim_slots": [],
+      "timings_ms": {
+        "dense_ms": 20.15150000806898,
+        "lexical_ms": 8.427583990851417,
+        "fusion_ms": 0.1610509934835136,
+        "retrieval_ms": 28.822814987506717,
+        "resolve_ms": 0.035172997741028666,
+        "rerank_ms": 35.25819699279964,
+        "generation_ms": 12519.773570005782,
+        "first_pass_generation_ms": 6006.625070003793,
+        "repair_ms": 6513.148500001989,
+        "total_ms": 12583.854581986088
+      },
+      "retrieval_query": "What project identifier belongs to the Northstar Battery Pilot?",
+      "generation_question": "What project identifier belongs to the Northstar Battery Pilot?",
+      "history": [],
+      "expected_resolver_hints": {
+        "contains": [],
+        "must_not": []
+      },
+      "key_facts": [
+        "NBP-24C"
+      ],
+      "reference_answer": "NBP-24C.",
+      "rendered_evidence_excerpts": [
+        {
+          "citation_id": "S1",
+          "filename": "northstar_brief.md",
+          "chunk_id": "9723be75b8c88fd51a9e09c214dd9d54f34b5f03e03eb18892deb4ac09ea4288",
+          "rendered_block_truncated": false,
+          "start_char": 22,
+          "end_char": 66,
+          "text": "The Northstar project identifier is NBP-24C."
+        }
+      ],
+      "rendered_blocks_reviewed": 7,
+      "final_answer": "The project identifier for the Northstar Battery Pilot is NBP-24C [S1].",
+      "citations": [
+        "S1"
+      ],
+      "invalid_citations": [],
+      "final_repaired_answer": "The project identifier for the Northstar Battery Pilot is NBP-24C [S1].",
+      "manual_diagnosis": {
+        "primary_bucket": "I. MISSING_CITATION_ONLY",
+        "verdict": "correct_answer",
+        "reason": "Correct NBP-24C identifier before and after repair. Repair fixes awkward grammar and adds S1 without changing the identifier or relation.",
+        "lexical_false_negative": false,
+        "first_pass_behavior": "answer correct but no marker",
+        "repair_needed_for_otherwise_correct_answer": true,
+        "repair_classification": [
+          "harmless formatting",
+          "paraphrase"
+        ],
+        "repair_substantive_change": false,
+        "repair_reason": "Grammar and citation placement change only; the same identifier and relation are retained.",
+        "resolver_anomaly": null
+      }
+    },
+    {
+      "example_id": "qb2-005",
+      "category": "numeric",
+      "slice": "longdoc",
+      "split": "dev",
+      "question": "How many cells did Northstar receive before screening exclusions?",
+      "answerable": true,
+      "resolver_method": "passthrough",
+      "rewrite_applied": false,
+      "rewrite_error": false,
+      "resolver_entities": [],
+      "followup_detected": false,
+      "ambiguous": false,
+      "gold_in_hybrid": true,
+      "gold_in_rerank": true,
+      "gold_chunk_selected": true,
+      "context_gold_chunk_recall": 1.0,
+      "rendered_gold_any": true,
+      "rendered_gold_all": true,
+      "rendered_gold_passage_recall": 1.0,
+      "product_status": "GROUNDED",
+      "validation_status": "valid",
+      "insufficient_evidence": false,
+      "lexical_key_fact_recall": 1.0,
+      "lexical_key_fact_hits": [
+        true
+      ],
+      "cited_gold_passage_recall": 1.0,
+      "primary_failure": null,
+      "secondary_failures": [],
+      "repair_attempts": 1,
+      "repair_drift": {
+        "changed": true,
+        "kinds": [
+          "marker_only"
+        ]
+      },
+      "first_pass_validation_status": "missing_citations",
+      "first_pass_answer_text": "Northstar received 52 cells before screening exclusions.",
+      "llm_calls": 2,
+      "claim_slots": [],
+      "timings_ms": {
+        "dense_ms": 18.89914699131623,
+        "lexical_ms": 8.288128999993205,
+        "fusion_ms": 0.1635570079088211,
+        "retrieval_ms": 28.272540017496794,
+        "resolve_ms": 0.031620002118870616,
+        "rerank_ms": 38.75998398871161,
+        "generation_ms": 11410.586239973782,
+        "first_pass_generation_ms": 5600.571784976637,
+        "repair_ms": 5810.014454997145,
+        "total_ms": 11477.61876397999
+      },
+      "retrieval_query": "How many cells did Northstar receive before screening exclusions?",
+      "generation_question": "How many cells did Northstar receive before screening exclusions?",
+      "history": [],
+      "expected_resolver_hints": {
+        "contains": [],
+        "must_not": []
+      },
+      "key_facts": [
+        "52 cells"
+      ],
+      "reference_answer": "52 cells.",
+      "rendered_evidence_excerpts": [
+        {
+          "citation_id": "S1",
+          "filename": "northstar_report.md",
+          "chunk_id": "3e837c8eff154d61ad5d946c7cf00abfe76b98f81c7fe1262327e50c4b8c42a4",
+          "rendered_block_truncated": false,
+          "start_char": 36,
+          "end_char": 106,
+          "text": "Northstar receiving staff logged 52 cells before screening exclusions."
+        }
+      ],
+      "rendered_blocks_reviewed": 4,
+      "final_answer": "Northstar received 52 cells before screening exclusions. [S1]",
+      "citations": [
+        "S1"
+      ],
+      "invalid_citations": [],
+      "final_repaired_answer": "Northstar received 52 cells before screening exclusions. [S1]",
+      "manual_diagnosis": {
+        "primary_bucket": "I. MISSING_CITATION_ONLY",
+        "verdict": "correct_answer",
+        "reason": "Correct receiving count of 52 cells before exclusions; does not substitute the 48-cell screened denominator. Only a citation was missing initially.",
+        "lexical_false_negative": false,
+        "first_pass_behavior": "answer correct but no marker",
+        "repair_needed_for_otherwise_correct_answer": true,
+        "repair_classification": [
+          "marker-only"
+        ],
+        "repair_substantive_change": false,
+        "repair_reason": "Only adds S1 and possibly moves terminal punctuation; number, entity, polarity and scope are unchanged.",
+        "resolver_anomaly": null
+      }
+    },
+    {
+      "example_id": "qb2-006",
+      "category": "insufficient",
+      "slice": "unanswerable",
+      "split": "dev",
+      "question": "What insurance coverage limit applies to Northstar pilot packs?",
+      "answerable": false,
+      "resolver_method": "passthrough",
+      "rewrite_applied": false,
+      "rewrite_error": false,
+      "resolver_entities": [],
+      "followup_detected": false,
+      "ambiguous": false,
+      "gold_in_hybrid": null,
+      "gold_in_rerank": null,
+      "gold_chunk_selected": null,
+      "context_gold_chunk_recall": null,
+      "rendered_gold_any": null,
+      "rendered_gold_all": null,
+      "rendered_gold_passage_recall": null,
+      "product_status": "NOT_ENOUGH_EVIDENCE",
+      "validation_status": "insufficient_evidence",
+      "insufficient_evidence": true,
+      "lexical_key_fact_recall": null,
+      "lexical_key_fact_hits": [],
+      "cited_gold_passage_recall": null,
+      "primary_failure": null,
+      "secondary_failures": [],
+      "repair_attempts": 0,
+      "repair_drift": {
+        "changed": false,
+        "kinds": []
+      },
+      "first_pass_validation_status": "",
+      "first_pass_answer_text": "",
+      "llm_calls": 1,
+      "claim_slots": [],
+      "timings_ms": {
+        "dense_ms": 19.675596995512024,
+        "lexical_ms": 8.869756013154984,
+        "fusion_ms": 0.1829550019465387,
+        "retrieval_ms": 29.515181988244876,
+        "resolve_ms": 0.030978000722825527,
+        "rerank_ms": 37.132586003281176,
+        "generation_ms": 5199.876288999803,
+        "first_pass_generation_ms": 5199.876288999803,
+        "repair_ms": 0.0,
+        "total_ms": 5266.524056991329
+      },
+      "retrieval_query": "What insurance coverage limit applies to Northstar pilot packs?",
+      "generation_question": "What insurance coverage limit applies to Northstar pilot packs?",
+      "history": [],
+      "expected_resolver_hints": {
+        "contains": [],
+        "must_not": []
+      },
+      "key_facts": [],
+      "reference_answer": null,
+      "rendered_evidence_excerpts": [
+        {
+          "citation_id": "S3",
+          "filename": "northstar_amendment.md",
+          "chunk_id": "ee91360f25623f18da2f6f88854bf12fdfbc01f33b607c669fb66041d1f3c45c",
+          "rendered_block_truncated": false,
+          "start_char": 24,
+          "end_char": 119,
+          "text": "Northstar is approved for attended pilot testing but is not approved for production deployment."
+        }
+      ],
+      "rendered_blocks_reviewed": 6,
+      "final_answer": "The provided documents do not contain enough evidence to answer this.",
+      "citations": [],
+      "invalid_citations": [],
+      "final_repaired_answer": null,
+      "manual_diagnosis": {
+        "primary_bucket": null,
+        "verdict": "correct_abstention",
+        "reason": "Correct abstention: none of the rendered blocks supplies an insurance coverage limit. Engineering approval and study scope do not establish insurance coverage.",
+        "lexical_false_negative": false,
+        "first_pass_behavior": "not separately stored; no repair ran",
+        "repair_needed_for_otherwise_correct_answer": false,
+        "repair_classification": [],
+        "repair_substantive_change": null,
+        "repair_reason": null,
+        "resolver_anomaly": null
+      }
+    },
+    {
+      "example_id": "qb2-025",
+      "category": "yes_no",
+      "slice": "core",
+      "split": "dev",
+      "question": "Does the Meridian departure study collect passenger face images?",
+      "answerable": true,
+      "resolver_method": "passthrough",
+      "rewrite_applied": false,
+      "rewrite_error": false,
+      "resolver_entities": [],
+      "followup_detected": false,
+      "ambiguous": false,
+      "gold_in_hybrid": true,
+      "gold_in_rerank": true,
+      "gold_chunk_selected": true,
+      "context_gold_chunk_recall": 1.0,
+      "rendered_gold_any": true,
+      "rendered_gold_all": true,
+      "rendered_gold_passage_recall": 1.0,
+      "product_status": "GROUNDED",
+      "validation_status": "valid",
+      "insufficient_evidence": false,
+      "lexical_key_fact_recall": 0.0,
+      "lexical_key_fact_hits": [
+        false
+      ],
+      "cited_gold_passage_recall": 1.0,
+      "primary_failure": "WRONG_ANSWER",
+      "secondary_failures": [],
+      "repair_attempts": 1,
+      "repair_drift": {
+        "changed": true,
+        "kinds": [
+          "marker_only"
+        ]
+      },
+      "first_pass_validation_status": "missing_citations",
+      "first_pass_answer_text": "The Meridian departure study does not collect passenger face images.",
+      "llm_calls": 2,
+      "claim_slots": [],
+      "timings_ms": {
+        "dense_ms": 19.3497370055411,
+        "lexical_ms": 9.084757999517024,
+        "fusion_ms": 0.14436000492423773,
+        "retrieval_ms": 27.887119009392336,
+        "resolve_ms": 0.033554009860381484,
+        "rerank_ms": 41.878623014781624,
+        "generation_ms": 11089.48835998308,
+        "first_pass_generation_ms": 5184.1347869776655,
+        "repair_ms": 5905.353573005414,
+        "total_ms": 11159.254102007253
+      },
+      "retrieval_query": "Does the Meridian departure study collect passenger face images?",
+      "generation_question": "Does the Meridian departure study collect passenger face images?",
+      "history": [],
+      "expected_resolver_hints": {
+        "contains": [],
+        "must_not": []
+      },
+      "key_facts": [
+        "without collecting face images"
+      ],
+      "reference_answer": "No. It measures departures without collecting face images.",
+      "rendered_evidence_excerpts": [
+        {
+          "citation_id": "S1",
+          "filename": "meridian_brief.md",
+          "chunk_id": "356aa9dc79d4438ff3306245fcf4aafdf60c99b0a73d276d81864e0ef0402207",
+          "rendered_block_truncated": false,
+          "start_char": 157,
+          "end_char": 236,
+          "text": "The Meridian study measures platform departures without collecting face images."
+        }
+      ],
+      "rendered_blocks_reviewed": 5,
+      "final_answer": "The Meridian departure study does not collect passenger face images. [S1]",
+      "citations": [
+        "S1"
+      ],
+      "invalid_citations": [],
+      "final_repaired_answer": "The Meridian departure study does not collect passenger face images. [S1]",
+      "manual_diagnosis": {
+        "primary_bucket": "K. EVALUATOR_LEXICAL_FALSE_NEGATIVE",
+        "verdict": "correct_answer",
+        "reason": "Correct explicit negative: does not collect passenger face images means without collecting face images. The lexical label misses this paraphrase; S1 supports it and repair only adds a marker.",
+        "lexical_false_negative": true,
+        "first_pass_behavior": "answer correct but no marker",
+        "repair_needed_for_otherwise_correct_answer": true,
+        "repair_classification": [
+          "marker-only"
+        ],
+        "repair_substantive_change": false,
+        "repair_reason": "Only adds S1 and possibly moves terminal punctuation; number, entity, polarity and scope are unchanged.",
+        "resolver_anomaly": null
+      }
+    },
+    {
+      "example_id": "qb2-026",
+      "category": "followup",
+      "slice": "followup",
+      "split": "dev",
+      "question": "What hours does it cover?",
+      "answerable": true,
+      "resolver_method": "topic_expansion",
+      "rewrite_applied": true,
+      "rewrite_error": false,
+      "resolver_entities": [
+        "Describe",
+        "Meridian"
+      ],
+      "followup_detected": true,
+      "ambiguous": false,
+      "gold_in_hybrid": true,
+      "gold_in_rerank": true,
+      "gold_chunk_selected": true,
+      "context_gold_chunk_recall": 1.0,
+      "rendered_gold_any": true,
+      "rendered_gold_all": true,
+      "rendered_gold_passage_recall": 1.0,
+      "product_status": "NOT_ENOUGH_EVIDENCE",
+      "validation_status": "insufficient_evidence",
+      "insufficient_evidence": true,
+      "lexical_key_fact_recall": 0.0,
+      "lexical_key_fact_hits": [
+        false,
+        false,
+        false
+      ],
+      "cited_gold_passage_recall": 0.0,
+      "primary_failure": "FALSE_ABSTENTION_WITH_GOLD_CONTEXT",
+      "secondary_failures": [],
+      "repair_attempts": 0,
+      "repair_drift": {
+        "changed": false,
+        "kinds": []
+      },
+      "first_pass_validation_status": "",
+      "first_pass_answer_text": "",
+      "llm_calls": 1,
+      "claim_slots": [],
+      "timings_ms": {
+        "dense_ms": 19.508309982484207,
+        "lexical_ms": 9.20163601404056,
+        "fusion_ms": 0.1457969774492085,
+        "retrieval_ms": 28.092664986616,
+        "resolve_ms": 0.1729119976516813,
+        "rerank_ms": 41.647988982731476,
+        "generation_ms": 5090.565108985174,
+        "first_pass_generation_ms": 5090.565108985174,
+        "repair_ms": 0.0,
+        "total_ms": 5160.305762954522
+      },
+      "retrieval_query": "What hours does it cover regarding Describe and Meridian?",
+      "generation_question": "What hours does it cover regarding Describe and Meridian?",
+      "history": [
+        {
+          "question": "Describe the Meridian sampling plan.",
+          "answer": "Meridian records platform departures during staffed collection windows.",
+          "grounding_status": "grounded"
+        }
+      ],
+      "expected_resolver_hints": {
+        "contains": [
+          "Meridian"
+        ],
+        "must_not": [
+          "Northstar"
+        ]
+      },
+      "key_facts": [
+        "weekdays",
+        "05:00",
+        "21:00"
+      ],
+      "reference_answer": "Weekdays from 05:00 to 21:00.",
+      "rendered_evidence_excerpts": [
+        {
+          "citation_id": "S1",
+          "filename": "meridian_protocol.md",
+          "chunk_id": "53ddcce6ca4a29e14def19a49dbbf9bdd6ae8187575b4f992c79f33aac12088e",
+          "rendered_block_truncated": false,
+          "start_char": 19,
+          "end_char": 78,
+          "text": "Meridian's sampling window is weekdays from 05:00 to 21:00."
+        },
+        {
+          "citation_id": "S1",
+          "filename": "meridian_protocol.md",
+          "chunk_id": "53ddcce6ca4a29e14def19a49dbbf9bdd6ae8187575b4f992c79f33aac12088e",
+          "rendered_block_truncated": false,
+          "start_char": 298,
+          "end_char": 398,
+          "text": "The window describes when the pilot measures activity, not when the transit service itself operates."
+        }
+      ],
+      "rendered_blocks_reviewed": 4,
+      "final_answer": "The provided documents do not contain enough evidence to answer this.",
+      "citations": [],
+      "invalid_citations": [],
+      "final_repaired_answer": null,
+      "manual_diagnosis": {
+        "primary_bucket": "C. FALSE_ABSTENTION",
+        "verdict": "false_abstention",
+        "reason": "False abstention despite the full weekday 05:00–21:00 sampling window in S1. The rewrite adds the imperative Describe as a topic and leaves it unresolved as a pronoun. That resolver defect is observable, but its causal contribution to abstention is not established by this single run.",
+        "lexical_false_negative": false,
+        "first_pass_behavior": "not separately stored; no repair ran",
+        "repair_needed_for_otherwise_correct_answer": false,
+        "repair_classification": [],
+        "repair_substantive_change": null,
+        "repair_reason": null,
+        "resolver_anomaly": "Spurious topic Describe; sampling-plan referent remains implicit. Hint checker passes. Causal effect unknown without a counterfactual."
+      }
+    },
+    {
+      "example_id": "qb2-027",
+      "category": "numeric",
+      "slice": "longdoc",
+      "split": "dev",
+      "question": "How many departures did Meridian observers label during the initial staffed collection period?",
+      "answerable": true,
+      "resolver_method": "passthrough",
+      "rewrite_applied": false,
+      "rewrite_error": false,
+      "resolver_entities": [],
+      "followup_detected": false,
+      "ambiguous": false,
+      "gold_in_hybrid": true,
+      "gold_in_rerank": true,
+      "gold_chunk_selected": true,
+      "context_gold_chunk_recall": 1.0,
+      "rendered_gold_any": true,
+      "rendered_gold_all": true,
+      "rendered_gold_passage_recall": 1.0,
+      "product_status": "GROUNDED",
+      "validation_status": "valid",
+      "insufficient_evidence": false,
+      "lexical_key_fact_recall": 1.0,
+      "lexical_key_fact_hits": [
+        true
+      ],
+      "cited_gold_passage_recall": 1.0,
+      "primary_failure": null,
+      "secondary_failures": [],
+      "repair_attempts": 1,
+      "repair_drift": {
+        "changed": true,
+        "kinds": [
+          "marker_only"
+        ]
+      },
+      "first_pass_validation_status": "missing_citations",
+      "first_pass_answer_text": "Meridian observers labeled 3,600 departures during the initial staffed collection period.",
+      "llm_calls": 2,
+      "claim_slots": [],
+      "timings_ms": {
+        "dense_ms": 18.919411988463253,
+        "lexical_ms": 9.232654003426433,
+        "fusion_ms": 0.1429069961886853,
+        "retrieval_ms": 28.623179998248816,
+        "resolve_ms": 0.032620009733363986,
+        "rerank_ms": 40.9210340003483,
+        "generation_ms": 13368.100145977223,
+        "first_pass_generation_ms": 6248.104764992604,
+        "repair_ms": 7119.995380984619,
+        "total_ms": 13437.64435997582
+      },
+      "retrieval_query": "How many departures did Meridian observers label during the initial staffed collection period?",
+      "generation_question": "How many departures did Meridian observers label during the initial staffed collection period?",
+      "history": [],
+      "expected_resolver_hints": {
+        "contains": [],
+        "must_not": []
+      },
+      "key_facts": [
+        "3,600 departures"
+      ],
+      "reference_answer": "3,600 departures.",
+      "rendered_evidence_excerpts": [
+        {
+          "citation_id": "S1",
+          "filename": "meridian_report.md",
+          "chunk_id": "4614408eec1f9230fe1772dd8dacdd364e83c455db71bfa41cc28784265f8dbb",
+          "rendered_block_truncated": false,
+          "start_char": 25,
+          "end_char": 114,
+          "text": "Meridian observers labeled 3,600 departures during the initial staffed collection period."
+        }
+      ],
+      "rendered_blocks_reviewed": 4,
+      "final_answer": "Meridian observers labeled 3,600 departures during the initial staffed collection period. [S1]",
+      "citations": [
+        "S1"
+      ],
+      "invalid_citations": [],
+      "final_repaired_answer": "Meridian observers labeled 3,600 departures during the initial staffed collection period. [S1]",
+      "manual_diagnosis": {
+        "primary_bucket": "I. MISSING_CITATION_ONLY",
+        "verdict": "correct_answer",
+        "reason": "Correct 3,600 labeled departures, preserving the initial staffed collection period and not substituting raw radio-message counts. Only a citation was missing initially.",
+        "lexical_false_negative": false,
+        "first_pass_behavior": "answer correct but no marker",
+        "repair_needed_for_otherwise_correct_answer": true,
+        "repair_classification": [
+          "marker-only"
+        ],
+        "repair_substantive_change": false,
+        "repair_reason": "Only adds S1 and possibly moves terminal punctuation; number, entity, polarity and scope are unchanged.",
+        "resolver_anomaly": null
+      }
+    },
+    {
+      "example_id": "qb2-028",
+      "category": "summarization",
+      "slice": "multisource",
+      "split": "dev",
+      "question": "Summarize Meridian’s boundaries for face-image collection and inference of rider income.",
+      "answerable": true,
+      "resolver_method": "passthrough",
+      "rewrite_applied": false,
+      "rewrite_error": false,
+      "resolver_entities": [],
+      "followup_detected": false,
+      "ambiguous": false,
+      "gold_in_hybrid": true,
+      "gold_in_rerank": true,
+      "gold_chunk_selected": true,
+      "context_gold_chunk_recall": 1.0,
+      "rendered_gold_any": true,
+      "rendered_gold_all": true,
+      "rendered_gold_passage_recall": 1.0,
+      "product_status": "NOT_ENOUGH_EVIDENCE",
+      "validation_status": "insufficient_evidence",
+      "insufficient_evidence": true,
+      "lexical_key_fact_recall": 0.0,
+      "lexical_key_fact_hits": [
+        false,
+        false
+      ],
+      "cited_gold_passage_recall": 0.0,
+      "primary_failure": "FALSE_ABSTENTION_WITH_GOLD_CONTEXT",
+      "secondary_failures": [],
+      "repair_attempts": 0,
+      "repair_drift": {
+        "changed": false,
+        "kinds": []
+      },
+      "first_pass_validation_status": "",
+      "first_pass_answer_text": "",
+      "llm_calls": 1,
+      "claim_slots": [
+        {
+          "claim_id": "C1",
+          "lexical_answer_match": false,
+          "cited_gold_overlap": false
+        },
+        {
+          "claim_id": "C2",
+          "lexical_answer_match": false,
+          "cited_gold_overlap": false
+        }
+      ],
+      "timings_ms": {
+        "dense_ms": 19.506898999679834,
+        "lexical_ms": 8.414853014983237,
+        "fusion_ms": 0.14189002104103565,
+        "retrieval_ms": 28.584799001691863,
+        "resolve_ms": 0.031042000045999885,
+        "rerank_ms": 42.70593301043846,
+        "generation_ms": 4256.9539950054605,
+        "first_pass_generation_ms": 4256.9539950054605,
+        "repair_ms": 0.0,
+        "total_ms": 4328.244727017591
+      },
+      "retrieval_query": "Summarize Meridian’s boundaries for face-image collection and inference of rider income.",
+      "generation_question": "Summarize Meridian’s boundaries for face-image collection and inference of rider income.",
+      "history": [],
+      "expected_resolver_hints": {
+        "contains": [],
+        "must_not": []
+      },
+      "key_facts": [
+        "face images are not collected",
+        "income cannot be inferred"
+      ],
+      "reference_answer": "Face images are not collected, and rider income cannot be inferred.",
+      "rendered_evidence_excerpts": [
+        {
+          "citation_id": "S2",
+          "filename": "meridian_brief.md",
+          "chunk_id": "356aa9dc79d4438ff3306245fcf4aafdf60c99b0a73d276d81864e0ef0402207",
+          "rendered_block_truncated": false,
+          "start_char": 157,
+          "end_char": 236,
+          "text": "The Meridian study measures platform departures without collecting face images."
+        },
+        {
+          "citation_id": "S1",
+          "filename": "meridian_incident.md",
+          "chunk_id": "3cf46c32d180758f18e55b2b09e019d49be8e1fb1bcdfbc8329650e18d397c93",
+          "rendered_block_truncated": false,
+          "start_char": 396,
+          "end_char": 451,
+          "text": "Meridian's departure dataset cannot infer rider income."
+        },
+        {
+          "citation_id": "S1",
+          "filename": "meridian_incident.md",
+          "chunk_id": "3cf46c32d180758f18e55b2b09e019d49be8e1fb1bcdfbc8329650e18d397c93",
+          "rendered_block_truncated": false,
+          "start_char": 452,
+          "end_char": 502,
+          "text": "No income variable or linked survey was collected."
+        }
+      ],
+      "rendered_blocks_reviewed": 5,
+      "final_answer": "Insufficient evidence provided.",
+      "citations": [],
+      "invalid_citations": [],
+      "final_repaired_answer": null,
+      "manual_diagnosis": {
+        "primary_bucket": "C. FALSE_ABSTENTION",
+        "verdict": "false_abstention",
+        "reason": "Complete abstention although S2 states no face-image collection and S1 states income cannot be inferred. Both requested boundaries are directly supported; no conflict or missing gold explains the refusal. This is not a one-half-only substantive answer.",
+        "lexical_false_negative": false,
+        "first_pass_behavior": "not separately stored; no repair ran",
+        "repair_needed_for_otherwise_correct_answer": false,
+        "repair_classification": [],
+        "repair_substantive_change": null,
+        "repair_reason": null,
+        "resolver_anomaly": null
+      }
+    },
+    {
+      "example_id": "qb2-029",
+      "category": "subset",
+      "slice": "subset",
+      "split": "dev",
+      "question": "According to the Meridian release notice alone, which firmware is used in the pilot?",
+      "answerable": true,
+      "resolver_method": "passthrough",
+      "rewrite_applied": false,
+      "rewrite_error": false,
+      "resolver_entities": [],
+      "followup_detected": false,
+      "ambiguous": false,
+      "gold_in_hybrid": true,
+      "gold_in_rerank": true,
+      "gold_chunk_selected": true,
+      "context_gold_chunk_recall": 1.0,
+      "rendered_gold_any": true,
+      "rendered_gold_all": true,
+      "rendered_gold_passage_recall": 1.0,
+      "product_status": "GROUNDED",
+      "validation_status": "valid",
+      "insufficient_evidence": false,
+      "lexical_key_fact_recall": 1.0,
+      "lexical_key_fact_hits": [
+        true
+      ],
+      "cited_gold_passage_recall": 1.0,
+      "primary_failure": null,
+      "secondary_failures": [],
+      "repair_attempts": 1,
+      "repair_drift": {
+        "changed": true,
+        "kinds": [
+          "marker_only"
+        ]
+      },
+      "first_pass_validation_status": "missing_citations",
+      "first_pass_answer_text": "The Meridian pilot release uses firmware MTS-2.4.",
+      "llm_calls": 2,
+      "claim_slots": [],
+      "timings_ms": {
+        "dense_ms": 20.914533000905067,
+        "lexical_ms": 6.730491993948817,
+        "fusion_ms": 0.04670099588111043,
+        "retrieval_ms": 24.924789991928264,
+        "resolve_ms": 0.03026300691999495,
+        "rerank_ms": 12.335434003034607,
+        "generation_ms": 11478.648191987304,
+        "first_pass_generation_ms": 5488.091887993505,
+        "repair_ms": 5990.556303993799,
+        "total_ms": 11515.908415982267
+      },
+      "retrieval_query": "According to the Meridian release notice alone, which firmware is used in the pilot?",
+      "generation_question": "According to the Meridian release notice alone, which firmware is used in the pilot?",
+      "history": [],
+      "expected_resolver_hints": {
+        "contains": [],
+        "must_not": []
+      },
+      "key_facts": [
+        "MTS-2.4"
+      ],
+      "reference_answer": "MTS-2.4.",
+      "rendered_evidence_excerpts": [
+        {
+          "citation_id": "S1",
+          "filename": "meridian_release.md",
+          "chunk_id": "c67eac6e94cbbb1c5db7bfae35de06e231861ae97b636b6bfcd16b6442470816",
+          "rendered_block_truncated": false,
+          "start_char": 25,
+          "end_char": 74,
+          "text": "The Meridian pilot release uses firmware MTS-2.4."
+        }
+      ],
+      "rendered_blocks_reviewed": 5,
+      "final_answer": "The Meridian pilot release uses firmware MTS-2.4 [S1].",
+      "citations": [
+        "S1"
+      ],
+      "invalid_citations": [],
+      "final_repaired_answer": "The Meridian pilot release uses firmware MTS-2.4 [S1].",
+      "manual_diagnosis": {
+        "primary_bucket": "I. MISSING_CITATION_ONLY",
+        "verdict": "correct_answer",
+        "reason": "Correct MTS-2.4 firmware from the selected release notice; does not substitute a protocol revision or acceptance score. Only a citation was missing initially.",
+        "lexical_false_negative": false,
+        "first_pass_behavior": "answer correct but no marker",
+        "repair_needed_for_otherwise_correct_answer": true,
+        "repair_classification": [
+          "marker-only"
+        ],
+        "repair_substantive_change": false,
+        "repair_reason": "Only adds S1 and possibly moves terminal punctuation; number, entity, polarity and scope are unchanged.",
+        "resolver_anomaly": null
+      }
+    },
+    {
+      "example_id": "qb2-030",
+      "category": "insufficient",
+      "slice": "unanswerable",
+      "split": "dev",
+      "question": "What standard deviation of complete passenger journey times did Meridian measure?",
+      "answerable": false,
+      "resolver_method": "passthrough",
+      "rewrite_applied": false,
+      "rewrite_error": false,
+      "resolver_entities": [],
+      "followup_detected": false,
+      "ambiguous": false,
+      "gold_in_hybrid": null,
+      "gold_in_rerank": null,
+      "gold_chunk_selected": null,
+      "context_gold_chunk_recall": null,
+      "rendered_gold_any": null,
+      "rendered_gold_all": null,
+      "rendered_gold_passage_recall": null,
+      "product_status": "NOT_ENOUGH_EVIDENCE",
+      "validation_status": "insufficient_evidence",
+      "insufficient_evidence": true,
+      "lexical_key_fact_recall": null,
+      "lexical_key_fact_hits": [],
+      "cited_gold_passage_recall": null,
+      "primary_failure": null,
+      "secondary_failures": [],
+      "repair_attempts": 0,
+      "repair_drift": {
+        "changed": false,
+        "kinds": []
+      },
+      "first_pass_validation_status": "",
+      "first_pass_answer_text": "",
+      "llm_calls": 1,
+      "claim_slots": [],
+      "timings_ms": {
+        "dense_ms": 19.893543008947745,
+        "lexical_ms": 8.938163984566927,
+        "fusion_ms": 0.1593679771758616,
+        "retrieval_ms": 28.462425019824877,
+        "resolve_ms": 0.028579001082107425,
+        "rerank_ms": 42.15443899738602,
+        "generation_ms": 5305.494462983916,
+        "first_pass_generation_ms": 5305.494462983916,
+        "repair_ms": 0.0,
+        "total_ms": 5376.1113270011265
+      },
+      "retrieval_query": "What standard deviation of complete passenger journey times did Meridian measure?",
+      "generation_question": "What standard deviation of complete passenger journey times did Meridian measure?",
+      "history": [],
+      "expected_resolver_hints": {
+        "contains": [],
+        "must_not": []
+      },
+      "key_facts": [],
+      "reference_answer": null,
+      "rendered_evidence_excerpts": [
+        {
+          "citation_id": "S4",
+          "filename": "meridian_incident.md",
+          "chunk_id": "3cf46c32d180758f18e55b2b09e019d49be8e1fb1bcdfbc8329650e18d397c93",
+          "rendered_block_truncated": false,
+          "start_char": 286,
+          "end_char": 394,
+          "text": "The limited event sheets also cannot recover the duration of a rider's journey before reaching the platform."
+        }
+      ],
+      "rendered_blocks_reviewed": 5,
+      "final_answer": "The provided documents do not contain enough evidence to answer this.",
+      "citations": [],
+      "invalid_citations": [],
+      "final_repaired_answer": null,
+      "manual_diagnosis": {
+        "primary_bucket": null,
+        "verdict": "correct_abstention",
+        "reason": "Correct abstention: instrument latency and departure detection do not provide a standard deviation of complete journey times. All rendered blocks were checked.",
+        "lexical_false_negative": false,
+        "first_pass_behavior": "not separately stored; no repair ran",
+        "repair_needed_for_otherwise_correct_answer": false,
+        "repair_classification": [],
+        "repair_substantive_change": null,
+        "repair_reason": null,
+        "resolver_anomaly": null
+      }
+    },
+    {
+      "example_id": "qb2-049",
+      "category": "named_entity",
+      "slice": "core",
+      "split": "dev",
+      "question": "Who leads the Kestrel wet-weather monitoring study?",
+      "answerable": true,
+      "resolver_method": "passthrough",
+      "rewrite_applied": false,
+      "rewrite_error": false,
+      "resolver_entities": [],
+      "followup_detected": false,
+      "ambiguous": false,
+      "gold_in_hybrid": true,
+      "gold_in_rerank": true,
+      "gold_chunk_selected": true,
+      "context_gold_chunk_recall": 1.0,
+      "rendered_gold_any": true,
+      "rendered_gold_all": true,
+      "rendered_gold_passage_recall": 1.0,
+      "product_status": "GROUNDED",
+      "validation_status": "valid",
+      "insufficient_evidence": false,
+      "lexical_key_fact_recall": 1.0,
+      "lexical_key_fact_hits": [
+        true
+      ],
+      "cited_gold_passage_recall": 1.0,
+      "primary_failure": null,
+      "secondary_failures": [],
+      "repair_attempts": 1,
+      "repair_drift": {
+        "changed": true,
+        "kinds": [
+          "marker_only"
+        ]
+      },
+      "first_pass_validation_status": "missing_citations",
+      "first_pass_answer_text": "Sora Finn is the lead scientist for the Kestrel wet-weather monitoring study.",
+      "llm_calls": 2,
+      "claim_slots": [],
+      "timings_ms": {
+        "dense_ms": 19.419019983615726,
+        "lexical_ms": 8.489232015563175,
+        "fusion_ms": 0.15119800809770823,
+        "retrieval_ms": 27.41962199797854,
+        "resolve_ms": 0.033163989428430796,
+        "rerank_ms": 37.33271500095725,
+        "generation_ms": 12774.161965033272,
+        "first_pass_generation_ms": 6064.153670013184,
+        "repair_ms": 6710.008295020089,
+        "total_ms": 12838.914302032208
+      },
+      "retrieval_query": "Who leads the Kestrel wet-weather monitoring study?",
+      "generation_question": "Who leads the Kestrel wet-weather monitoring study?",
+      "history": [],
+      "expected_resolver_hints": {
+        "contains": [],
+        "must_not": []
+      },
+      "key_facts": [
+        "Sora Finn"
+      ],
+      "reference_answer": "Sora Finn.",
+      "rendered_evidence_excerpts": [
+        {
+          "citation_id": "S1",
+          "filename": "kestrel_brief.md",
+          "chunk_id": "754ed51cd5e16d1af59d71bb3879b9fcbc64d9caff17eef8751f7b9b89c54d2c",
+          "rendered_block_truncated": false,
+          "start_char": 18,
+          "end_char": 95,
+          "text": "Sora Finn is the lead scientist for the Kestrel wet-weather monitoring study."
+        }
+      ],
+      "rendered_blocks_reviewed": 5,
+      "final_answer": "Sora Finn is the lead scientist for the Kestrel wet-weather monitoring study. [S1]",
+      "citations": [
+        "S1"
+      ],
+      "invalid_citations": [],
+      "final_repaired_answer": "Sora Finn is the lead scientist for the Kestrel wet-weather monitoring study. [S1]",
+      "manual_diagnosis": {
+        "primary_bucket": "I. MISSING_CITATION_ONLY",
+        "verdict": "correct_answer",
+        "reason": "Correct lead scientist Sora Finn; does not substitute field-log reviewer Ivo Marr. Only a citation was missing initially.",
+        "lexical_false_negative": false,
+        "first_pass_behavior": "answer correct but no marker",
+        "repair_needed_for_otherwise_correct_answer": true,
+        "repair_classification": [
+          "marker-only"
+        ],
+        "repair_substantive_change": false,
+        "repair_reason": "Only adds S1 and possibly moves terminal punctuation; number, entity, polarity and scope are unchanged.",
+        "resolver_anomaly": null
+      }
+    },
+    {
+      "example_id": "qb2-050",
+      "category": "methodology",
+      "slice": "core",
+      "split": "dev",
+      "question": "What provides the reference for Kestrel’s automatic precipitation channel?",
+      "answerable": true,
+      "resolver_method": "passthrough",
+      "rewrite_applied": false,
+      "rewrite_error": false,
+      "resolver_entities": [],
+      "followup_detected": false,
+      "ambiguous": false,
+      "gold_in_hybrid": true,
+      "gold_in_rerank": true,
+      "gold_chunk_selected": true,
+      "context_gold_chunk_recall": 1.0,
+      "rendered_gold_any": true,
+      "rendered_gold_all": true,
+      "rendered_gold_passage_recall": 1.0,
+      "product_status": "GROUNDED",
+      "validation_status": "valid",
+      "insufficient_evidence": false,
+      "lexical_key_fact_recall": 1.0,
+      "lexical_key_fact_hits": [
+        true
+      ],
+      "cited_gold_passage_recall": 1.0,
+      "primary_failure": null,
+      "secondary_failures": [],
+      "repair_attempts": 1,
+      "repair_drift": {
+        "changed": true,
+        "kinds": [
+          "marker_only"
+        ]
+      },
+      "first_pass_validation_status": "missing_citations",
+      "first_pass_answer_text": "Kestrel uses a manual rain gauge as the reference for its automatic precipitation channel.",
+      "llm_calls": 2,
+      "claim_slots": [],
+      "timings_ms": {
+        "dense_ms": 19.729277002625167,
+        "lexical_ms": 9.245129011105746,
+        "fusion_ms": 0.1652939827181399,
+        "retrieval_ms": 30.75167498900555,
+        "resolve_ms": 0.03748599556274712,
+        "rerank_ms": 37.52503500436433,
+        "generation_ms": 12612.331965996418,
+        "first_pass_generation_ms": 5918.908171996009,
+        "repair_ms": 6693.4237940004095,
+        "total_ms": 12680.608675989788
+      },
+      "retrieval_query": "What provides the reference for Kestrel’s automatic precipitation channel?",
+      "generation_question": "What provides the reference for Kestrel’s automatic precipitation channel?",
+      "history": [],
+      "expected_resolver_hints": {
+        "contains": [],
+        "must_not": []
+      },
+      "key_facts": [
+        "manual rain gauge"
+      ],
+      "reference_answer": "A manual rain gauge.",
+      "rendered_evidence_excerpts": [
+        {
+          "citation_id": "S1",
+          "filename": "kestrel_protocol.md",
+          "chunk_id": "56bbf787f3e7500c5280f663a503a6d2e7663124f517316fe4c7067d41d8d7d4",
+          "rendered_block_truncated": false,
+          "start_char": 24,
+          "end_char": 114,
+          "text": "Kestrel uses a manual rain gauge as the reference for its automatic precipitation channel."
+        }
+      ],
+      "rendered_blocks_reviewed": 4,
+      "final_answer": "Kestrel uses a manual rain gauge as the reference for its automatic precipitation channel. [S1]",
+      "citations": [
+        "S1"
+      ],
+      "invalid_citations": [],
+      "final_repaired_answer": "Kestrel uses a manual rain gauge as the reference for its automatic precipitation channel. [S1]",
+      "manual_diagnosis": {
+        "primary_bucket": "I. MISSING_CITATION_ONLY",
+        "verdict": "correct_answer",
+        "reason": "Correct manual rain gauge reference for the automatic precipitation channel; does not confuse a sealed handling blank with the reference instrument. Only a citation was missing initially.",
+        "lexical_false_negative": false,
+        "first_pass_behavior": "answer correct but no marker",
+        "repair_needed_for_otherwise_correct_answer": true,
+        "repair_classification": [
+          "marker-only"
+        ],
+        "repair_substantive_change": false,
+        "repair_reason": "Only adds S1 and possibly moves terminal punctuation; number, entity, polarity and scope are unchanged.",
+        "resolver_anomaly": null
+      }
+    },
+    {
+      "example_id": "qb2-051",
+      "category": "numeric",
+      "slice": "hard_negative",
+      "split": "dev",
+      "question": "What is the peak power rating of the Kestrel charging panel?",
+      "answerable": true,
+      "resolver_method": "passthrough",
+      "rewrite_applied": false,
+      "rewrite_error": false,
+      "resolver_entities": [],
+      "followup_detected": false,
+      "ambiguous": false,
+      "gold_in_hybrid": true,
+      "gold_in_rerank": true,
+      "gold_chunk_selected": true,
+      "context_gold_chunk_recall": 1.0,
+      "rendered_gold_any": true,
+      "rendered_gold_all": true,
+      "rendered_gold_passage_recall": 1.0,
+      "product_status": "GROUNDED",
+      "validation_status": "valid",
+      "insufficient_evidence": false,
+      "lexical_key_fact_recall": 1.0,
+      "lexical_key_fact_hits": [
+        true
+      ],
+      "cited_gold_passage_recall": 1.0,
+      "primary_failure": null,
+      "secondary_failures": [],
+      "repair_attempts": 1,
+      "repair_drift": {
+        "changed": true,
+        "kinds": [
+          "marker_only"
+        ]
+      },
+      "first_pass_validation_status": "missing_citations",
+      "first_pass_answer_text": "The Kestrel charging panel has a peak rating of 9 W.",
+      "llm_calls": 2,
+      "claim_slots": [],
+      "timings_ms": {
+        "dense_ms": 18.92997499089688,
+        "lexical_ms": 8.529659011401236,
+        "fusion_ms": 0.1590409956406802,
+        "retrieval_ms": 29.180876997997984,
+        "resolve_ms": 0.035051023587584496,
+        "rerank_ms": 40.08552400046028,
+        "generation_ms": 12011.25598201179,
+        "first_pass_generation_ms": 5698.629593010992,
+        "repair_ms": 6312.626389000798,
+        "total_ms": 12080.522383010248
+      },
+      "retrieval_query": "What is the peak power rating of the Kestrel charging panel?",
+      "generation_question": "What is the peak power rating of the Kestrel charging panel?",
+      "history": [],
+      "expected_resolver_hints": {
+        "contains": [],
+        "must_not": []
+      },
+      "key_facts": [
+        "9 W"
+      ],
+      "reference_answer": "9 W.",
+      "rendered_evidence_excerpts": [
+        {
+          "citation_id": "S1",
+          "filename": "kestrel_notebook.md",
+          "chunk_id": "dc7581491a5a134198c91967faf2d9286be13055f7070d97b68f34eac1442e78",
+          "rendered_block_truncated": false,
+          "start_char": 0,
+          "end_char": 52,
+          "text": "The Kestrel charging panel has a peak rating of 9 W."
+        }
+      ],
+      "rendered_blocks_reviewed": 5,
+      "final_answer": "The Kestrel charging panel has a peak rating of 9 W. [S1]",
+      "citations": [
+        "S1"
+      ],
+      "invalid_citations": [],
+      "final_repaired_answer": "The Kestrel charging panel has a peak rating of 9 W. [S1]",
+      "manual_diagnosis": {
+        "primary_bucket": "I. MISSING_CITATION_ONLY",
+        "verdict": "correct_answer",
+        "reason": "Correct peak panel rating 9 W, not daily heater energy or remaining battery capacity. Only a citation was missing initially.",
+        "lexical_false_negative": false,
+        "first_pass_behavior": "answer correct but no marker",
+        "repair_needed_for_otherwise_correct_answer": true,
+        "repair_classification": [
+          "marker-only"
+        ],
+        "repair_substantive_change": false,
+        "repair_reason": "Only adds S1 and possibly moves terminal punctuation; number, entity, polarity and scope are unchanged.",
+        "resolver_anomaly": null
+      }
+    },
+    {
+      "example_id": "qb2-052",
+      "category": "numeric",
+      "slice": "longdoc",
+      "split": "dev",
+      "question": "How many paired rain-gauge comparisons did Kestrel accept after reference checks?",
+      "answerable": true,
+      "resolver_method": "passthrough",
+      "rewrite_applied": false,
+      "rewrite_error": false,
+      "resolver_entities": [],
+      "followup_detected": false,
+      "ambiguous": false,
+      "gold_in_hybrid": true,
+      "gold_in_rerank": true,
+      "gold_chunk_selected": true,
+      "context_gold_chunk_recall": 1.0,
+      "rendered_gold_any": true,
+      "rendered_gold_all": true,
+      "rendered_gold_passage_recall": 1.0,
+      "product_status": "GROUNDED",
+      "validation_status": "valid",
+      "insufficient_evidence": false,
+      "lexical_key_fact_recall": 0.0,
+      "lexical_key_fact_hits": [
+        false
+      ],
+      "cited_gold_passage_recall": 1.0,
+      "primary_failure": "WRONG_ANSWER",
+      "secondary_failures": [],
+      "repair_attempts": 1,
+      "repair_drift": {
+        "changed": true,
+        "kinds": [
+          "marker_only"
+        ]
+      },
+      "first_pass_validation_status": "missing_citations",
+      "first_pass_answer_text": "Kestrel accepted 31 paired rain-gauge comparisons after reference checks.",
+      "llm_calls": 2,
+      "claim_slots": [],
+      "timings_ms": {
+        "dense_ms": 20.003437995910645,
+        "lexical_ms": 8.79645100212656,
+        "fusion_ms": 0.1394340069964528,
+        "retrieval_ms": 27.721449005184695,
+        "resolve_ms": 0.03251401358284056,
+        "rerank_ms": 39.294682996114716,
+        "generation_ms": 12365.11170299491,
+        "first_pass_generation_ms": 5874.019968003267,
+        "repair_ms": 6491.091734991642,
+        "total_ms": 12432.127834996209
+      },
+      "retrieval_query": "How many paired rain-gauge comparisons did Kestrel accept after reference checks?",
+      "generation_question": "How many paired rain-gauge comparisons did Kestrel accept after reference checks?",
+      "history": [],
+      "expected_resolver_hints": {
+        "contains": [],
+        "must_not": []
+      },
+      "key_facts": [
+        "31 paired comparisons"
+      ],
+      "reference_answer": "31 paired comparisons.",
+      "rendered_evidence_excerpts": [
+        {
+          "citation_id": "S1",
+          "filename": "kestrel_notebook.md",
+          "chunk_id": "ec1950028bbbb61118419719d549942b812fe4213e2dce689c16c85327d2a43b",
+          "rendered_block_truncated": false,
+          "start_char": 25,
+          "end_char": 98,
+          "text": "Kestrel accepted 31 paired rain-gauge comparisons after reference checks."
+        }
+      ],
+      "rendered_blocks_reviewed": 4,
+      "final_answer": "Kestrel accepted 31 paired rain-gauge comparisons after reference checks. [S1]",
+      "citations": [
+        "S1"
+      ],
+      "invalid_citations": [],
+      "final_repaired_answer": "Kestrel accepted 31 paired rain-gauge comparisons after reference checks. [S1]",
+      "manual_diagnosis": {
+        "primary_bucket": "K. EVALUATOR_LEXICAL_FALSE_NEGATIVE",
+        "verdict": "correct_answer",
+        "reason": "Correct count and object: 31 paired rain-gauge comparisons after reference checks, directly copying the gold sentence. The label 31 paired comparisons is not a contiguous normalized substring because rain-gauge intervenes. Repair only adds a marker.",
+        "lexical_false_negative": true,
+        "first_pass_behavior": "answer correct but no marker",
+        "repair_needed_for_otherwise_correct_answer": true,
+        "repair_classification": [
+          "marker-only"
+        ],
+        "repair_substantive_change": false,
+        "repair_reason": "Only adds S1 and possibly moves terminal punctuation; number, entity, polarity and scope are unchanged.",
+        "resolver_anomaly": null
+      }
+    },
+    {
+      "example_id": "qb2-053",
+      "category": "identifier",
+      "slice": "core",
+      "split": "dev",
+      "question": "Which calibration record key accompanies the Kestrel method amendment?",
+      "answerable": true,
+      "resolver_method": "passthrough",
+      "rewrite_applied": false,
+      "rewrite_error": false,
+      "resolver_entities": [],
+      "followup_detected": false,
+      "ambiguous": false,
+      "gold_in_hybrid": true,
+      "gold_in_rerank": true,
+      "gold_chunk_selected": true,
+      "context_gold_chunk_recall": 1.0,
+      "rendered_gold_any": true,
+      "rendered_gold_all": true,
+      "rendered_gold_passage_recall": 1.0,
+      "product_status": "GROUNDED",
+      "validation_status": "valid",
+      "insufficient_evidence": false,
+      "lexical_key_fact_recall": 1.0,
+      "lexical_key_fact_hits": [
+        true
+      ],
+      "cited_gold_passage_recall": 1.0,
+      "primary_failure": null,
+      "secondary_failures": [],
+      "repair_attempts": 1,
+      "repair_drift": {
+        "changed": true,
+        "kinds": [
+          "paraphrase"
+        ]
+      },
+      "first_pass_validation_status": "missing_citations",
+      "first_pass_answer_text": "The calibration record key accompanies the Kestrel method amendment is KFS-C7.",
+      "llm_calls": 2,
+      "claim_slots": [],
+      "timings_ms": {
+        "dense_ms": 19.81014499324374,
+        "lexical_ms": 8.945962006691843,
+        "fusion_ms": 0.17525098519399762,
+        "retrieval_ms": 36.50422699865885,
+        "resolve_ms": 0.0321789993904531,
+        "rerank_ms": 41.71756698633544,
+        "generation_ms": 12962.86305799731,
+        "first_pass_generation_ms": 6072.8093680227175,
+        "repair_ms": 6890.053689974593,
+        "total_ms": 13041.084851982305
+      },
+      "retrieval_query": "Which calibration record key accompanies the Kestrel method amendment?",
+      "generation_question": "Which calibration record key accompanies the Kestrel method amendment?",
+      "history": [],
+      "expected_resolver_hints": {
+        "contains": [],
+        "must_not": []
+      },
+      "key_facts": [
+        "KFS-C7"
+      ],
+      "reference_answer": "KFS-C7.",
+      "rendered_evidence_excerpts": [
+        {
+          "citation_id": "S1",
+          "filename": "kestrel_amendment.md",
+          "chunk_id": "3a6f28e07b0847640fcbaffa7177f110ae5fba634f0c541afc91c00a143a653b",
+          "rendered_block_truncated": false,
+          "start_char": 20,
+          "end_char": 77,
+          "text": "The Kestrel amendment's calibration record key is KFS-C7."
+        }
+      ],
+      "rendered_blocks_reviewed": 7,
+      "final_answer": "The calibration record key accompanying the Kestrel method amendment is KFS-C7 [S1].",
+      "citations": [
+        "S1"
+      ],
+      "invalid_citations": [],
+      "final_repaired_answer": "The calibration record key accompanying the Kestrel method amendment is KFS-C7 [S1].",
+      "manual_diagnosis": {
+        "primary_bucket": "I. MISSING_CITATION_ONLY",
+        "verdict": "correct_answer",
+        "reason": "Correct KFS-C7 calibration record key before and after repair. Repair changes accompanies to accompanying and adds S1; no entity or relationship changes.",
+        "lexical_false_negative": false,
+        "first_pass_behavior": "answer correct but no marker",
+        "repair_needed_for_otherwise_correct_answer": true,
+        "repair_classification": [
+          "harmless formatting",
+          "paraphrase"
+        ],
+        "repair_substantive_change": false,
+        "repair_reason": "Grammar and citation placement change only; the same identifier and relation are retained.",
+        "resolver_anomaly": null
+      }
+    },
+    {
+      "example_id": "qb2-054",
+      "category": "insufficient",
+      "slice": "unanswerable",
+      "split": "dev",
+      "question": "How high above ground is the automatic rain sensor at Kestrel’s Northfen Spur site?",
+      "answerable": false,
+      "resolver_method": "passthrough",
+      "rewrite_applied": false,
+      "rewrite_error": false,
+      "resolver_entities": [],
+      "followup_detected": false,
+      "ambiguous": false,
+      "gold_in_hybrid": null,
+      "gold_in_rerank": null,
+      "gold_chunk_selected": null,
+      "context_gold_chunk_recall": null,
+      "rendered_gold_any": null,
+      "rendered_gold_all": null,
+      "rendered_gold_passage_recall": null,
+      "product_status": "NOT_ENOUGH_EVIDENCE",
+      "validation_status": "insufficient_evidence",
+      "insufficient_evidence": true,
+      "lexical_key_fact_recall": null,
+      "lexical_key_fact_hits": [],
+      "cited_gold_passage_recall": null,
+      "primary_failure": null,
+      "secondary_failures": [],
+      "repair_attempts": 0,
+      "repair_drift": {
+        "changed": false,
+        "kinds": []
+      },
+      "first_pass_validation_status": "",
+      "first_pass_answer_text": "",
+      "llm_calls": 1,
+      "claim_slots": [],
+      "timings_ms": {
+        "dense_ms": 19.57315200706944,
+        "lexical_ms": 8.98784599849023,
+        "fusion_ms": 0.14184601604938507,
+        "retrieval_ms": 35.49706598278135,
+        "resolve_ms": 0.04107100539840758,
+        "rerank_ms": 38.95308400387876,
+        "generation_ms": 5275.114115996985,
+        "first_pass_generation_ms": 5275.114115996985,
+        "repair_ms": 0.0,
+        "total_ms": 5349.564265983645
+      },
+      "retrieval_query": "How high above ground is the automatic rain sensor at Kestrel’s Northfen Spur site?",
+      "generation_question": "How high above ground is the automatic rain sensor at Kestrel’s Northfen Spur site?",
+      "history": [],
+      "expected_resolver_hints": {
+        "contains": [],
+        "must_not": []
+      },
+      "key_facts": [],
+      "reference_answer": null,
+      "rendered_evidence_excerpts": [
+        {
+          "citation_id": "S1",
+          "filename": "kestrel_brief.md",
+          "chunk_id": "ac42ccf63b70d2dfa2000a8ddf7576d9703227bda203ed86edea5e645cd40984",
+          "rendered_block_truncated": false,
+          "start_char": 28,
+          "end_char": 91,
+          "text": "Kestrel's Northfen Spur crest site is at an elevation of 620 m."
+        }
+      ],
+      "rendered_blocks_reviewed": 5,
+      "final_answer": "The provided documents do not contain enough evidence to answer this.",
+      "citations": [],
+      "invalid_citations": [],
+      "final_repaired_answer": null,
+      "manual_diagnosis": {
+        "primary_bucket": null,
+        "verdict": "correct_abstention",
+        "reason": "Correct abstention: 620 m is site elevation, not sensor height above ground. Neither the crest nor valley elevation supplies the requested mounting height; all rendered blocks were checked.",
+        "lexical_false_negative": false,
+        "first_pass_behavior": "not separately stored; no repair ran",
+        "repair_needed_for_otherwise_correct_answer": false,
+        "repair_classification": [],
+        "repair_substantive_change": null,
+        "repair_reason": null,
+        "resolver_anomaly": null
+      }
+    },
+    {
+      "example_id": "qb2-073",
+      "category": "identifier",
+      "slice": "core",
+      "split": "dev",
+      "question": "What is the Atlas research study identifier?",
+      "answerable": true,
+      "resolver_method": "passthrough",
+      "rewrite_applied": false,
+      "rewrite_error": false,
+      "resolver_entities": [],
+      "followup_detected": false,
+      "ambiguous": false,
+      "gold_in_hybrid": true,
+      "gold_in_rerank": true,
+      "gold_chunk_selected": true,
+      "context_gold_chunk_recall": 1.0,
+      "rendered_gold_any": true,
+      "rendered_gold_all": true,
+      "rendered_gold_passage_recall": 1.0,
+      "product_status": "GROUNDED",
+      "validation_status": "valid",
+      "insufficient_evidence": false,
+      "lexical_key_fact_recall": 1.0,
+      "lexical_key_fact_hits": [
+        true
+      ],
+      "cited_gold_passage_recall": 1.0,
+      "primary_failure": null,
+      "secondary_failures": [],
+      "repair_attempts": 0,
+      "repair_drift": {
+        "changed": false,
+        "kinds": []
+      },
+      "first_pass_validation_status": "",
+      "first_pass_answer_text": "",
+      "llm_calls": 1,
+      "claim_slots": [],
+      "timings_ms": {
+        "dense_ms": 19.561281020287424,
+        "lexical_ms": 20.312212000135332,
+        "fusion_ms": 0.20787501125596464,
+        "retrieval_ms": 28.844137996202335,
+        "resolve_ms": 0.03608199767768383,
+        "rerank_ms": 39.037189999362454,
+        "generation_ms": 5476.793730980717,
+        "first_pass_generation_ms": 5476.793730980717,
+        "repair_ms": 0.0,
+        "total_ms": 5544.675058976281
+      },
+      "retrieval_query": "What is the Atlas research study identifier?",
+      "generation_question": "What is the Atlas research study identifier?",
+      "history": [],
+      "expected_resolver_hints": {
+        "contains": [],
+        "must_not": []
+      },
+      "key_facts": [
+        "ARP-R9"
+      ],
+      "reference_answer": "ARP-R9.",
+      "rendered_evidence_excerpts": [
+        {
+          "citation_id": "S1",
+          "filename": "atlas_brief.md",
+          "chunk_id": "957a4d74f4233d5689e5a7981599f11e821934046d072c72c4071f8cb970d7fb",
+          "rendered_block_truncated": false,
+          "start_char": 241,
+          "end_char": 278,
+          "text": "The Atlas study identifier is ARP-R9."
+        }
+      ],
+      "rendered_blocks_reviewed": 7,
+      "final_answer": "The Atlas research study identifier is ARP-R9 [S1].",
+      "citations": [
+        "S1"
+      ],
+      "invalid_citations": [],
+      "final_repaired_answer": null,
+      "manual_diagnosis": {
+        "primary_bucket": null,
+        "verdict": "correct_answer",
+        "reason": "Correct ARP-R9 study identifier with a valid S1 citation on the first pass.",
+        "lexical_false_negative": false,
+        "first_pass_behavior": "not separately stored; no repair ran",
+        "repair_needed_for_otherwise_correct_answer": false,
+        "repair_classification": [],
+        "repair_substantive_change": null,
+        "repair_reason": null,
+        "resolver_anomaly": null
+      }
+    },
+    {
+      "example_id": "qb2-074",
+      "category": "methodology",
+      "slice": "core",
+      "split": "dev",
+      "question": "How does Atlas assign its manuals to development and held-out partitions?",
+      "answerable": true,
+      "resolver_method": "passthrough",
+      "rewrite_applied": false,
+      "rewrite_error": false,
+      "resolver_entities": [],
+      "followup_detected": false,
+      "ambiguous": false,
+      "gold_in_hybrid": true,
+      "gold_in_rerank": true,
+      "gold_chunk_selected": true,
+      "context_gold_chunk_recall": 1.0,
+      "rendered_gold_any": true,
+      "rendered_gold_all": true,
+      "rendered_gold_passage_recall": 1.0,
+      "product_status": "NOT_ENOUGH_EVIDENCE",
+      "validation_status": "insufficient_evidence",
+      "insufficient_evidence": true,
+      "lexical_key_fact_recall": 0.0,
+      "lexical_key_fact_hits": [
+        false,
+        false
+      ],
+      "cited_gold_passage_recall": 0.0,
+      "primary_failure": "FALSE_ABSTENTION_WITH_GOLD_CONTEXT",
+      "secondary_failures": [],
+      "repair_attempts": 0,
+      "repair_drift": {
+        "changed": false,
+        "kinds": []
+      },
+      "first_pass_validation_status": "",
+      "first_pass_answer_text": "",
+      "llm_calls": 1,
+      "claim_slots": [],
+      "timings_ms": {
+        "dense_ms": 18.75450400984846,
+        "lexical_ms": 8.765390986809507,
+        "fusion_ms": 0.17075301730073988,
+        "retrieval_ms": 27.612148987827823,
+        "resolve_ms": 0.03661998198367655,
+        "rerank_ms": 38.77264400944114,
+        "generation_ms": 4249.995003978256,
+        "first_pass_generation_ms": 4249.995003978256,
+        "repair_ms": 0.0,
+        "total_ms": 4316.379796975525
+      },
+      "retrieval_query": "How does Atlas assign its manuals to development and held-out partitions?",
+      "generation_question": "How does Atlas assign its manuals to development and held-out partitions?",
+      "history": [],
+      "expected_resolver_hints": {
+        "contains": [],
+        "must_not": []
+      },
+      "key_facts": [
+        "complete manual families",
+        "rather than random individual paragraphs"
+      ],
+      "reference_answer": "It assigns complete manual families, rather than random individual paragraphs.",
+      "rendered_evidence_excerpts": [
+        {
+          "citation_id": "S1",
+          "filename": "atlas_methods.md",
+          "chunk_id": "1b9cdf9e7a803a0f9d7db9cd3b9d966e65000f57a1622baab1ccacc6178b4194",
+          "rendered_block_truncated": false,
+          "start_char": 20,
+          "end_char": 124,
+          "text": "Atlas assigns complete manual families to a split rather than splitting individual paragraphs at random."
+        },
+        {
+          "citation_id": "S1",
+          "filename": "atlas_methods.md",
+          "chunk_id": "1b9cdf9e7a803a0f9d7db9cd3b9d966e65000f57a1622baab1ccacc6178b4194",
+          "rendered_block_truncated": false,
+          "start_char": 125,
+          "end_char": 196,
+          "text": "A family includes its overview, operating method, and revision history."
+        },
+        {
+          "citation_id": "S1",
+          "filename": "atlas_methods.md",
+          "chunk_id": "1b9cdf9e7a803a0f9d7db9cd3b9d966e65000f57a1622baab1ccacc6178b4194",
+          "rendered_block_truncated": false,
+          "start_char": 396,
+          "end_char": 500,
+          "text": "The method does not guarantee independence from every shared engineering term across different families."
+        }
+      ],
+      "rendered_blocks_reviewed": 6,
+      "final_answer": "Insufficient evidence provided.",
+      "citations": [],
+      "invalid_citations": [],
+      "final_repaired_answer": null,
+      "manual_diagnosis": {
+        "primary_bucket": "C. FALSE_ABSTENTION",
+        "verdict": "false_abstention",
+        "reason": "False abstention despite S1 explicitly assigning complete manual families rather than random paragraphs. The method and its rationale answer how partitions are formed; the caveat about shared engineering terms does not remove that answer.",
+        "lexical_false_negative": false,
+        "first_pass_behavior": "not separately stored; no repair ran",
+        "repair_needed_for_otherwise_correct_answer": false,
+        "repair_classification": [],
+        "repair_substantive_change": null,
+        "repair_reason": null,
+        "resolver_anomaly": null
+      }
+    },
+    {
+      "example_id": "qb2-075",
+      "category": "numeric",
+      "slice": "longdoc",
+      "split": "dev",
+      "question": "How many manual files are in Atlas’s frozen source inventory?",
+      "answerable": true,
+      "resolver_method": "passthrough",
+      "rewrite_applied": false,
+      "rewrite_error": false,
+      "resolver_entities": [],
+      "followup_detected": false,
+      "ambiguous": false,
+      "gold_in_hybrid": true,
+      "gold_in_rerank": true,
+      "gold_chunk_selected": true,
+      "context_gold_chunk_recall": 1.0,
+      "rendered_gold_any": true,
+      "rendered_gold_all": true,
+      "rendered_gold_passage_recall": 1.0,
+      "product_status": "GROUNDED",
+      "validation_status": "valid",
+      "insufficient_evidence": false,
+      "lexical_key_fact_recall": 1.0,
+      "lexical_key_fact_hits": [
+        true
+      ],
+      "cited_gold_passage_recall": 1.0,
+      "primary_failure": null,
+      "secondary_failures": [],
+      "repair_attempts": 1,
+      "repair_drift": {
+        "changed": true,
+        "kinds": [
+          "marker_only"
+        ]
+      },
+      "first_pass_validation_status": "missing_citations",
+      "first_pass_answer_text": "Atlas's frozen source inventory contains 240 manual files.",
+      "llm_calls": 2,
+      "claim_slots": [],
+      "timings_ms": {
+        "dense_ms": 18.806918989866972,
+        "lexical_ms": 8.760308002820238,
+        "fusion_ms": 0.15495199477300048,
+        "retrieval_ms": 27.70090100239031,
+        "resolve_ms": 0.035537988878786564,
+        "rerank_ms": 38.263880007434636,
+        "generation_ms": 11420.736405038042,
+        "first_pass_generation_ms": 5344.703389011556,
+        "repair_ms": 6076.033016026486,
+        "total_ms": 11486.701186047867
+      },
+      "retrieval_query": "How many manual files are in Atlas’s frozen source inventory?",
+      "generation_question": "How many manual files are in Atlas’s frozen source inventory?",
+      "history": [],
+      "expected_resolver_hints": {
+        "contains": [],
+        "must_not": []
+      },
+      "key_facts": [
+        "240 manual files"
+      ],
+      "reference_answer": "240 manual files.",
+      "rendered_evidence_excerpts": [
+        {
+          "citation_id": "S1",
+          "filename": "atlas_report.md",
+          "chunk_id": "d365817e4e5b8b57f5491f1fa051786f4c6ae45743cafaa4842c2f895714bdbc",
+          "rendered_block_truncated": false,
+          "start_char": 18,
+          "end_char": 76,
+          "text": "Atlas's frozen source inventory contains 240 manual files."
+        }
+      ],
+      "rendered_blocks_reviewed": 5,
+      "final_answer": "Atlas's frozen source inventory contains 240 manual files. [S1]",
+      "citations": [
+        "S1"
+      ],
+      "invalid_citations": [],
+      "final_repaired_answer": "Atlas's frozen source inventory contains 240 manual files. [S1]",
+      "manual_diagnosis": {
+        "primary_bucket": "I. MISSING_CITATION_ONLY",
+        "verdict": "correct_answer",
+        "reason": "Correct 240 manual files in the frozen inventory, not passages or families. Only a citation was missing initially.",
+        "lexical_false_negative": false,
+        "first_pass_behavior": "answer correct but no marker",
+        "repair_needed_for_otherwise_correct_answer": true,
+        "repair_classification": [
+          "marker-only"
+        ],
+        "repair_substantive_change": false,
+        "repair_reason": "Only adds S1 and possibly moves terminal punctuation; number, entity, polarity and scope are unchanged.",
+        "resolver_anomaly": null
+      }
+    },
+    {
+      "example_id": "qb2-076",
+      "category": "limitation",
+      "slice": "core",
+      "split": "dev",
+      "question": "Does Atlas evaluate handwritten notes in manual margins?",
+      "answerable": true,
+      "resolver_method": "passthrough",
+      "rewrite_applied": false,
+      "rewrite_error": false,
+      "resolver_entities": [],
+      "followup_detected": false,
+      "ambiguous": false,
+      "gold_in_hybrid": true,
+      "gold_in_rerank": true,
+      "gold_chunk_selected": true,
+      "context_gold_chunk_recall": 1.0,
+      "rendered_gold_any": true,
+      "rendered_gold_all": true,
+      "rendered_gold_passage_recall": 1.0,
+      "product_status": "GROUNDED",
+      "validation_status": "valid",
+      "insufficient_evidence": false,
+      "lexical_key_fact_recall": 0.0,
+      "lexical_key_fact_hits": [
+        false
+      ],
+      "cited_gold_passage_recall": 1.0,
+      "primary_failure": "WRONG_ANSWER",
+      "secondary_failures": [],
+      "repair_attempts": 1,
+      "repair_drift": {
+        "changed": true,
+        "kinds": [
+          "marker_only"
+        ]
+      },
+      "first_pass_validation_status": "missing_citations",
+      "first_pass_answer_text": "Atlas does not evaluate handwritten annotations in the manual margins.",
+      "llm_calls": 2,
+      "claim_slots": [],
+      "timings_ms": {
+        "dense_ms": 19.74498000345193,
+        "lexical_ms": 8.845869015203789,
+        "fusion_ms": 0.16342097660526633,
+        "retrieval_ms": 29.532699001720175,
+        "resolve_ms": 0.026299996534362435,
+        "rerank_ms": 39.65875899302773,
+        "generation_ms": 11081.72382201883,
+        "first_pass_generation_ms": 5216.6134680155665,
+        "repair_ms": 5865.110354003264,
+        "total_ms": 11150.915280013578
+      },
+      "retrieval_query": "Does Atlas evaluate handwritten notes in manual margins?",
+      "generation_question": "Does Atlas evaluate handwritten notes in manual margins?",
+      "history": [],
+      "expected_resolver_hints": {
+        "contains": [],
+        "must_not": []
+      },
+      "key_facts": [
+        "handwritten annotations are not evaluated"
+      ],
+      "reference_answer": "No. Handwritten annotations are not evaluated.",
+      "rendered_evidence_excerpts": [
+        {
+          "citation_id": "S1",
+          "filename": "atlas_limitations.md",
+          "chunk_id": "c3d850a2d8b56874bf34740286187af2a694aeddb2342984a5ffc7b6779468c3",
+          "rendered_block_truncated": false,
+          "start_char": 165,
+          "end_char": 235,
+          "text": "Atlas does not evaluate handwritten annotations in the manual margins."
+        }
+      ],
+      "rendered_blocks_reviewed": 6,
+      "final_answer": "Atlas does not evaluate handwritten annotations in the manual margins. [S1]",
+      "citations": [
+        "S1"
+      ],
+      "invalid_citations": [],
+      "final_repaired_answer": "Atlas does not evaluate handwritten annotations in the manual margins. [S1]",
+      "manual_diagnosis": {
+        "primary_bucket": "K. EVALUATOR_LEXICAL_FALSE_NEGATIVE",
+        "verdict": "correct_answer",
+        "reason": "Correct negative, matching the gold sentence: Atlas does not evaluate handwritten annotations. The passive lexical label handwritten annotations are not evaluated misses this active formulation. Repair only adds a marker.",
+        "lexical_false_negative": true,
+        "first_pass_behavior": "answer correct but no marker",
+        "repair_needed_for_otherwise_correct_answer": true,
+        "repair_classification": [
+          "marker-only"
+        ],
+        "repair_substantive_change": false,
+        "repair_reason": "Only adds S1 and possibly moves terminal punctuation; number, entity, polarity and scope are unchanged.",
+        "resolver_anomaly": null
+      }
+    },
+    {
+      "example_id": "qb2-077",
+      "category": "factual",
+      "slice": "hard_negative",
+      "split": "dev",
+      "question": "How long does Atlas keep reviewer comments after the release review closes?",
+      "answerable": true,
+      "resolver_method": "passthrough",
+      "rewrite_applied": false,
+      "rewrite_error": false,
+      "resolver_entities": [],
+      "followup_detected": false,
+      "ambiguous": false,
+      "gold_in_hybrid": true,
+      "gold_in_rerank": true,
+      "gold_chunk_selected": true,
+      "context_gold_chunk_recall": 1.0,
+      "rendered_gold_any": true,
+      "rendered_gold_all": true,
+      "rendered_gold_passage_recall": 1.0,
+      "product_status": "GROUNDED",
+      "validation_status": "valid",
+      "insufficient_evidence": false,
+      "lexical_key_fact_recall": 1.0,
+      "lexical_key_fact_hits": [
+        true
+      ],
+      "cited_gold_passage_recall": 1.0,
+      "primary_failure": null,
+      "secondary_failures": [],
+      "repair_attempts": 1,
+      "repair_drift": {
+        "changed": true,
+        "kinds": [
+          "marker_only"
+        ]
+      },
+      "first_pass_validation_status": "missing_citations",
+      "first_pass_answer_text": "Atlas retains reviewer comments for 30 days after the release review closes.",
+      "llm_calls": 2,
+      "claim_slots": [],
+      "timings_ms": {
+        "dense_ms": 20.5058200226631,
+        "lexical_ms": 8.928486000513658,
+        "fusion_ms": 0.16152500757016242,
+        "retrieval_ms": 28.802857996197417,
+        "resolve_ms": 0.03163900692015886,
+        "rerank_ms": 39.85029199975543,
+        "generation_ms": 12083.885011990787,
+        "first_pass_generation_ms": 5719.120455003576,
+        "repair_ms": 6364.764556987211,
+        "total_ms": 12152.53816198674
+      },
+      "retrieval_query": "How long does Atlas keep reviewer comments after the release review closes?",
+      "generation_question": "How long does Atlas keep reviewer comments after the release review closes?",
+      "history": [],
+      "expected_resolver_hints": {
+        "contains": [],
+        "must_not": []
+      },
+      "key_facts": [
+        "30 days"
+      ],
+      "reference_answer": "30 days.",
+      "rendered_evidence_excerpts": [
+        {
+          "citation_id": "S1",
+          "filename": "atlas_release.md",
+          "chunk_id": "8d76a2c55bc01ec10273c3cf8bd3c51d21e7672f52a3781f30b6de585641a4c9",
+          "rendered_block_truncated": false,
+          "start_char": 16,
+          "end_char": 92,
+          "text": "Atlas retains reviewer comments for 30 days after the release review closes."
+        }
+      ],
+      "rendered_blocks_reviewed": 4,
+      "final_answer": "Atlas retains reviewer comments for 30 days after the release review closes. [S1]",
+      "citations": [
+        "S1"
+      ],
+      "invalid_citations": [],
+      "final_repaired_answer": "Atlas retains reviewer comments for 30 days after the release review closes. [S1]",
+      "manual_diagnosis": {
+        "primary_bucket": "I. MISSING_CITATION_ONLY",
+        "verdict": "correct_answer",
+        "reason": "Correct 30-day reviewer-comment retention; distinguishes 14-day rollback snapshots and 42-day Kestrel physical samples. Only a citation was missing initially.",
+        "lexical_false_negative": false,
+        "first_pass_behavior": "answer correct but no marker",
+        "repair_needed_for_otherwise_correct_answer": true,
+        "repair_classification": [
+          "marker-only"
+        ],
+        "repair_substantive_change": false,
+        "repair_reason": "Only adds S1 and possibly moves terminal punctuation; number, entity, polarity and scope are unchanged.",
+        "resolver_anomaly": null
+      }
+    },
+    {
+      "example_id": "qb2-078",
+      "category": "insufficient",
+      "slice": "unanswerable",
+      "split": "dev",
+      "question": "How much electrical power did Atlas’s retrieval hardware draw during its timing run?",
+      "answerable": false,
+      "resolver_method": "passthrough",
+      "rewrite_applied": false,
+      "rewrite_error": false,
+      "resolver_entities": [],
+      "followup_detected": false,
+      "ambiguous": false,
+      "gold_in_hybrid": null,
+      "gold_in_rerank": null,
+      "gold_chunk_selected": null,
+      "context_gold_chunk_recall": null,
+      "rendered_gold_any": null,
+      "rendered_gold_all": null,
+      "rendered_gold_passage_recall": null,
+      "product_status": "NOT_ENOUGH_EVIDENCE",
+      "validation_status": "insufficient_evidence",
+      "insufficient_evidence": true,
+      "lexical_key_fact_recall": null,
+      "lexical_key_fact_hits": [],
+      "cited_gold_passage_recall": null,
+      "primary_failure": null,
+      "secondary_failures": [],
+      "repair_attempts": 0,
+      "repair_drift": {
+        "changed": false,
+        "kinds": []
+      },
+      "first_pass_validation_status": "",
+      "first_pass_answer_text": "",
+      "llm_calls": 1,
+      "claim_slots": [],
+      "timings_ms": {
+        "dense_ms": 18.81476098787971,
+        "lexical_ms": 8.208853018004447,
+        "fusion_ms": 0.1540060038678348,
+        "retrieval_ms": 29.529096005717292,
+        "resolve_ms": 0.03691401798278093,
+        "rerank_ms": 41.18378000566736,
+        "generation_ms": 5240.360936993966,
+        "first_pass_generation_ms": 5240.360936993966,
+        "repair_ms": 0.0,
+        "total_ms": 5311.0738130053505
+      },
+      "retrieval_query": "How much electrical power did Atlas’s retrieval hardware draw during its timing run?",
+      "generation_question": "How much electrical power did Atlas’s retrieval hardware draw during its timing run?",
+      "history": [],
+      "expected_resolver_hints": {
+        "contains": [],
+        "must_not": []
+      },
+      "key_facts": [],
+      "reference_answer": null,
+      "rendered_evidence_excerpts": [
+        {
+          "citation_id": "S3",
+          "filename": "atlas_limitations.md",
+          "chunk_id": "9f28274a61ff4d20bac6339227551db9e24615870f7182954c4426f25eb5fa86",
+          "rendered_block_truncated": false,
+          "start_char": 743,
+          "end_char": 865,
+          "text": "The study did not measure hardware power, billing cost, model parameter count, or diagnostic sensitivity on medical cases."
+        }
+      ],
+      "rendered_blocks_reviewed": 5,
+      "final_answer": "The provided documents do not contain enough evidence to answer this.",
+      "citations": [],
+      "invalid_citations": [],
+      "final_repaired_answer": null,
+      "manual_diagnosis": {
+        "primary_bucket": null,
+        "verdict": "correct_abstention",
+        "reason": "Correct abstention: measured retrieval/delivery latency does not establish hardware power, and S3 explicitly says hardware power was not measured. All rendered blocks were checked.",
+        "lexical_false_negative": false,
+        "first_pass_behavior": "not separately stored; no repair ran",
+        "repair_needed_for_otherwise_correct_answer": false,
+        "repair_classification": [],
+        "repair_substantive_change": null,
+        "repair_reason": null,
+        "resolver_anomaly": null
+      }
+    }
+  ],
+  "candidate_hypotheses": [
+    {
+      "class": "A. answerability/prompt clarification",
+      "decision": "recommended first",
+      "evidence": [
+        "qb2-026",
+        "qb2-028",
+        "qb2-074"
+      ],
+      "hypothesis": "Direct negative, qualified or methodological statements may not consistently be recognized as sufficient answers to the requested property. Two non-follow-up refusals isolate the symptom from the resolver; the follow-up remains confounded."
+    },
+    {
+      "class": "B. multi-part completeness prompt",
+      "decision": "defer",
+      "evidence": [
+        "qb2-028"
+      ],
+      "hypothesis": "Combining two explicit negative boundaries may increase refusal. Only one multi-source item exists and it fully abstained, so independent partial-answer behavior is unmeasured."
+    },
+    {
+      "class": "C. conflict handling prompt",
+      "decision": "insufficient DEV coverage",
+      "evidence": [],
+      "hypothesis": "No DEV item requires conflict reporting. Incidental conflict text in other questions cannot validate both-side reporting or authority selection."
+    },
+    {
+      "class": "D. first-pass citation instruction improvement",
+      "decision": "defer",
+      "evidence": [
+        "qb2-004",
+        "qb2-005",
+        "qb2-025",
+        "qb2-027",
+        "qb2-029",
+        "qb2-049",
+        "qb2-050",
+        "qb2-051",
+        "qb2-052",
+        "qb2-053",
+        "qb2-075",
+        "qb2-076",
+        "qb2-077"
+      ],
+      "hypothesis": "Citation formatting is a frequent first-pass compliance failure (13/24), but existing repair restores every case without changing facts; primarily a latency/call-count opportunity in this run."
+    },
+    {
+      "class": "E. citation-repair safety change",
+      "decision": "no observed substantive drift to target",
+      "evidence": [],
+      "hypothesis": "The 13 observed repairs honor the same-facts contract; this small sample cannot establish universal safety."
+    },
+    {
+      "class": "F. follow-up resolver fix",
+      "decision": "defer; retain as separate hypothesis",
+      "evidence": [
+        "qb2-026"
+      ],
+      "hypothesis": "Treating Describe as an entity and leaving the sampling-plan referent implicit may confuse generation. Gold retrieval still succeeds; no counterfactual establishes that correcting the rewrite would fix abstention."
+    }
+  ],
+  "recommended_first_experiment": {
+    "class": "A. answerability/prompt clarification",
+    "status": "recommended only; not implemented or run",
+    "scope": "One prompt-only evidence-sufficiency clarification, evaluated on the fixed 24 DEV items in a future authorized task.",
+    "hypothesis": "Make explicit that a source-stated negative, limitation, or qualified method is an answer when it directly addresses the requested property. Distinguish that from a requested quantity or property absent from the evidence. This may reduce supported refusals without encouraging guesses.",
+    "proposed_change": "Clarify only the generation decision rule to recognize direct negative/qualified/method statements as sufficient, preserving their exact scope and citations. Use a general rule, not DEV identifiers, answers, entity names or question-specific exceptions. Keep the JSON schema, citation rules, conflict rules, and repair-specific instructions fixed.",
+    "target_cases": [
+      "qb2-028",
+      "qb2-074"
+    ],
+    "confounded_monitor_case": "qb2-026",
+    "target_metrics": {
+      "false_abstention_with_gold_context": {
+        "observed": 3,
+        "desired_direction": "decrease"
+      },
+      "false_abstention_rate": {
+        "observed": 0.15,
+        "desired_direction": "decrease"
+      },
+      "manual_correct_answer_count_answerable": {
+        "observed": 17,
+        "denominator": 20,
+        "desired_direction": "increase with preserved qualifiers"
+      },
+      "qb2_028_manual_supported_parts": {
+        "observed": 0,
+        "denominator": 2,
+        "desired_direction": "both parts answered with their own supporting sources"
+      },
+      "cited_gold_passage_recall": {
+        "observed": 0.85,
+        "desired_direction": "increase"
+      },
+      "lexical_key_fact_recall": {
+        "observed": 0.7,
+        "desired_direction": "report unchanged metric alongside manual correctness; not a semantic acceptance criterion"
+      }
+    },
+    "guardrails": {
+      "false_answer_rate_unanswerable": {
+        "maximum": 0.0,
+        "denominator": 4
+      },
+      "abstention_recall": {
+        "minimum": 1.0
+      },
+      "final_citation_coverage": {
+        "minimum": 1.0
+      },
+      "invalid_citations_and_malformed_outputs": {
+        "maximum": 0
+      },
+      "manual_unsupported_claims_wrong_numbers_entities_or_polarities": {
+        "maximum": 0
+      },
+      "existing_17_correct_answers_and_4_correct_abstentions": "preserve; adjudicate phrasing manually",
+      "repair_substantive_changes": {
+        "maximum": 0
+      },
+      "retrieval_and_rendered_gold_metrics": "remain 1.0",
+      "report_latency_and_repair_calls": "compare mean/p95 total latency and invocation count to this run; do not hide a call-cost increase",
+      "held_out_test": "remain sealed; no evaluation or prompt selection on TEST"
+    },
+    "fixed": [
+      "benchmark bytes and labels",
+      "corpus and splits",
+      "BGE/BM25/hybrid retrieval",
+      "MiniLM reranking",
+      "candidate depths and top-k",
+      "1024-token context budget",
+      "Qwen model and digest",
+      "temperature 0 and output-token limit",
+      "resolver",
+      "parser",
+      "citation repair enabled and repair-specific instructions",
+      "metric schema and taxonomy"
+    ],
+    "shared_prompt_caveat": "build_repair_request also includes SYSTEM_INSTRUCTIONS. A future decision-rule change would therefore appear in that repair system message even if REPAIR_INSTRUCTIONS and repair code stay fixed; audit all repaired outputs as a guardrail.",
+    "limitations": "One uncontrolled DEV observation is hypothesis-generating. No measured improvement is claimed; no conflict-quality conclusion is available, and the follow-up cause remains unresolved."
+  },
+  "protected_file_sha256": {
+    "evaluation/datasets/qualitybench_v2.jsonl": "4ae148bb8c375d667e1803e72ce977431e5b54cf250122ceeaa5d7fde3ddcc9f",
+    "evaluation/datasets/qualitybench_v2.md": "ebe1304ac384c413d9990ba5d1848439ee5ffca1897a859868c1999ab123463e",
+    "evaluation/corpus/quality_v2/atlas_brief.md": "d36ee24b5ffdac88000f6f5de45badb6b65e41cf2c063842a4727bbff667ee4e",
+    "evaluation/corpus/quality_v2/atlas_limitations.md": "a8266e0641b1a3d08b9d2a4fa9732f84d159d11e69a96be5ed348a3bf821fae4",
+    "evaluation/corpus/quality_v2/atlas_methods.md": "83c5b5b78188fd15fcafa77a27f921987466cbfaa87205b84a7d5ad855dc304b",
+    "evaluation/corpus/quality_v2/atlas_release.md": "bc072221a02f2acd49f5383bfb5fa49cf49272b8dc74e6a7a38e43db0ac2ce34",
+    "evaluation/corpus/quality_v2/atlas_report.md": "500745cdb89738a034475c482d8c8282fff14110f64bd86f4fdb0ff62be742e7",
+    "evaluation/corpus/quality_v2/kestrel_amendment.md": "b7c3e1f0c59e79ba6a101ff5ab358a1dcc2b0d1d074c57d4b2e33aa70d808b3a",
+    "evaluation/corpus/quality_v2/kestrel_brief.md": "4c83fef13aa9f2023bee059d5c2b43897e77ea423785bf072b63da0acc127388",
+    "evaluation/corpus/quality_v2/kestrel_incident.md": "c001b0bf97c6a7f0d20095eb914a75053e3360d02de8d33b7bf4f36b314322dc",
+    "evaluation/corpus/quality_v2/kestrel_notebook.md": "ab098721e486f47e424178e897f4483a987aa28416883a393ee780f4cd0f3844",
+    "evaluation/corpus/quality_v2/kestrel_protocol.md": "7104226acdd726c1ce7941f19488362846d813aa2a31ec61845198502e770fee",
+    "evaluation/corpus/quality_v2/meridian_brief.md": "76f046684ccfc1d66f64f3aae0a7de5760239e1277889f4cd448f007a8989ba6",
+    "evaluation/corpus/quality_v2/meridian_incident.md": "597ca37fe017d0629bda5bfef5562d9c2b2ed858f8711b8a00c3c14b54f8eb1f",
+    "evaluation/corpus/quality_v2/meridian_protocol.md": "b9ba0d3fad0965a2556655e66bd67a574233f6e3ed66fb0aa3c173c6795024e2",
+    "evaluation/corpus/quality_v2/meridian_release.md": "442e4fdb086630134be9e771ceb28bd2dd54ba7a680f642999930e724b0c1e80",
+    "evaluation/corpus/quality_v2/meridian_report.md": "6e97b8bd28eca8fef779adca1aca0ade4bc5e9c6dc67dfaaa7a0b8903697f1df",
+    "evaluation/corpus/quality_v2/northstar_amendment.md": "1b0bbbcff8031caf8e85f2a1286ae71e427c0979f0cd23bc8945598cb783d6f6",
+    "evaluation/corpus/quality_v2/northstar_brief.md": "4cb6871f311a085681ad5cfea1eecbe83c3ab74e8ffc270555061fe3ed71a1f1",
+    "evaluation/corpus/quality_v2/northstar_incident.md": "c8a0ccfd10790d74963b9c0f2dc2d815adc7378ef0e9399896b4465b72075aab",
+    "evaluation/corpus/quality_v2/northstar_protocol.md": "94e9c3d31d3c6e53ab0d0eb719094723435a9a949bb771fd59f3d657fb63c76d",
+    "evaluation/corpus/quality_v2/northstar_report.md": "0bc842b80ca1cf20e8582b68b9f66bdb508c41029e9110662e4caf511905363c",
+    "evaluation/baselines/qualitybench_v2_baseline_v1.json": "9b939c09424ccb191771e012eb4b7e759aa6890847b14df4d541b8299972c0a5",
+    "evaluation/baselines/qualitybench_v2_baseline_v1.md": "d4218b4d19637bc0f6a44f70a765142a57c686e35d6f5b0be6626ca1f4941bbb"
+  },
+  "validation": {
+    "compileall": {
+      "command": "python -m compileall -q src tests scripts evaluation",
+      "exit_code": 0
+    },
+    "full_workspace_pytest": {
+      "command": "python -m pytest",
+      "exit_code": 1,
+      "passed": 553,
+      "failed": 2,
+      "warnings": 4,
+      "seconds": 90.28,
+      "failure_scope": "Untouched private, untracked tests expect legacy selected-chunk evidence semantics and removed all_slots_answered metric. No production/test files were changed."
+    },
+    "public_snapshot_pytest": {
+      "command": "python -m pytest",
+      "exit_code": 0,
+      "passed": 528,
+      "warnings": 1,
+      "seconds": 82.15,
+      "scope": "Tracked source plus diagnosis artifacts and README link, excluding pre-existing private/untracked artifacts. Subsequent edits only append these validation results."
+    },
+    "frontend": {
+      "test": {
+        "exit_code": 0,
+        "passed": 188,
+        "files": 16
+      },
+      "typecheck": {
+        "exit_code": 0
+      },
+      "lint": {
+        "exit_code": 0
+      },
+      "build": {
+        "exit_code": 0
+      }
+    },
+    "diff_check": {
+      "command": "git diff --check",
+      "exit_code": 0
+    },
+    "static_report_audit": "24 exact DEV rows; evidence excerpt bounds/offsets and raw metric equality verified; aggregate and slice reports recomputed without retrieval or generation.",
+    "protected_hashes": "All 24 protected files unchanged: dataset, card, 20 corpus documents and two frozen baseline artifacts.",
+    "pre_existing_private_files_unchanged": 70,
+    "serving_storage_files_unchanged": 81,
+    "held_out_live_evaluation_run": false,
+    "baseline_regenerated": false,
+    "production_rag_changes": false,
+    "prompt_experiment_implemented_or_run": false
+  }
+}
