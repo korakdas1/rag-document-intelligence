@@ -52,10 +52,10 @@ function Harness({
 }
 
 describe("DocumentActions", () => {
-  it("opens the menu from the Actions button", async () => {
+  it("opens the menu from the More button", async () => {
     const user = userEvent.setup();
     render(<Harness />);
-    const trigger = screen.getByRole("button", { name: "Actions for notes.md" });
+    const trigger = screen.getByRole("button", { name: "More actions for notes.md" });
     expect(trigger).toHaveAttribute("aria-expanded", "false");
     await user.click(trigger);
     expect(trigger).toHaveAttribute("aria-expanded", "true");
@@ -66,11 +66,11 @@ describe("DocumentActions", () => {
   it("closes when clicking outside", async () => {
     const user = userEvent.setup();
     render(<Harness />);
-    await user.click(screen.getByRole("button", { name: "Actions for notes.md" }));
+    await user.click(screen.getByRole("button", { name: "More actions for notes.md" }));
     expect(screen.getByRole("menu")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Outside" }));
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Actions for notes.md" })).toHaveAttribute(
+    expect(screen.getByRole("button", { name: "More actions for notes.md" })).toHaveAttribute(
       "aria-expanded",
       "false",
     );
@@ -79,7 +79,7 @@ describe("DocumentActions", () => {
   it("closes on Escape and returns focus to the trigger", async () => {
     const user = userEvent.setup();
     render(<Harness />);
-    const trigger = screen.getByRole("button", { name: "Actions for notes.md" });
+    const trigger = screen.getByRole("button", { name: "More actions for notes.md" });
     await user.click(trigger);
     await user.keyboard("{Escape}");
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
@@ -90,7 +90,7 @@ describe("DocumentActions", () => {
     const user = userEvent.setup();
     const onDetails = vi.fn();
     render(<Harness onDetails={onDetails} />);
-    await user.click(screen.getByRole("button", { name: "Actions for notes.md" }));
+    await user.click(screen.getByRole("button", { name: "More actions for notes.md" }));
     await user.click(screen.getByRole("menuitem", { name: "Details" }));
     expect(onDetails).toHaveBeenCalledWith("doc-1");
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
@@ -100,7 +100,7 @@ describe("DocumentActions", () => {
     const user = userEvent.setup();
     const onReindex = vi.fn();
     render(<Harness onReindex={onReindex} />);
-    await user.click(screen.getByRole("button", { name: "Actions for notes.md" }));
+    await user.click(screen.getByRole("button", { name: "More actions for notes.md" }));
     expect(screen.getByRole("menuitem", { name: "Re-index" })).toHaveAttribute(
       "title",
       expect.stringContaining("rebuild"),
@@ -114,7 +114,7 @@ describe("DocumentActions", () => {
     const user = userEvent.setup();
     const onDelete = vi.fn();
     render(<Harness onDelete={onDelete} />);
-    await user.click(screen.getByRole("button", { name: "Actions for notes.md" }));
+    await user.click(screen.getByRole("button", { name: "More actions for notes.md" }));
     await user.click(screen.getByRole("menuitem", { name: "Remove" }));
     expect(onDelete).toHaveBeenCalledWith(expect.objectContaining({ document_id: "doc-1" }));
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();

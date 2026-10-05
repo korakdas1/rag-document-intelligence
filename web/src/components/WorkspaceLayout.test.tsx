@@ -34,7 +34,7 @@ function Harness() {
   return <>
     <WorkspaceLayout pane={pane} onPaneChange={setPane} documents={
       <DocumentSidebar documents={removed ? [] : [doc]} selectedIds={selected ? [doc.document_id] : []}
-        uploading={false} uploadError={null} filter={filter} onFilterChange={setFilter}
+        uploading={false} filter={filter} onFilterChange={setFilter}
         onToggleDocument={() => setSelected(!selected)} onSelectAll={() => setSelected(true)}
         onClearSelection={() => setSelected(false)} onUpload={vi.fn()}
         onDetails={() => setDialog("details")} onDelete={() => setDialog("remove")} onReindex={vi.fn()} />
@@ -86,7 +86,7 @@ describe("Workspace shell", () => {
     await user.click(outside);
     const close = screen.getByRole("button", { name: "Close Documents" });
     await user.tab({ shift: true });
-    expect(screen.getByRole("button", { name: /Actions for/ })).toHaveFocus();
+    expect(screen.getByRole("button", { name: /More actions for/ })).toHaveFocus();
     await user.tab(); expect(close).toHaveFocus();
     outside.focus(); expect(close).toHaveFocus();
     for (let i = 0; i < 12; i++) {
@@ -98,7 +98,7 @@ describe("Workspace shell", () => {
     media("split"); const user = userEvent.setup(); render(<StrictMode><Harness /></StrictMode>);
     const trigger = screen.getByRole("button", { name: "Documents" });
     await user.click(trigger);
-    const actions = screen.getByRole("button", { name: /Actions for/ });
+    const actions = screen.getByRole("button", { name: /More actions for/ });
     await user.click(actions); await user.click(screen.getByRole("menuitem", { name: action }));
     const top = screen.getByRole("dialog");
     expect(top).not.toHaveAccessibleName("Documents");
@@ -120,7 +120,7 @@ describe("Workspace shell", () => {
     media("split"); const user = userEvent.setup(); render(<Harness />);
     const trigger = screen.getByRole("button", { name: "Documents" });
     await user.click(trigger);
-    await user.click(screen.getByRole("button", { name: /Actions for/ }));
+    await user.click(screen.getByRole("button", { name: /More actions for/ }));
     await user.click(screen.getByRole("menuitem", { name: "Remove" }));
     await user.click(screen.getByRole("button", { name: "Remove" }));
     await waitFor(() => expect(screen.getByRole("complementary", { name: "Document library" })).toHaveFocus());
@@ -178,11 +178,11 @@ describe("Workspace shell", () => {
   it("does not leave the app inert if a breakpoint removes the drawer beneath a dialog", async () => {
     const change = media("split"); const user = userEvent.setup(); render(<Harness />);
     await user.click(screen.getByRole("button", { name: "Documents" }));
-    await user.click(screen.getByRole("button", { name: /Actions for/ }));
+    await user.click(screen.getByRole("button", { name: /More actions for/ }));
     await user.click(screen.getByRole("menuitem", { name: "Details" }));
     change("wide"); expect(screen.getAllByRole("dialog")).toHaveLength(1);
     await user.keyboard("{Escape}");
-    await waitFor(() => expect(screen.getByRole("button", { name: /Actions for/ })).toHaveFocus());
+    await waitFor(() => expect(screen.getByRole("button", { name: /More actions for/ })).toHaveFocus());
     expect(document.body.querySelector("[inert]")).toBeNull();
     expect(document.body.style.overflow).not.toBe("hidden");
   });

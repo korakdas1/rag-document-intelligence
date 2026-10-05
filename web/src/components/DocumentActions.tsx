@@ -84,11 +84,11 @@ export function DocumentActions({
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={open ? menuId : undefined}
-        aria-label={`Actions for ${document.filename}`}
+        aria-label={`More actions for ${document.filename}`}
         disabled={disabled}
         onClick={() => onOpenChange(!open)}
       >
-        Actions
+        More
       </button>
       {open ? (
         <ul id={menuId} className="doc-menu-list" role="menu">

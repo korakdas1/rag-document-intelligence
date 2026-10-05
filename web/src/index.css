@@ -127,22 +127,55 @@ a:focus-visible {
   margin: var(--space-2) 0;
 }
 
-.upload-error {
+.upload-feedback,
+.library-load-error {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.75rem 0;
+  border-block: 1px solid var(--line);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+
+.upload-feedback.is-error > strong,
+.library-load-error > strong {
+  color: var(--error);
+}
+
+.upload-failures {
+  list-style: none;
+  margin: 0.35rem 0;
+  padding: 0;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.upload-failures li {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.upload-failures li span {
+  color: var(--text-secondary);
+}
+
+.upload-feedback-actions {
+  display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
 }
 
-.error-dismiss {
-  flex: none;
-  border: none;
-  background: transparent;
-  color: inherit;
-  cursor: pointer;
-  padding: 0 0.15rem;
-  font-size: 1.1rem;
-  line-height: 1;
+.upload-feedback-actions .btn,
+.library-load-error .btn {
+  min-height: 2.25rem;
+  padding-inline: 0.65rem;
+  font-size: var(--text-xs);
+}
+
+.library-load-error {
+  margin-bottom: 1rem;
+  align-items: flex-start;
 }
 
 .app {
@@ -424,6 +457,29 @@ a:focus-visible {
   color: var(--text-secondary);
 }
 
+.sidebar .pane-heading {
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.sidebar .pane-scroll {
+  padding-inline: 0.75rem;
+  scrollbar-width: thin;
+}
+
+.library-heading-summary {
+  display: grid;
+  gap: 0.15rem;
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+
+.library-heading-summary strong {
+  font-size: var(--text-sm);
+  color: var(--ink);
+  font-weight: 500;
+}
+
 .pane-scroll {
   flex: 1;
   min-height: 0;
@@ -501,11 +557,9 @@ a:focus-visible {
 }
 
 .doc-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.35rem;
+  position: relative;
   border: 1px solid transparent;
-  border-radius: var(--radius);
+  border-radius: var(--radius-sm);
   background: transparent;
 }
 
@@ -515,19 +569,31 @@ a:focus-visible {
 
 .doc-item.is-selected {
   background: var(--selected);
-  border-color: #c5d8cc;
 }
 
 .doc-item.is-selected:hover {
   background: var(--selected);
-  border-color: #b3c9bb;
 }
 
 .doc-item .doc-row {
-  flex: 1;
   min-width: 0;
   background: transparent;
   border-color: transparent;
+}
+
+.doc-row-status,
+.doc-warning,
+.doc-meta > .error {
+  padding-right: 3.25rem;
+}
+
+.doc-meta > :last-child {
+  min-height: 1.85rem;
+}
+
+.doc-meta > .error {
+  display: block;
+  font-size: var(--text-xs);
 }
 
 .doc-item .doc-row:hover {
@@ -547,21 +613,37 @@ a:focus-visible {
   background: var(--surface);
 }
 
-.warn-count {
+.doc-warning {
+  display: block;
+  margin-top: 0.3rem;
+  font-size: var(--text-xs);
   color: var(--unverified);
 }
 
+.doc-identifier,
+.filter-result {
+  color: var(--muted);
+  font-size: var(--text-xs);
+}
+
+.doc-identifier {
+  display: block;
+  margin-top: 0.2rem;
+}
+
+.filter-result { margin: 0.5rem 0 0; }
+
 .doc-menu {
-  position: relative;
-  flex-shrink: 0;
-  padding: 0.4rem 0.35rem 0 0;
+  position: absolute;
+  right: 0.35rem;
+  bottom: 0.5rem;
 }
 
 .btn-menu {
   background: none;
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
-  min-height: 1.85rem;
+  min-height: 2.25rem;
   padding: 0 0.45rem;
   color: var(--text-secondary);
   cursor: pointer;
@@ -736,9 +818,9 @@ a:focus-visible {
 
 .doc-row {
   display: flex;
-  gap: 0.7rem;
+  gap: 0.5rem;
   align-items: flex-start;
-  padding: 0.7rem 0.65rem;
+  padding: 0.7rem 0.5rem;
   border: 1px solid transparent;
   border-radius: var(--radius);
   cursor: pointer;
@@ -770,15 +852,11 @@ a:focus-visible {
 }
 
 .doc-name {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  display: block;
   font-weight: 650;
   font-size: 0.98rem;
   line-height: 1.35;
-  overflow-wrap: break-word;
-  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .doc-sub {
@@ -1346,7 +1424,8 @@ a:focus-visible {
 .drawer > h3 { margin: 0; padding: 1.25rem 10rem 1.25rem 1.15rem; font-size: 1.1rem; }
 .drawer-close { position: absolute; right: 0.75rem; top: 0.65rem; }
 .drawer .sidebar { border: 0; }
-.drawer .pane-heading { display: none; }
+.drawer .pane-heading { padding-top: 0; }
+.drawer .pane-heading h2 { display: none; }
 .composer-dock { flex-shrink: 0; max-height: 50%; overflow: auto; }
 
 @media (max-width: 899px) {

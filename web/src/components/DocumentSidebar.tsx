@@ -1,6 +1,13 @@
 import { useEffect, useId, useRef, useState } from "react";
 import type { DocumentStatus, DocumentSummary } from "../api/types";
+import {
+  documentLibraryCounts,
+  documentStatusSummary,
+  documentTotalLabel,
+  filenameOccurrences,
+} from "../documentLibraryPresentation";
 import { DocumentActions } from "./DocumentActions";
+import { UploadFeedback, type UploadFeedbackState } from "./UploadFeedback";
 import { sanitizeUploadError } from "../userErrors";
 
 type DocumentSidebarProps = {
@@ -8,8 +15,7 @@ type DocumentSidebarProps = {
   selectedIds: string[];
   allDocuments?: boolean;
   uploading: boolean;
-  uploadError: string | null;
-  uploadStatus?: string | null;
+  uploadFeedback?: UploadFeedbackState | null;
   libraryLoadError?: string | null;
   documentActionError?: string | null;
   busyDocumentId?: string | null;
@@ -20,12 +26,15 @@ type DocumentSidebarProps = {
   onSelectAll: () => void;
   onClearSelection: () => void;
   onUpload: (files: File[]) => void;
-  onDismissUploadError?: () => void;
+  onRetryFailedUploads?: (files: File[]) => void;
+  onDismissUploadFeedback?: () => void;
   onRetryLoad?: () => void;
   onDetails?: (documentId: string) => void;
   onReindex?: (documentId: string) => void;
   onDelete?: (document: DocumentSummary) => void;
 };
+
+const noop = () => undefined;
 
 function typeLabel(contentType: string): string {
   if (contentType.includes("pdf")) {
@@ -72,8 +81,7 @@ export function DocumentSidebar({
   selectedIds,
   allDocuments,
   uploading,
-  uploadError,
-  uploadStatus = null,
+  uploadFeedback = null,
   libraryLoadError = null,
   documentActionError = null,
   busyDocumentId = null,
@@ -84,7 +92,8 @@ export function DocumentSidebar({
   onSelectAll,
   onClearSelection,
   onUpload,
-  onDismissUploadError,
+  onRetryFailedUploads,
+  onDismissUploadFeedback,
   onRetryLoad,
   onDetails,
   onReindex,
@@ -96,13 +105,16 @@ export function DocumentSidebar({
   const masterRef = useRef<HTMLInputElement>(null);
   const selectedSet = new Set(selectedIds);
   const selectedCount = documents.filter((doc) => selectedSet.has(doc.document_id)).length;
-  const allSelected = allDocuments ?? (documents.length > 0 && selectedCount === documents.length);
+  const allSelected = allDocuments ?? false;
   const noneSelected = selectedCount === 0;
   const indeterminate = selectedCount > 0 && !allSelected;
   const query = filter.trim().toLowerCase();
   const visible = query
     ? documents.filter((doc) => doc.filename.toLowerCase().includes(query))
     : documents;
+  const libraryCounts = documentLibraryCounts(documents);
+  const libraryStatus = documentStatusSummary(libraryCounts);
+  const nameCounts = filenameOccurrences(documents);
   const showActions = Boolean(onDetails && onReindex && onDelete);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
@@ -116,8 +128,9 @@ export function DocumentSidebar({
     <aside className="sidebar" aria-label="Document library">
       <header className="pane-heading">
         <h2>Documents</h2>
-        <span className="muted">
-          {documents.length === 0 ? "Empty" : `${documents.length} indexed`}
+        <span className="library-heading-summary">
+          <strong>{documentTotalLabel(documents.length)}</strong>
+          {libraryStatus ? <span>{libraryStatus}</span> : null}
         </span>
       </header>
       <div className="pane-scroll">
@@ -146,42 +159,30 @@ export function DocumentSidebar({
           >
             {uploading ? "Uploading…" : "Add documents"}
           </button>
-          <p className="hint">PDF, Markdown, or text. Choose one or more files. Indexing runs before the upload finishes.</p>
-          {uploadStatus ? (
-            <p className="hint" role="status" aria-live="polite" data-testid="upload-status">
-              {uploadStatus}
-            </p>
-          ) : null}
-          {uploadError ? (
-            <p className="error upload-error" role="alert" aria-live="polite" data-testid="upload-error">
-              <span>{uploadError}</span>
-              {onDismissUploadError ? (
-                <button
-                  type="button"
-                  className="error-dismiss"
-                  onClick={onDismissUploadError}
-                  aria-label="Dismiss upload message"
-                >
-                  ×
-                </button>
-              ) : null}
-            </p>
-          ) : null}
+          <p className="hint">PDF, Markdown or text. Files are indexed before upload completes.</p>
+          <UploadFeedback
+            feedback={uploadFeedback}
+            onRetry={onRetryFailedUploads ?? noop}
+            onDismiss={onDismissUploadFeedback ?? noop}
+          />
         </div>
-        {documents.length === 0 ? (
-          <p className="empty">
-            {libraryLoadError
-              ? "The document library could not be loaded."
-              : "Add a PDF, Markdown, or text document to start asking questions."}
-            {libraryLoadError && onRetryLoad ? (
-              <>
-                {" "}
-                <button type="button" className="btn btn-quiet" onClick={onRetryLoad}>
-                  Retry
-                </button>
-              </>
+        {libraryLoadError ? (
+          <div className="library-load-error" role="alert">
+            <strong>The document library could not be loaded.</strong>
+            <span>{libraryLoadError}</span>
+            {onRetryLoad ? (
+              <button type="button" className="btn btn-quiet" onClick={onRetryLoad}>
+                Retry library
+              </button>
             ) : null}
-          </p>
+          </div>
+        ) : null}
+        {documents.length === 0 ? (
+          libraryLoadError ? null : (
+            <p className="empty">
+              Add a PDF, Markdown, or text document to start asking questions.
+            </p>
+          )
         ) : (
           <>
             {onFilterChange ? (
@@ -196,6 +197,11 @@ export function DocumentSidebar({
                   placeholder="Search documents…"
                   onChange={(event) => onFilterChange(event.target.value)}
                 />
+                {query ? (
+                  <p className="filter-result" role="status">
+                    Showing {visible.length} of {documents.length} document{documents.length === 1 ? "" : "s"}
+                  </p>
+                ) : null}
               </div>
             ) : null}
             {documentActionError ? (
@@ -219,21 +225,20 @@ export function DocumentSidebar({
                 }}
               />
               <span>
-                <span className="doc-name">Ask across all documents</span>
+                <span className="doc-name">All documents</span>
                 <span className="doc-sub">
                   {allSelected
-                    ? "The next question searches every indexed document. Uncheck a document to search a subset."
+                    ? "Include the whole library, including future uploads."
                     : noneSelected
-                      ? "Select at least one document to ask a question."
-                      : `The next question searches ${selectedCount} selected document${selectedCount === 1 ? "" : "s"}.`}
+                      ? "No documents selected."
+                      : "Use a fixed document selection."}
                 </span>
               </span>
             </label>
             <ul className="doc-list">
               {visible.map((doc) => {
                 const checked = selectedSet.has(doc.document_id);
-                const sameName =
-                  documents.filter((item) => item.filename === doc.filename).length > 1;
+                const sameName = (nameCounts.get(doc.filename) ?? 0) > 1;
                 const busy = busyDocumentId === doc.document_id;
                 return (
                   <li key={doc.document_id}>
@@ -254,10 +259,9 @@ export function DocumentSidebar({
                             {doc.filename}
                           </span>
                           {sameName ? (
-                            <span className="muted">{doc.document_id.slice(0, 8)}</span>
+                            <span className="doc-identifier">ID {doc.document_id.slice(0, 8)}</span>
                           ) : null}
-                          <span className="doc-sub">
-                            <span>{typeLabel(doc.content_type)}</span>
+                          <span className="doc-sub doc-row-status">
                             <span
                               className={`status-dot ${statusClass(doc.status, doc.source_available)}`}
                             >
@@ -267,12 +271,13 @@ export function DocumentSidebar({
                                   : "Processing…"
                                 : statusLabel(doc)}
                             </span>
-                            {doc.page_count ? <span>{doc.page_count} pp.</span> : null}
-                            <span>{doc.chunk_count} chunks</span>
-                            {doc.warning_count ? (
-                              <span className="warn-count">{doc.warning_count} warnings</span>
-                            ) : null}
+                            <span>{typeLabel(doc.content_type)}</span>
                           </span>
+                          {doc.warning_count ? (
+                            <span className="doc-warning">
+                              {doc.warning_count} warning{doc.warning_count === 1 ? "" : "s"}
+                            </span>
+                          ) : null}
                           {doc.error_message ? (
                             <span className="error">
                               {sanitizeUploadError(doc.error_message, doc.filename)}
@@ -299,7 +304,7 @@ export function DocumentSidebar({
               })}
             </ul>
             {query && visible.length === 0 ? (
-              <p className="empty">No documents match that name.</p>
+              <p className="empty">No documents match “{filter.trim()}”.</p>
             ) : null}
           </>
         )}
