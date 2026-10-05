@@ -39,7 +39,6 @@ describe("DocumentSidebar", () => {
         documents={[]}
         selectedIds={[]}
         uploading={false}
-        uploadError={null}
         {...noop}
       />,
     );
@@ -54,13 +53,13 @@ describe("DocumentSidebar", () => {
         documents={[]}
         selectedIds={[]}
         uploading={false}
-        uploadError={null}
         {...noop}
       />,
     );
     expect(
       screen.getByText("Add a PDF, Markdown, or text document to start asking questions."),
     ).toBeInTheDocument();
+    expect(screen.getByText("Empty")).toBeInTheDocument();
   });
 
   it("keeps long filenames available and explains all-document search", async () => {
@@ -73,8 +72,8 @@ describe("DocumentSidebar", () => {
           doc({ document_id: "doc-2", filename: "second.md" }),
         ]}
         selectedIds={["doc-1", "doc-2"]}
+        allDocuments
         uploading={false}
-        uploadError={null}
         onToggleDocument={onToggleDocument}
         onSelectAll={vi.fn()}
         onClearSelection={vi.fn()}
@@ -83,7 +82,7 @@ describe("DocumentSidebar", () => {
     );
     expect(screen.getByTitle(longName)).toBeInTheDocument();
     expect(
-      screen.getByText(/The next question searches every indexed document/),
+      screen.getByText("Include the whole library, including future uploads."),
     ).toBeInTheDocument();
     await user.click(screen.getByText(longName));
     expect(onToggleDocument).toHaveBeenCalledWith("doc-1");
@@ -94,19 +93,20 @@ describe("DocumentSidebar", () => {
       <DocumentSidebar
         documents={[doc(), doc({ document_id: "doc-2", filename: "second.md" })]}
         selectedIds={["doc-2"]}
+        allDocuments={false}
         uploading={false}
-        uploadError={null}
         {...noop}
       />,
     );
-    expect(screen.getByText("The next question searches 1 selected document.")).toBeInTheDocument();
+    expect(screen.getByText("Use a fixed document selection.")).toBeInTheDocument();
   });
 
-  it("shows source-missing status and warning counts", () => {
+  it("shows truthful totals and ready, processing, and attention counts", () => {
     render(
       <DocumentSidebar
         documents={[
           doc(),
+          doc({ document_id: "doc-processing", filename: "draft.txt", status: "parsed" }),
           doc({
             document_id: "doc-2",
             filename: "report.pdf",
@@ -116,7 +116,6 @@ describe("DocumentSidebar", () => {
         ]}
         selectedIds={[]}
         uploading={false}
-        uploadError={null}
         filter=""
         onFilterChange={vi.fn()}
         {...noop}
@@ -125,43 +124,56 @@ describe("DocumentSidebar", () => {
         onDelete={vi.fn()}
       />,
     );
+    expect(screen.getByText("3 documents")).toBeInTheDocument();
+    expect(screen.getByText("1 ready · 1 processing · 1 needs attention")).toBeInTheDocument();
     expect(screen.getByText("Source missing")).toBeInTheDocument();
     expect(screen.getByText("2 warnings")).toBeInTheDocument();
     expect(screen.getByLabelText("Search documents")).toBeInTheDocument();
   });
 
-  it("hides unmatched names when a filter is applied", () => {
+  it("shows filter result context without changing selection", () => {
+    const onToggleDocument = vi.fn();
     render(
       <DocumentSidebar
         documents={[doc(), doc({ document_id: "doc-2", filename: "report.pdf" })]}
-        selectedIds={[]}
+        selectedIds={["doc-1"]}
+        allDocuments={false}
         uploading={false}
-        uploadError={null}
         filter="report"
         onFilterChange={vi.fn()}
         {...noop}
+        onToggleDocument={onToggleDocument}
       />,
     );
     expect(screen.getByText("report.pdf")).toBeInTheDocument();
     expect(screen.queryByText("notes.md")).not.toBeInTheDocument();
+    expect(screen.getByText("Showing 1 of 2 documents")).toBeInTheDocument();
+    expect(onToggleDocument).not.toHaveBeenCalled();
   });
 
-  it("opens only one Actions menu at a time", async () => {
+  it("distinguishes no filter matches from an empty library", () => {
+    render(<DocumentSidebar documents={[doc()]} selectedIds={[]} allDocuments={false}
+      uploading={false} filter="budget" onFilterChange={vi.fn()} {...noop} />);
+    expect(screen.getByText("Showing 0 of 1 document")).toBeInTheDocument();
+    expect(screen.getByText("No documents match “budget”.")).toBeInTheDocument();
+    expect(screen.queryByText("Empty")).not.toBeInTheDocument();
+  });
+
+  it("opens only one More menu at a time", async () => {
     const user = userEvent.setup();
     render(
       <DocumentSidebar
         documents={[doc(), doc({ document_id: "doc-2", filename: "report.pdf" })]}
         selectedIds={[]}
         uploading={false}
-        uploadError={null}
         {...noop}
         onDetails={vi.fn()}
         onReindex={vi.fn()}
         onDelete={vi.fn()}
       />,
     );
-    const first = screen.getByRole("button", { name: "Actions for notes.md" });
-    const second = screen.getByRole("button", { name: "Actions for report.pdf" });
+    const first = screen.getByRole("button", { name: "More actions for notes.md" });
+    const second = screen.getByRole("button", { name: "More actions for report.pdf" });
     await user.click(first);
     expect(first).toHaveAttribute("aria-expanded", "true");
     expect(screen.getByRole("menu")).toBeInTheDocument();
@@ -176,8 +188,8 @@ describe("DocumentSidebar", () => {
       <DocumentSidebar
         documents={[doc(), doc({ document_id: "doc-2", filename: "second.md" })]}
         selectedIds={["doc-1", "doc-2"]}
+        allDocuments
         uploading={false}
-        uploadError={null}
         {...noop}
       />,
     );
@@ -193,8 +205,8 @@ describe("DocumentSidebar", () => {
       <DocumentSidebar
         documents={[doc(), doc({ document_id: "doc-2", filename: "second.md" })]}
         selectedIds={["doc-1", "doc-2"]}
+        allDocuments
         uploading={false}
-        uploadError={null}
         onToggleDocument={vi.fn()}
         onSelectAll={vi.fn()}
         onClearSelection={onClearSelection}
@@ -210,8 +222,8 @@ describe("DocumentSidebar", () => {
       <DocumentSidebar
         documents={[doc(), doc({ document_id: "doc-2", filename: "second.md" })]}
         selectedIds={[]}
+        allDocuments={false}
         uploading={false}
-        uploadError={null}
         {...noop}
       />,
     );
@@ -220,7 +232,7 @@ describe("DocumentSidebar", () => {
     expect(master).toHaveAttribute("aria-checked", "false");
     expect(master).not.toHaveProperty("indeterminate", true);
     expect(
-      screen.getByText("Select at least one document to ask a question."),
+      screen.getByText("No documents selected."),
     ).toBeInTheDocument();
   });
 
@@ -231,8 +243,8 @@ describe("DocumentSidebar", () => {
       <DocumentSidebar
         documents={[doc(), doc({ document_id: "doc-2", filename: "second.md" })]}
         selectedIds={[]}
+        allDocuments={false}
         uploading={false}
-        uploadError={null}
         onToggleDocument={vi.fn()}
         onSelectAll={onSelectAll}
         onClearSelection={vi.fn()}
@@ -248,8 +260,8 @@ describe("DocumentSidebar", () => {
       <DocumentSidebar
         documents={[doc(), doc({ document_id: "doc-2", filename: "second.md" })]}
         selectedIds={["doc-2"]}
+        allDocuments={false}
         uploading={false}
-        uploadError={null}
         {...noop}
       />,
     );
@@ -266,8 +278,8 @@ describe("DocumentSidebar", () => {
       <DocumentSidebar
         documents={[doc(), doc({ document_id: "doc-2", filename: "second.md" })]}
         selectedIds={["doc-2"]}
+        allDocuments={false}
         uploading={false}
-        uploadError={null}
         onToggleDocument={vi.fn()}
         onSelectAll={onSelectAll}
         onClearSelection={vi.fn()}
@@ -286,15 +298,15 @@ describe("DocumentSidebar", () => {
       <DocumentSidebar
         documents={[doc(), doc({ document_id: "doc-2", filename: "second.md" })]}
         selectedIds={["doc-1", "doc-2"]}
+        allDocuments
         uploading={false}
-        uploadError={null}
         onToggleDocument={vi.fn()}
         onSelectAll={onSelectAll}
         onClearSelection={onClearSelection}
         onUpload={vi.fn()}
       />,
     );
-    await user.click(screen.getByText("Ask across all documents"));
+    await user.click(screen.getByText("All documents"));
     expect(onClearSelection).toHaveBeenCalledTimes(1);
     expect(onSelectAll).not.toHaveBeenCalled();
 
@@ -302,8 +314,8 @@ describe("DocumentSidebar", () => {
       <DocumentSidebar
         documents={[doc(), doc({ document_id: "doc-2", filename: "second.md" })]}
         selectedIds={[]}
+        allDocuments={false}
         uploading={false}
-        uploadError={null}
         onToggleDocument={vi.fn()}
         onSelectAll={onSelectAll}
         onClearSelection={onClearSelection}
@@ -328,8 +340,8 @@ describe("DocumentSidebar", () => {
       <DocumentSidebar
         documents={[doc(), doc({ document_id: "doc-2", filename: "second.md" })]}
         selectedIds={["doc-1"]}
+        allDocuments={false}
         uploading={false}
-        uploadError={null}
         onToggleDocument={onToggleDocument}
         onSelectAll={vi.fn()}
         onClearSelection={vi.fn()}
@@ -346,7 +358,7 @@ describe("DocumentSidebar", () => {
     expect(unselected).not.toHaveClass("is-selected");
     await user.hover(screen.getByText("notes.md"));
     expect(selected).toHaveClass("is-selected");
-    await user.hover(screen.getByRole("button", { name: "Actions for notes.md" }));
+    await user.hover(screen.getByRole("button", { name: "More actions for notes.md" }));
     expect(selected).toHaveClass("is-selected");
     expect(unselected).not.toHaveClass("is-selected");
     await user.hover(unselected);
@@ -362,7 +374,9 @@ describe("DocumentSidebar", () => {
         documents={[doc()]}
         selectedIds={["doc-1"]}
         uploading={false}
-        uploadError="Unsupported file type."
+        uploadFeedback={{ kind: "result", added: 0, failures: [
+          { filename: "photo.png", reason: "Unsupported file type." },
+        ] }}
         documentActionError="Could not load document details."
         onToggleDocument={vi.fn()}
         onSelectAll={vi.fn()}
@@ -388,7 +402,6 @@ describe("DocumentSidebar", () => {
         documents={[doc()]}
         selectedIds={["doc-1"]}
         uploading={false}
-        uploadError={null}
         busyDocumentId="doc-1"
         busyKind="reindex"
         onToggleDocument={vi.fn()}
@@ -402,6 +415,40 @@ describe("DocumentSidebar", () => {
     );
     expect(screen.getByText("Re-indexing…")).toBeInTheDocument();
     expect(screen.getByRole("checkbox", { name: /notes.md/ })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Actions for notes.md" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "More actions for notes.md" })).toBeDisabled();
+  });
+
+  it("keeps a full fixed subset mixed instead of claiming canonical ALL", () => {
+    render(<DocumentSidebar documents={[doc(), doc({ document_id: "doc-2" })]}
+      selectedIds={["doc-1", "doc-2"]} allDocuments={false} uploading={false} {...noop} />);
+    const master = screen.getByRole("checkbox", { name: "Ask across all documents" });
+    expect(master).not.toBeChecked();
+    expect(master).toHaveAttribute("aria-checked", "mixed");
+    expect(screen.getByText("Use a fixed document selection.")).toBeInTheDocument();
+  });
+
+  it("keeps canonical ALL under an active filename filter", async () => {
+    const onClearSelection = vi.fn();
+    render(<DocumentSidebar documents={[doc(), doc({ document_id: "doc-2", filename: "report.pdf" })]}
+      selectedIds={["doc-1", "doc-2"]} allDocuments uploading={false} filter="report"
+      onFilterChange={vi.fn()} {...noop} onClearSelection={onClearSelection} />);
+    const master = screen.getByRole("checkbox", { name: "Ask across all documents" });
+    expect(master).toBeChecked();
+    await userEvent.setup().click(master);
+    expect(onClearSelection).toHaveBeenCalledOnce();
+  });
+
+  it("shows stable IDs only for duplicate filenames and toggles the correct identity", async () => {
+    const onToggleDocument = vi.fn();
+    render(<DocumentSidebar documents={[
+      doc({ document_id: "abcdef123456" }),
+      doc({ document_id: "98765432ffff" }),
+      doc({ document_id: "unique-id", filename: "unique.pdf" }),
+    ]} selectedIds={[]} allDocuments={false} uploading={false} {...noop} onToggleDocument={onToggleDocument} />);
+    expect(screen.getByText("ID abcdef12")).toBeInTheDocument();
+    expect(screen.getByText("ID 98765432")).toBeInTheDocument();
+    expect(screen.queryByText("ID unique-i")).not.toBeInTheDocument();
+    await userEvent.setup().click(screen.getByRole("checkbox", { name: /ID 98765432/ }));
+    expect(onToggleDocument).toHaveBeenCalledWith("98765432ffff");
   });
 });

@@ -730,7 +730,7 @@ describe("App", () => {
     it.each([["doc-1", "doc-2"], ["doc-2"]])("retains a deleted subset without saving ALL: %j", async (...ids) => {
       const user = await loadedScope(false, ids);
       mockedDelete.mockResolvedValue({ document_id: "doc-2", deleted: true, already_absent: false, vector_cleanup_status: "purged", request_id: "x" });
-      await user.click(screen.getByRole("button", { name: "Actions for other.md" }));
+      await user.click(screen.getByRole("button", { name: "More actions for other.md" }));
       await user.click(screen.getByRole("menuitem", { name: "Remove" }));
       mockedList.mockResolvedValue({ documents: [documentRow()], chunker_id: "test", request_id: "d2" });
       await user.click(screen.getByRole("button", { name: "Remove" }));
@@ -1443,7 +1443,7 @@ describe("App", () => {
     const user = userEvent.setup();
     render(<App />);
     await screen.findByText("attention.md");
-    await user.click(screen.getByRole("button", { name: "Actions for attention.md" }));
+    await user.click(screen.getByRole("button", { name: "More actions for attention.md" }));
     await user.click(screen.getByRole("menuitem", { name: "Details" }));
     expect(await screen.findByText("markdown.v1")).toBeInTheDocument();
     expect(screen.getByRole("dialog", { name: "attention.md" })).toBeInTheDocument();
@@ -1469,7 +1469,7 @@ describe("App", () => {
     render(<App />);
     await screen.findByText("other.md");
     await user.click(screen.getByText("attention.md"));
-    await user.click(screen.getByRole("button", { name: "Actions for other.md" }));
+    await user.click(screen.getByRole("button", { name: "More actions for other.md" }));
     await user.click(screen.getByRole("menuitem", { name: "Remove" }));
     expect(
       screen.getByText(/Indexed chunks and vectors will be removed/),
@@ -1500,7 +1500,7 @@ describe("App", () => {
     const user = userEvent.setup();
     render(<App />);
     await screen.findByText("attention.md");
-    await user.click(screen.getByRole("button", { name: "Actions for attention.md" }));
+    await user.click(screen.getByRole("button", { name: "More actions for attention.md" }));
     await user.click(screen.getByRole("menuitem", { name: "Remove" }));
     await user.click(screen.getByRole("button", { name: "Remove" }));
     expect(await screen.findByText("Could not remove indexed vectors.")).toBeInTheDocument();
@@ -1522,7 +1522,7 @@ describe("App", () => {
     const user = userEvent.setup();
     render(<App />);
     await screen.findByText("attention.md");
-    await user.click(screen.getByRole("button", { name: "Actions for attention.md" }));
+    await user.click(screen.getByRole("button", { name: "More actions for attention.md" }));
     await user.click(screen.getByRole("menuitem", { name: "Re-index" }));
     await waitFor(() => {
       expect(mockedReindex).toHaveBeenCalledWith("doc-1");
@@ -1960,7 +1960,7 @@ describe("App", () => {
     const user = userEvent.setup();
     render(<App />);
     await screen.findByText("attention.md");
-    await user.click(screen.getByRole("button", { name: "Actions for attention.md" }));
+    await user.click(screen.getByRole("button", { name: "More actions for attention.md" }));
     await user.click(screen.getByRole("menuitem", { name: "Re-index" }));
     expect(await screen.findByText("Source file is missing.")).toBeInTheDocument();
     expect(screen.getByTestId("document-action-error")).toHaveTextContent(
@@ -1989,7 +1989,7 @@ describe("App", () => {
     const user = userEvent.setup();
     render(<App />);
     await screen.findByText("attention.md");
-    await user.click(screen.getByRole("button", { name: "Actions for attention.md" }));
+    await user.click(screen.getByRole("button", { name: "More actions for attention.md" }));
     await user.click(screen.getByRole("menuitem", { name: "Details" }));
     const dialog = await screen.findByRole("dialog", { name: "attention.md" });
     expect(dialog).toHaveTextContent("Ready");
@@ -2006,7 +2006,7 @@ describe("App", () => {
     mockedGet.mockResolvedValue({ ...documentRow({ document_id: "doc-2" }),
       checksum_sha256: "abc", index_status: "ready", warnings: [], chunker_id: "test", parser_id: "markdown.v1" });
     const user = userEvent.setup(); render(<App />);
-    const triggers = await screen.findAllByRole("button", { name: "Actions for attention.md" });
+    const triggers = await screen.findAllByRole("button", { name: "More actions for attention.md" });
     await user.click(triggers[1]);
     await user.click(screen.getByRole("menuitem", { name: "Details" }));
     await screen.findByRole("dialog");
@@ -2019,7 +2019,7 @@ describe("App", () => {
     mockedDelete.mockResolvedValue({ document_id: "doc-1", deleted: true, already_absent: false,
       vector_cleanup_status: "purged", request_id: "del1" });
     const user = userEvent.setup(); render(<App />);
-    await user.click(await screen.findByRole("button", { name: "Actions for attention.md" }));
+    await user.click(await screen.findByRole("button", { name: "More actions for attention.md" }));
     await user.click(screen.getByRole("menuitem", { name: "Remove" }));
     let finishRefresh!: (value: Awaited<ReturnType<typeof listDocuments>>) => void;
     mockedList.mockReturnValueOnce(new Promise((resolve) => { finishRefresh = resolve; }));
@@ -2027,7 +2027,7 @@ describe("App", () => {
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
     expect(screen.getByRole("complementary", { name: "Document library" })).toHaveFocus();
     await act(async () => finishRefresh({ documents: [], chunker_id: "test", request_id: "d2" }));
-    expect(screen.queryByRole("button", { name: "Actions for attention.md" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "More actions for attention.md" })).not.toBeInTheDocument();
     expect(screen.getByRole("complementary", { name: "Document library" })).toHaveFocus();
   });
 
@@ -2043,7 +2043,7 @@ describe("App", () => {
     const user = userEvent.setup();
     render(<App />);
     await screen.findByText("attention.md");
-    await user.click(screen.getByRole("button", { name: "Actions for attention.md" }));
+    await user.click(screen.getByRole("button", { name: "More actions for attention.md" }));
     await user.click(screen.getByRole("menuitem", { name: "Details" }));
     expect(await screen.findByTestId("document-details-error")).toHaveTextContent(
       "Could not load document details.",
@@ -2057,13 +2057,13 @@ describe("App", () => {
     expect(close).toHaveFocus();
     await user.click(close);
     expect(screen.queryByTestId("document-details-error")).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Actions for attention.md" })).toHaveFocus();
-    await user.click(screen.getByRole("button", { name: "Actions for attention.md" }));
+    expect(screen.getByRole("button", { name: "More actions for attention.md" })).toHaveFocus();
+    await user.click(screen.getByRole("button", { name: "More actions for attention.md" }));
     await user.click(screen.getByRole("menuitem", { name: "Details" }));
     await screen.findByRole("dialog", { name: "Document details" });
     await user.keyboard("{Escape}");
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Actions for attention.md" })).toHaveFocus();
+    expect(screen.getByRole("button", { name: "More actions for attention.md" })).toHaveFocus();
   });
 
   it("opens details for a newly uploaded document", async () => {
@@ -2094,7 +2094,7 @@ describe("App", () => {
     const input = container.querySelector('input[type="file"]') as HTMLInputElement;
     await user.upload(input, new File(["# hi"], "notes.md", { type: "text/markdown" }));
     expect(await screen.findByText("notes.md")).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Actions for notes.md" }));
+    await user.click(screen.getByRole("button", { name: "More actions for notes.md" }));
     await user.click(screen.getByRole("menuitem", { name: "Details" }));
     expect(await screen.findByRole("dialog", { name: "notes.md" })).toBeInTheDocument();
     expect(mockedGet).toHaveBeenCalledWith("doc-new");
@@ -2123,12 +2123,12 @@ describe("App", () => {
     await screen.findByText("attention.md");
     const selected = screen.getByRole("checkbox", { name: /attention.md/ });
     expect(selected).toBeChecked();
-    await user.click(screen.getByRole("button", { name: "Actions for attention.md" }));
+    await user.click(screen.getByRole("button", { name: "More actions for attention.md" }));
     await user.click(screen.getByRole("menuitem", { name: "Re-index" }));
     expect(await screen.findByText("Re-indexing…")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Actions for attention.md" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "More actions for attention.md" })).toBeDisabled();
     expect(screen.getByRole("checkbox", { name: /attention.md/ })).toBeDisabled();
-    await user.click(screen.getByRole("button", { name: "Actions for attention.md" }));
+    await user.click(screen.getByRole("button", { name: "More actions for attention.md" }));
     expect(mockedReindex).toHaveBeenCalledTimes(1);
     mockedList.mockResolvedValue({
       documents: [documentRow({ chunk_count: 4, warning_count: 1 })],
@@ -2141,11 +2141,19 @@ describe("App", () => {
       warnings: ["unclosed_code_fence"],
       request_id: "r1",
     });
-    expect(await screen.findByText("4 chunks")).toBeInTheDocument();
+    expect(await screen.findByText("1 warning")).toBeInTheDocument();
     await waitFor(() => {
       expect(screen.queryByText("Re-indexing…")).not.toBeInTheDocument();
     });
-    expect(screen.getByText("1 warnings")).toBeInTheDocument();
+    expect(screen.queryByText("4 chunks")).not.toBeInTheDocument();
+    mockedGet.mockResolvedValue({
+      ...documentRow({ chunk_count: 4, warning_count: 1 }),
+      chunker_id: "structure.v1:test", parser_id: "markdown.v1", warnings: ["unclosed_code_fence"],
+    });
+    await user.click(screen.getByRole("button", { name: "More actions for attention.md" }));
+    await user.click(screen.getByRole("menuitem", { name: "Details" }));
+    expect(await screen.findByText("4")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Close" }));
     expect(screen.getByText("Ready")).toBeInTheDocument();
     expect(screen.getByRole("checkbox", { name: /attention.md/ })).toBeChecked();
   });
@@ -2173,7 +2181,7 @@ describe("App", () => {
       chunker_id: "structure.v1:test",
       request_id: "d2",
     });
-    await user.click(screen.getByRole("button", { name: "Actions for attention.md" }));
+    await user.click(screen.getByRole("button", { name: "More actions for attention.md" }));
     await user.click(screen.getByRole("menuitem", { name: "Re-index" }));
     expect(await screen.findByTestId("document-action-error")).toHaveTextContent(
       "Indexing failed.",
@@ -2184,7 +2192,7 @@ describe("App", () => {
     });
     expect(screen.getAllByTestId("document-card")[0]).not.toHaveTextContent("Ready");
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: "Actions for other.md" })).not.toBeDisabled();
+      expect(screen.getByRole("button", { name: "More actions for other.md" })).not.toBeDisabled();
     });
     mockedDelete.mockResolvedValue({
       document_id: "doc-2",
@@ -2198,7 +2206,7 @@ describe("App", () => {
       chunker_id: "structure.v1:test",
       request_id: "d3",
     });
-    await user.click(screen.getByRole("button", { name: "Actions for other.md" }));
+    await user.click(screen.getByRole("button", { name: "More actions for other.md" }));
     await user.click(screen.getByRole("menuitem", { name: "Remove" }));
     await user.click(screen.getByRole("button", { name: "Remove" }));
     await waitFor(() => {
@@ -2227,7 +2235,7 @@ describe("App", () => {
     const input = container.querySelector('input[type="file"]') as HTMLInputElement;
     await user.upload(input, new File(["x"], "notes.md", { type: "text/markdown" }));
     expect(await screen.findByTestId("upload-error")).toHaveTextContent("Unsupported file type.");
-    await user.click(screen.getByRole("button", { name: "Actions for attention.md" }));
+    await user.click(screen.getByRole("button", { name: "More actions for attention.md" }));
     await user.click(screen.getByRole("menuitem", { name: "Details" }));
     expect(await screen.findByTestId("document-details-error")).toHaveTextContent(
       "Could not load document details.",
@@ -2424,7 +2432,7 @@ describe("App", () => {
     });
 
     it("keeps a successful upload when library refresh fails", async () => {
-      await renderLibrary();
+      const user = await renderLibrary();
       mockedList.mockRejectedValue(
         new ApiClientError("network_error", "Could not reach the API. Is the backend running?", 0),
       );
@@ -2436,6 +2444,20 @@ describe("App", () => {
         ),
       ).toBeInTheDocument();
       expect(screen.queryByText("An unexpected error occurred.")).not.toBeInTheDocument();
+      expect(screen.queryByTestId("upload-error")).not.toBeInTheDocument();
+      expect(screen.getByTestId("upload-status")).toHaveTextContent("1 document added.");
+      vi.useFakeTimers();
+      try {
+        await act(async () => { await vi.advanceTimersByTimeAsync(8000); });
+        expect(screen.getByRole("button", { name: "Retry library" })).toBeInTheDocument();
+        expect(screen.getByRole("checkbox", { name: /paper.pdf/ })).toBeChecked();
+      } finally { vi.useRealTimers(); }
+      mockedList.mockResolvedValue({ documents: [documentRow(),
+        documentRow({ document_id: "doc-new", filename: "paper.pdf" })],
+        chunker_id: "structure.v1:test", request_id: "retried" });
+      await user.click(screen.getByRole("button", { name: "Retry library" }));
+      await waitFor(() => expect(screen.queryByRole("button", { name: "Retry library" })).not.toBeInTheDocument());
+      expect(screen.getByRole("checkbox", { name: /paper.pdf/ })).toBeChecked();
     });
 
     it("does not show an upload failure when the document is already in the library", async () => {
@@ -2455,6 +2477,8 @@ describe("App", () => {
       expect(await screen.findByText("paper.pdf")).toBeInTheDocument();
       expect(screen.queryByText("An unexpected error occurred.")).not.toBeInTheDocument();
       expect(screen.queryByText(/Upload failed/)).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Retry failed files" })).not.toBeInTheDocument();
+      expect(screen.getByTestId("upload-status")).toHaveTextContent("1 document added.");
     });
 
     it("maps an unconfirmed upload failure to a specific message", async () => {
@@ -2466,7 +2490,7 @@ describe("App", () => {
       expect(
         await screen.findByText("Upload failed. The server did not confirm the result."),
       ).toBeInTheDocument();
-      expect(screen.queryByText("paper.pdf")).not.toBeInTheDocument();
+      expect(screen.queryByRole("checkbox", { name: /paper.pdf/ })).not.toBeInTheDocument();
     });
 
     it("hides overlay after nested leave with no relatedTarget, then allows another drag", async () => {
@@ -2655,7 +2679,7 @@ describe("App", () => {
         expect(mockedUpload).toHaveBeenCalledTimes(2);
       });
       expect(await screen.findByText("ok.md")).toBeInTheDocument();
-      expect(screen.queryByText("fake.pdf")).not.toBeInTheDocument();
+      expect(screen.queryByRole("checkbox", { name: /fake.pdf/ })).not.toBeInTheDocument();
       expect(await screen.findByTestId("upload-error")).toHaveTextContent("fake.pdf");
     });
 
@@ -2713,6 +2737,100 @@ describe("App", () => {
       expect(await screen.findByText("b.pdf")).toBeInTheDocument();
     });
 
+    it("advances sequential progress and ignores overlapping batches", async () => {
+      await renderLibrary();
+      let finish: ((value: Awaited<ReturnType<typeof uploadDocument>>) => void) | undefined;
+      mockedUpload.mockImplementation(() => new Promise((resolve) => { finish = resolve; }));
+      const shell = screen.getByTestId("app-shell");
+      fireEvent.drop(shell, fileDrag([pdfFile("a.pdf"), pdfFile("b.pdf")]));
+      expect(screen.getByTestId("upload-status")).toHaveTextContent("Uploading 1 of 2…");
+      fireEvent.drop(shell, fileDrag([pdfFile("overlapping.pdf")]));
+      expect(mockedUpload).toHaveBeenCalledTimes(1);
+      await act(async () => { finish?.({ document: documentRow({ document_id: "a", filename: "a.pdf" }),
+        outcome: "created", warnings: [], request_id: "a" }); });
+      expect(screen.getByTestId("upload-status")).toHaveTextContent("Uploading 2 of 2…");
+      expect(mockedUpload.mock.calls.map(([file]) => file.name)).toEqual(["a.pdf", "b.pdf"]);
+      await act(async () => { finish?.({ document: documentRow({ document_id: "b", filename: "b.pdf" }),
+        outcome: "created", warnings: [], request_id: "b" }); });
+      expect(screen.getByTestId("upload-status")).toHaveTextContent("2 documents added.");
+      fireEvent.drop(shell, fileDrag([new File(["x"], "new.png")]));
+      expect(screen.getByTestId("upload-error")).toHaveTextContent("new.png");
+      expect(screen.queryByTestId("upload-status")).not.toBeInTheDocument();
+    });
+
+    it("auto-dismisses success only and cancels its timer when a newer error replaces it", async () => {
+      await renderLibrary();
+      vi.useFakeTimers();
+      try {
+        await act(async () => { fireEvent.drop(screen.getByTestId("app-shell"), fileDrag([pdfFile()])); });
+        expect(screen.getByTestId("upload-status")).toHaveTextContent("1 document added.");
+        await act(async () => { await vi.advanceTimersByTimeAsync(7000); });
+        expect(screen.queryByTestId("upload-status")).not.toBeInTheDocument();
+        await act(async () => { fireEvent.drop(screen.getByTestId("app-shell"), fileDrag([pdfFile()])); });
+        await act(async () => { await vi.advanceTimersByTimeAsync(3000); });
+        fireEvent.drop(screen.getByTestId("app-shell"), fileDrag([new File(["x"], "photo.png")]));
+        await act(async () => { await vi.advanceTimersByTimeAsync(8000); });
+        expect(screen.getByTestId("upload-error")).toHaveTextContent("photo.png");
+        expect(screen.queryByRole("button", { name: "Retry failed files" })).not.toBeInTheDocument();
+      } finally { vi.useRealTimers(); }
+    });
+
+    it("cannot replace newer feedback with a late completion from an unmounted upload", async () => {
+      mockedList.mockResolvedValue({ documents: [documentRow()], chunker_id: "test", request_id: "list" });
+      let finish: ((value: Awaited<ReturnType<typeof uploadDocument>>) => void) | undefined;
+      mockedUpload.mockImplementation(() => new Promise((resolve) => { finish = resolve; }));
+      const oldView = render(<App />);
+      await screen.findByText("attention.md");
+      fireEvent.drop(screen.getByTestId("app-shell"), fileDrag([pdfFile("old.pdf")]));
+      expect(screen.getByTestId("upload-status")).toHaveTextContent("Uploading 1 of 1…");
+      oldView.unmount();
+      render(<App />);
+      await screen.findByText("attention.md");
+      fireEvent.drop(screen.getByTestId("app-shell"), fileDrag([new File(["x"], "new.png")]));
+      await act(async () => { finish?.({ document: documentRow({ document_id: "old", filename: "old.pdf" }),
+        outcome: "created", warnings: [], request_id: "old" }); });
+      expect(screen.getByTestId("upload-error")).toHaveTextContent("new.png");
+      expect(screen.queryByTestId("upload-status")).not.toBeInTheDocument();
+      expect(screen.queryByRole("checkbox", { name: /old.pdf/ })).not.toBeInTheDocument();
+    });
+
+    it.each([false, true])("keeps attempted failure visible beyond seven seconds (partial=%s)", async (partial) => {
+      await renderLibrary();
+      mockedUpload.mockRejectedValueOnce(new ApiClientError("invalid_pdf", "The file is not a valid PDF.", 400));
+      vi.useFakeTimers();
+      try {
+        await act(async () => { fireEvent.drop(screen.getByTestId("app-shell"),
+          fileDrag(partial ? [pdfFile("broken.pdf"), pdfFile("ok.pdf")] : [pdfFile("broken.pdf")])); });
+        expect(screen.getByTestId("upload-error")).toHaveTextContent(partial ? "1 added · 1 not added" : "1 file not added");
+        await act(async () => { await vi.advanceTimersByTimeAsync(8000); });
+        expect(screen.getByTestId("upload-error")).toHaveTextContent("broken.pdf");
+        expect(screen.getByRole("button", { name: "Retry failed files" })).toBeInTheDocument();
+      } finally { vi.useRealTimers(); }
+    });
+
+    it("retries only unresolved supported files and replaces the partial result after success", async () => {
+      const user = await renderLibrary();
+      const good = documentRow({ document_id: "good", filename: "a.pdf" });
+      const retried = documentRow({ document_id: "retried", filename: "b.pdf" });
+      mockedUpload.mockResolvedValueOnce({ document: good, outcome: "created", warnings: [], request_id: "a" })
+        .mockRejectedValueOnce(new ApiClientError("invalid_pdf", "The file is not a valid PDF.", 400));
+      mockedList.mockResolvedValue({ documents: [documentRow(), good], chunker_id: "test", request_id: "list" });
+      const failed = pdfFile("b.pdf");
+      fireEvent.drop(screen.getByTestId("app-shell"), fileDrag([pdfFile("a.pdf"), failed, new File(["x"], "c.docx")]));
+      expect(await screen.findByTestId("upload-error")).toHaveTextContent("1 added · 2 not added");
+      expect(screen.getByTestId("upload-error")).toHaveTextContent("c.docx");
+      mockedUpload.mockResolvedValueOnce({ document: retried, outcome: "created", warnings: [], request_id: "b" });
+      mockedList.mockResolvedValue({ documents: [documentRow(), good, retried], chunker_id: "test", request_id: "retry" });
+      await user.click(screen.getByRole("button", { name: "Retry failed files" }));
+      expect(await screen.findByTestId("upload-status")).toHaveTextContent("1 document added.");
+      expect(mockedUpload.mock.calls.map(([file]) => file.name)).toEqual(["a.pdf", "b.pdf", "b.pdf"]);
+      expect(mockedUpload.mock.calls[2][0]).toBe(failed);
+      expect(screen.queryByTestId("upload-error")).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Retry failed files" })).not.toBeInTheDocument();
+      expect(screen.getByRole("checkbox", { name: /a.pdf/ })).toBeChecked();
+      expect(screen.getByRole("checkbox", { name: /b.pdf/ })).toBeChecked();
+    });
+
     it("dismisses an upload error without a refresh", async () => {
       const user = await renderLibrary();
       mockedUpload.mockRejectedValue(
@@ -2721,8 +2839,14 @@ describe("App", () => {
       const input = document.querySelector('input[type="file"]') as HTMLInputElement;
       await user.upload(input, pdfFile("broken.pdf"));
       expect(await screen.findByText("The file is not a valid PDF.")).toBeInTheDocument();
-      await user.click(screen.getByRole("button", { name: "Dismiss upload message" }));
+      await user.click(screen.getByRole("button", { name: "Dismiss" }));
       expect(screen.queryByTestId("upload-error")).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Retry failed files" })).not.toBeInTheDocument();
+      expect(screen.getByRole("checkbox", { name: /attention.md/ })).toBeChecked();
+      fireEvent.drop(screen.getByTestId("app-shell"), fileDrag([new File(["x"], "photo.png")]));
+      expect(screen.getByTestId("upload-error")).not.toHaveTextContent("broken.pdf");
+      expect(screen.queryByRole("button", { name: "Retry failed files" })).not.toBeInTheDocument();
+      expect(mockedUpload).toHaveBeenCalledTimes(1);
     });
 
     it("treats the master checkbox as a derived select-all control", async () => {

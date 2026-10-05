@@ -45,8 +45,9 @@ import { RenameSessionDialog } from "./components/RenameSessionDialog";
 import { SessionSwitcher } from "./components/SessionSwitcher";
 import { SourcePanel } from "./components/SourcePanel";
 import { StatusBanner } from "./components/StatusBanner";
+import type { UploadFailure, UploadFeedbackState } from "./components/UploadFeedback";
 import { scrollPaneToTurn, spacerHeightToPinTurn } from "./conversationScroll";
-import { formatRejectedUploads, resolveDroppedFiles, type RejectedUpload } from "./uploadAccept";
+import { resolveDroppedFiles, UNSUPPORTED_UPLOAD_MESSAGE } from "./uploadAccept";
 import { sanitizeUploadError } from "./userErrors";
 import { useFileDrop } from "./useFileDrop";
 
@@ -79,18 +80,6 @@ async function keepBusyVisible(startedAt: number): Promise<void> {
       setTimeout(resolve, remaining);
     });
   }
-}
-
-function summarizeUploadBatch(succeeded: number, failed: number): string | null {
-  if (succeeded === 0) {
-    return null;
-  }
-  if (failed === 0) {
-    return succeeded === 1 ? "1 document added." : `${succeeded} documents added.`;
-  }
-  const added = succeeded === 1 ? "1 document added." : `${succeeded} documents added.`;
-  const miss = failed === 1 ? "1 file could not be added." : `${failed} files could not be added.`;
-  return `${added} ${miss}`;
 }
 
 function completedHistory(turns: Turn[]): {
@@ -176,8 +165,7 @@ export default function App() {
   const [activeCitationId, setActiveCitationId] = useState<string | null>(null);
   const [asking, setAsking] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
-  const [uploadStatus, setUploadStatus] = useState<string | null>(null);
+  const [uploadFeedback, setUploadFeedback] = useState<UploadFeedbackState | null>(null);
   const [healthError, setHealthError] = useState<string | null>(null);
   const [ready, setReady] = useState<ReadyResponse | null>(null);
   const [mode, setMode] = useState<RetrievalMode>("hybrid");
@@ -291,15 +279,14 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (uploading || (!uploadError && !uploadStatus)) {
+    if (uploading || uploadFeedback?.kind !== "result" || uploadFeedback.failures.length > 0) {
       return;
     }
     const handle = window.setTimeout(() => {
-      setUploadError(null);
-      setUploadStatus(null);
+      setUploadFeedback(null);
     }, UPLOAD_FEEDBACK_MS);
     return () => window.clearTimeout(handle);
-  }, [uploadError, uploadStatus, uploading]);
+  }, [uploadFeedback, uploading]);
 
   useLayoutEffect(() => {
     const turnId = pinTurnIdRef.current;
@@ -537,28 +524,29 @@ export default function App() {
     }
     const resolved = resolveDroppedFiles(files);
     if (resolved.accepted.length === 0) {
-      setUploadStatus(null);
-      setUploadError(resolved.error ?? formatRejectedUploads(resolved.rejected));
+      const failures: UploadFailure[] = resolved.rejected.length > 0
+        ? resolved.rejected
+        : [{ filename: "Files", reason: resolved.error ?? UNSUPPORTED_UPLOAD_MESSAGE }];
+      setUploadFeedback({ kind: "result", added: 0, failures });
       return;
     }
     uploadInFlightRef.current = true;
     const generation = ++uploadGenerationRef.current;
-    const rejected: RejectedUpload[] = [...resolved.rejected];
+    const failures: UploadFailure[] = [...resolved.rejected];
     const succeeded: { id: string; document: DocumentSummary }[] = [];
     setUploading(true);
-    setUploadError(null);
-    setUploadStatus(
-      resolved.accepted.length === 1
-        ? "Uploading 1 of 1…"
-        : `Uploading 1 of ${resolved.accepted.length}…`,
-    );
+    setUploadFeedback({ kind: "progress", current: 1, total: resolved.accepted.length });
     try {
       for (let index = 0; index < resolved.accepted.length; index += 1) {
         if (generation !== uploadGenerationRef.current) {
           return;
         }
         const file = resolved.accepted[index];
-        setUploadStatus(`Uploading ${index + 1} of ${resolved.accepted.length}…`);
+        setUploadFeedback({
+          kind: "progress",
+          current: index + 1,
+          total: resolved.accepted.length,
+        });
         try {
           const uploaded = await uploadDocument(file);
           succeeded.push({
@@ -574,12 +562,13 @@ export default function App() {
             succeeded.push({ id: recovered.document_id, document: recovered });
             continue;
           }
-          rejected.push({
+          failures.push({
             filename: file.name || "file",
             reason: sanitizeUploadError(
               describeApiFailure(error, "Upload failed."),
               file.name,
             ),
+            retryFile: file,
           });
         }
       }
@@ -622,14 +611,7 @@ export default function App() {
       if (generation !== uploadGenerationRef.current) {
         return;
       }
-      setUploadStatus(summarizeUploadBatch(succeeded.length, rejected.length));
-      setUploadError(
-        rejected.length === 0
-          ? null
-          : succeeded.length === 0 && rejected.length === 1
-            ? rejected[0].reason
-            : formatRejectedUploads(rejected),
-      );
+      setUploadFeedback({ kind: "result", added: succeeded.length, failures });
     } finally {
       if (generation === uploadGenerationRef.current) {
         setUploading(false);
@@ -966,13 +948,12 @@ export default function App() {
           selectedIds={selectedIds}
           allDocuments={scopeRef.current.mode === "all"}
           uploading={uploading}
-          uploadError={uploadError}
-          uploadStatus={uploadStatus}
-          libraryLoadError={documents.length === 0 ? libraryError : null}
+          uploadFeedback={uploadFeedback}
+          libraryLoadError={libraryError}
           documentActionError={
             pendingDelete
               ? null
-              : documentActionError ?? (documents.length > 0 ? libraryError : null)
+              : documentActionError
           }
           busyDocumentId={busyDocumentId}
           busyKind={busyKind}
@@ -982,10 +963,8 @@ export default function App() {
           onSelectAll={selectAllDocuments}
           onClearSelection={clearDocumentSelection}
           onUpload={(files) => void handleUploadFiles(files)}
-          onDismissUploadError={() => {
-            setUploadError(null);
-            setUploadStatus(null);
-          }}
+          onRetryFailedUploads={(files) => void handleUploadFiles(files)}
+          onDismissUploadFeedback={() => setUploadFeedback(null)}
           onRetryLoad={() => void refreshDocuments()}
           onDetails={(documentId) => void handleDetails(documentId)}
           onReindex={(documentId) => void handleReindex(documentId)}

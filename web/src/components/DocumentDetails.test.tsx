@@ -56,6 +56,22 @@ describe("library dialogs", () => {
     expect(screen.getByText("Ready")).toBeInTheDocument();
     expect(screen.getByText("3")).toBeInTheDocument();
     expect(screen.getByText("8")).toBeInTheDocument();
+    expect(screen.getByText("abc123def456")).toBeInTheDocument();
+    expect(screen.getByText("structure.v1:test")).toBeInTheDocument();
+    expect(screen.getByText("Index").nextElementSibling).toHaveTextContent("ready");
+  });
+
+  it.each([1, 2])("keeps %s chunk available as a labeled Details count", (count) => {
+    render(<DocumentDetails detail={{
+      document_id: "doc-1", filename: "counts.md", content_type: "text/markdown",
+      status: "ready", page_count: count, chunk_count: count, byte_size: 12,
+      warning_count: 0, ingested_at: "", updated_at: "", parse_status: "parsed",
+      error_message: null, chunker_id: "test", parser_id: "markdown.v1", warnings: [],
+    }} onClose={vi.fn()} />);
+    expect(screen.getByText("Chunks").nextElementSibling).toHaveTextContent(String(count));
+    expect(screen.getByText("Pages").nextElementSibling).toHaveTextContent(String(count));
+    expect(screen.queryByText("1 chunks")).not.toBeInTheDocument();
+    expect(screen.queryByText("1 pages")).not.toBeInTheDocument();
   });
 
   it("shows persisted warning details in the main Details view", () => {
