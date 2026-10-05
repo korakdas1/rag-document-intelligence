@@ -202,6 +202,11 @@ describe("App", () => {
     expect(
       screen.queryByRole("button", { name: /What are the key facts in these documents/i }),
     ).not.toBeInTheDocument();
+    const context = screen.getByLabelText("Next question document scope");
+    expect(context).toHaveTextContent("All documents· 1 in library");
+    expect(screen.getByLabelText("Research question")).toHaveAttribute(
+      "aria-describedby", context.id,
+    );
   });
 
   describe("composer submit", () => {
@@ -563,6 +568,7 @@ describe("App", () => {
       const user = await loadedScope(false, []);
       fireEvent.click(screen.getByRole("checkbox", { name: /attention.md/ }));
       await waitFor(() => expect(mockedPatchSession).toHaveBeenCalledTimes(1));
+      expect(screen.getByRole("status", { name: "" })).toHaveTextContent("Saving selection…");
       fireEvent.click(screen.getByRole("checkbox", { name: /other.md/ }));
       await user.type(screen.getByLabelText("Research question"), "Newest scope please");
       await user.click(screen.getByRole("button", { name: "Ask question" }));
@@ -572,12 +578,15 @@ describe("App", () => {
       expect(mockedAsk).not.toHaveBeenCalled();
       await act(async () => first.resolve(sessionRow()));
       expect(mockedPatchSession).toHaveBeenCalledTimes(2);
+      expect(screen.getByText("Saving selection…")).toBeInTheDocument();
       expect(mockedAsk).not.toHaveBeenCalled();
       await act(async () => second.resolve(sessionRow()));
       expect(mockedPatchSession).toHaveBeenCalledTimes(3);
+      expect(screen.getByText("Saving selection…")).toBeInTheDocument();
       expect(mockedAsk).not.toHaveBeenCalled();
       await act(async () => third.resolve(sessionRow()));
       await waitFor(() => expect(mockedAsk).toHaveBeenCalledTimes(1));
+      expect(screen.queryByText("Saving selection…")).not.toBeInTheDocument();
       expect(mockedPatchSession.mock.calls).toEqual([
         ["sess-1", { all_documents: false, selected_document_ids: ["doc-1"] }],
         ["sess-1", { all_documents: false, selected_document_ids: ["doc-1", "doc-2"] }],
@@ -587,21 +596,49 @@ describe("App", () => {
       expect(mockedAsk.mock.calls[0][0].document_ids).toBeUndefined();
     });
 
-    it("surfaces a failed save, blocks Ask, and recovers after a successful new selection", async () => {
-      mockedPatchSession.mockRejectedValueOnce(new Error("offline"));
+    it("surfaces a failed save, blocks Ask, and retries the exact canonical scope", async () => {
+      const retry = deferred<SessionSummary>();
+      mockedPatchSession.mockRejectedValueOnce(new Error("offline")).mockReturnValueOnce(retry.promise);
       const user = await loadedScope(true, []);
       await user.click(screen.getByRole("checkbox", { name: /other.md/ }));
       expect(await screen.findByRole("alert")).toHaveTextContent("Could not save document selection");
+      const context = screen.getByLabelText("Next question document scope");
+      expect(screen.getByLabelText("Research question")).toHaveAttribute("aria-describedby", context.id);
+      expect(context).toHaveTextContent("Selection not saved");
+      expect(screen.getByRole("button", { name: "Retry saving" })).toBeInTheDocument();
       await user.type(screen.getByLabelText("Research question"), "Must not use stale scope");
-      await user.click(screen.getByRole("button", { name: "Ask question" }));
-      await waitFor(() => expect(screen.getByLabelText("Research question")).toHaveAttribute("aria-busy", "false"));
+      expect(screen.getByRole("button", { name: "Ask question" })).toBeDisabled();
       expect(mockedAsk).not.toHaveBeenCalled();
       expect(mockedCreateSession).not.toHaveBeenCalled();
-      await user.click(screen.getByRole("checkbox", { name: /other.md/ }));
+      await user.click(screen.getByRole("button", { name: "Retry saving" }));
       await waitFor(() => expect(mockedPatchSession).toHaveBeenCalledTimes(2));
-      await user.type(screen.getByLabelText("Research question"), "Selection recovered");
+      expect(mockedPatchSession.mock.calls[1]).toEqual([
+        "sess-1", { all_documents: false, selected_document_ids: ["doc-1"] },
+      ]);
+      expect(screen.getByText("Saving selection…")).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Ask question" })).toBeEnabled();
+      await act(async () => retry.resolve(sessionRow()));
+      await waitFor(() => expect(screen.queryByText("Saving selection…")).not.toBeInTheDocument());
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
       await user.click(screen.getByRole("button", { name: "Ask question" }));
       await waitFor(() => expect(mockedAsk).toHaveBeenCalledTimes(1));
+    });
+
+    it("does not let an inactive retry completion alter the current research context", async () => {
+      const retry = deferred<SessionSummary>();
+      mockedPatchSession.mockRejectedValueOnce(new Error("offline")).mockReturnValueOnce(retry.promise);
+      const user = await loadedScope(true, []);
+      await user.click(screen.getByRole("checkbox", { name: /other.md/ }));
+      await screen.findByRole("alert");
+      await user.click(screen.getByRole("button", { name: "Retry saving" }));
+      expect(screen.getByText("Saving selection…")).toBeInTheDocument();
+      await user.click(screen.getByRole("button", { name: "New research" }));
+      expect(screen.getByTestId("active-research-title")).toHaveTextContent("New research");
+      expect(screen.getByLabelText("Next question document scope")).toHaveTextContent("All documents");
+      await act(async () => retry.resolve(sessionRow()));
+      expect(screen.queryByText("Saving selection…")).not.toBeInTheDocument();
+      expect(screen.queryByText("Selection not saved")).not.toBeInTheDocument();
+      expect(screen.getByLabelText("Next question document scope")).toHaveTextContent("All documents");
     });
 
     it("does not send a waiting Ask if its pending selection save fails", async () => {
@@ -627,7 +664,7 @@ describe("App", () => {
       expect(screen.queryByRole("alert")).not.toBeInTheDocument();
       expect(screen.getByRole("checkbox", { name: "Ask across all documents" })).toBeChecked();
       await user.click(screen.getByRole("button", { name: "History" }));
-      await user.click(screen.getByRole("menuitem", { name: /New research/ }));
+      await user.click(screen.getByText("New research", { selector: ".session-title" }).closest("button")!);
       await screen.findByText("Saved question");
       expect(screen.getByRole("checkbox", { name: /attention.md/ })).toBeChecked();
       expect(screen.getByRole("checkbox", { name: /other.md/ })).not.toBeChecked();
@@ -643,11 +680,13 @@ describe("App", () => {
       const pending = deferred<Awaited<ReturnType<typeof getSession>>>();
       mockedGetSession.mockReturnValueOnce(pending.promise);
       await user.click(screen.getByRole("button", { name: "History" }));
-      await user.click(screen.getByRole("menuitem", { name: /New research/ }));
+      await user.click(screen.getByText("New research", { selector: ".session-title" }).closest("button")!);
+      expect(screen.getByTestId("active-research-title")).toHaveTextContent("Loading research…");
       await user.click(screen.getByRole("button", { name: "New research" }));
       await act(async () => pending.resolve({ ...sessionRow(), all_documents: false,
         selected_document_ids: [], missing_selected_count: 0, turns: [] }));
       expect(screen.queryByText("Saved question")).not.toBeInTheDocument();
+      expect(screen.getByTestId("active-research-title")).toHaveTextContent("New research");
       expect(screen.getByRole("checkbox", { name: "Ask across all documents" })).toBeChecked();
       expect(mockedCreateSession).not.toHaveBeenCalled();
     });
@@ -674,6 +713,10 @@ describe("App", () => {
 
     it("keeps a fixed subset after upload even when it selected the whole previous library", async () => {
       const user = await loadedScope(false, ["doc-1", "doc-2"]);
+      expect(screen.getByLabelText("Next question document scope"))
+        .toHaveTextContent("2 selected documents");
+      expect(screen.getByLabelText("Next question document scope"))
+        .not.toHaveTextContent("All documents");
       const fresh = documentRow({ document_id: "doc-3", filename: "fresh.md" });
       mockedUpload.mockResolvedValue({ document: fresh, outcome: "created", warnings: [], request_id: "u1" });
       mockedList.mockResolvedValue({ documents: [documentRow(), documentRow({ document_id: "doc-2", filename: "other.md" }), fresh], chunker_id: "test", request_id: "d2" });
@@ -693,7 +736,7 @@ describe("App", () => {
       await user.click(screen.getByRole("button", { name: "Remove" }));
       await waitFor(() => expect(screen.queryByText("other.md")).not.toBeInTheDocument());
       expect(screen.getByRole("checkbox", { name: "Ask across all documents" })).not.toBeChecked();
-      expect(screen.getByText("1 previously selected document is no longer in the library.")).toBeInTheDocument();
+      expect(screen.getByText("1 selected document is unavailable.")).toBeInTheDocument();
       expect(mockedPatchSession).not.toHaveBeenCalled();
     });
 
@@ -729,6 +772,9 @@ describe("App", () => {
       });
       render(<App />);
       expect(await screen.findByText("Where?")).toBeInTheDocument();
+      expect(screen.getByTestId("active-research-title")).toHaveTextContent("New research");
+      expect(screen.getByLabelText("Next question document scope"))
+        .toHaveTextContent("All documents· 2 in library");
       expect(screen.getByRole("checkbox", { name: "Ask across all documents" })).toBeChecked();
       expect(screen.getByRole("checkbox", { name: /attention.md/ })).toBeChecked();
       expect(screen.getByRole("checkbox", { name: /other.md/ })).toBeChecked();
@@ -766,6 +812,8 @@ describe("App", () => {
       });
       render(<App />);
       expect(await screen.findByText("Limits?")).toBeInTheDocument();
+      expect(screen.getByLabelText("Next question document scope"))
+        .toHaveTextContent("1 selected document");
       expect(screen.getByRole("checkbox", { name: /attention.md/ })).not.toBeChecked();
       expect(screen.getByRole("checkbox", { name: /other.md/ })).toBeChecked();
     });
@@ -799,6 +847,8 @@ describe("App", () => {
       });
       render(<App />);
       expect(await screen.findByText("Q")).toBeInTheDocument();
+      expect(screen.getByLabelText("Next question document scope"))
+        .toHaveTextContent("No documents selected");
       expect(screen.getByRole("checkbox", { name: /attention.md/ })).not.toBeChecked();
       expect(screen.getByRole("button", { name: "Ask question" })).toBeDisabled();
     });
@@ -860,10 +910,16 @@ describe("App", () => {
       const user = userEvent.setup();
       render(<App />);
       expect(await screen.findByText("All Q")).toBeInTheDocument();
+      expect(screen.getByTestId("active-research-title")).toHaveTextContent("All scope");
+      expect(screen.getByLabelText("Next question document scope"))
+        .toHaveTextContent("All documents· 2 in library");
       expect(screen.getByRole("checkbox", { name: /other.md/ })).toBeChecked();
       await user.click(screen.getByRole("button", { name: "History" }));
-      await user.click(screen.getByRole("menuitem", { name: /Subset/ }));
+      await user.click(screen.getByText("Subset", { selector: ".session-title" }).closest("button")!);
       expect(await screen.findByText("Subset Q")).toBeInTheDocument();
+      expect(screen.getByTestId("active-research-title")).toHaveTextContent("Subset");
+      expect(screen.getByLabelText("Next question document scope"))
+        .toHaveTextContent("1 selected document");
       expect(screen.getByRole("checkbox", { name: /attention.md/ })).not.toBeChecked();
       expect(screen.getByRole("checkbox", { name: /other.md/ })).toBeChecked();
     });
@@ -897,6 +953,8 @@ describe("App", () => {
       });
       render(<App />);
       expect(await screen.findByText("Q")).toBeInTheDocument();
+      expect(screen.getByLabelText("Next question document scope"))
+        .toHaveTextContent("1 available of 2 selected");
       expect(screen.getByRole("checkbox", { name: /attention.md/ })).toBeChecked();
       expect(screen.queryByText("missing-doc")).not.toBeInTheDocument();
     });
@@ -992,11 +1050,11 @@ describe("App", () => {
       expect(await screen.findByText("None Q")).toBeInTheDocument();
       expect(screen.getByRole("checkbox", { name: /attention.md/ })).not.toBeChecked();
       await user.click(screen.getByRole("button", { name: "History" }));
-      await user.click(screen.getByRole("menuitem", { name: /All scope/ }));
+      await user.click(screen.getByText("All scope", { selector: ".session-title" }).closest("button")!);
       expect(await screen.findByText("All Q")).toBeInTheDocument();
       expect(screen.getByRole("checkbox", { name: /attention.md/ })).toBeChecked();
       await user.click(screen.getByRole("button", { name: "History" }));
-      await user.click(screen.getByRole("menuitem", { name: /None scope/ }));
+      await user.click(screen.getByText("None scope", { selector: ".session-title" }).closest("button")!);
       expect(await screen.findByText("None Q")).toBeInTheDocument();
       expect(screen.getByRole("checkbox", { name: /attention.md/ })).not.toBeChecked();
       expect(screen.getByRole("checkbox", { name: /other.md/ })).not.toBeChecked();
@@ -1145,7 +1203,7 @@ describe("App", () => {
     render(<App />);
     await screen.findByText("attention.md");
     await user.click(screen.getByRole("button", { name: "New research" }));
-    expect(screen.queryByRole("menu", { name: "Research history" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("dialog", { name: "Research history" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Ask question" })).toBeInTheDocument();
   });
 
@@ -1505,10 +1563,34 @@ describe("App", () => {
     expect(await screen.findByText("What is attention?")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "History" })).toBeInTheDocument();
     await userEvent.setup().click(screen.getByRole("button", { name: "History" }));
-    expect(screen.getByRole("menuitem", { name: /Prior work/ })).toHaveAttribute(
+    expect(screen.getByText("Prior work", { selector: ".session-title" }).closest("button")).toHaveAttribute(
       "aria-current",
-      "true",
+      "page",
     );
+  });
+
+  it("shows the active research title and updates it after a successful rename", async () => {
+    mockedList.mockResolvedValue({ documents: [documentRow()], chunker_id: "test", request_id: "d1" });
+    mockedListSessions.mockResolvedValue({
+      sessions: [sessionRow({ title: "Prior work", turn_count: 1 })], request_id: "s1",
+    });
+    mockedGetSession.mockResolvedValue({
+      ...sessionRow({ title: "Prior work", turn_count: 1 }), selected_document_ids: [],
+      missing_selected_count: 0, turns: [],
+    });
+    const user = userEvent.setup();
+    render(<App />);
+    expect(await screen.findByTestId("active-research-title")).toHaveTextContent("Prior work");
+    expect(screen.getByTestId("active-research-title")).toHaveAttribute("title", "Prior work");
+    await user.click(screen.getByRole("button", { name: "History" }));
+    await user.click(screen.getByRole("button", { name: "Rename Prior work" }));
+    const input = screen.getByRole("textbox", { name: "Session title" });
+    await user.clear(input);
+    await user.type(input, "Harbor review");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(screen.getByTestId("active-research-title"))
+      .toHaveTextContent("Harbor review"));
+    expect(mockedPatchSession).toHaveBeenCalledWith("sess-1", { title: "Harbor review" });
   });
 
   it("does not restore a stale provider error over a successful retried turn", async () => {
@@ -1595,6 +1677,7 @@ describe("App", () => {
     expect(await screen.findByText("Grounded")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "New research" }));
     expect(screen.queryByText("What is attention?")).not.toBeInTheDocument();
+    expect(screen.getByTestId("active-research-title")).toHaveTextContent("New research");
     expect(mockedDeleteSession).not.toHaveBeenCalled();
   });
 
@@ -1627,7 +1710,7 @@ describe("App", () => {
     });
     render(<App />);
     expect(
-      await screen.findByText("1 previously selected document is no longer in the library."),
+      await screen.findByText("1 selected document is unavailable."),
     ).toBeInTheDocument();
   });
 

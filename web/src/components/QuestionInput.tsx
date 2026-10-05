@@ -4,6 +4,7 @@ type QuestionInputProps = {
   value: string;
   disabled: boolean;
   submitDisabled?: boolean;
+  describedById?: string;
   textareaRef?: Ref<HTMLTextAreaElement>;
   onChange: (value: string) => void;
   onSubmit: (value: string) => void;
@@ -13,6 +14,7 @@ export function QuestionInput({
   value,
   disabled,
   submitDisabled = false,
+  describedById,
   textareaRef,
   onChange,
   onSubmit,
@@ -44,6 +46,7 @@ export function QuestionInput({
         disabled={disabled}
         placeholder="Ask about facts, summaries, comparisons, or limitations in your documents"
         aria-busy={disabled}
+        aria-describedby={describedById}
         autoComplete="off"
         onChange={(event) => onChange(event.target.value)}
         onKeyDown={(event) => {

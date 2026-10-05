@@ -20,7 +20,7 @@ function session(overrides: Partial<SessionSummary> = {}): SessionSummary {
 }
 
 describe("SessionSwitcher", () => {
-  it("opens History and highlights the active session", async () => {
+  it("opens a nonmodal History dialog, focuses search, and marks the active session", async () => {
     const user = userEvent.setup();
     const onOpen = vi.fn();
     render(
@@ -33,18 +33,21 @@ describe("SessionSwitcher", () => {
         onDelete={vi.fn()}
       />,
     );
-    expect(screen.queryByRole("menu", { name: "Research history" })).not.toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "History" }));
-    expect(screen.getByRole("menu", { name: "Research history" })).toBeInTheDocument();
-    expect(screen.getByRole("menuitem", { name: /Prior work/ })).toHaveAttribute(
+    const trigger = screen.getByRole("button", { name: "History" });
+    expect(trigger).toHaveAttribute("aria-haspopup", "dialog");
+    expect(screen.queryByRole("dialog", { name: "Research history" })).not.toBeInTheDocument();
+    await user.click(trigger);
+    expect(screen.getByRole("dialog", { name: "Research history" })).not.toHaveAttribute("aria-modal");
+    expect(screen.getByRole("searchbox", { name: "Search sessions" })).toHaveFocus();
+    expect(screen.getByText("Prior work", { selector: ".session-title" }).closest("button")).toHaveAttribute(
       "aria-current",
-      "true",
+      "page",
     );
-    expect(screen.queryByRole("menuitem", { name: "New research" })).not.toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "History" }));
-    expect(screen.queryByRole("menu", { name: "Research history" })).not.toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "History" }));
-    await user.click(screen.getByRole("menuitem", { name: /Later notes/ }));
+    expect(screen.queryByRole("button", { name: "New research" })).not.toBeInTheDocument();
+    await user.click(trigger);
+    expect(screen.queryByRole("dialog", { name: "Research history" })).not.toBeInTheDocument();
+    await user.click(trigger);
+    await user.click(screen.getByText("Later notes", { selector: ".session-title" }).closest("button")!);
     expect(onOpen).toHaveBeenCalledWith("sess-2");
   });
 
@@ -60,12 +63,27 @@ describe("SessionSwitcher", () => {
       />,
     );
     await user.click(screen.getByRole("button", { name: "History" }));
-    expect(screen.getByRole("menu", { name: "Research history" })).toBeInTheDocument();
+    expect(screen.getByRole("dialog", { name: "Research history" })).toBeInTheDocument();
     await user.keyboard("{Escape}");
-    expect(screen.queryByRole("menu", { name: "Research history" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("dialog", { name: "Research history" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "History" })).toHaveFocus();
     await user.click(screen.getByRole("button", { name: "History" }));
     await user.click(document.body);
-    expect(screen.queryByRole("menu", { name: "Research history" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("dialog", { name: "Research history" })).not.toBeInTheDocument();
+  });
+
+  it("distinguishes an empty history from a filtered no-match state", async () => {
+    const user = userEvent.setup();
+    const props = { activeSessionId: null, onOpen: vi.fn(), onRename: vi.fn(), onDelete: vi.fn() };
+    const { rerender } = render(<SessionSwitcher sessions={[]} {...props} />);
+    await user.click(screen.getByRole("button", { name: "History" }));
+    expect(screen.getByText("No saved conversations yet.")).toBeInTheDocument();
+    await user.keyboard("{Escape}");
+    rerender(<SessionSwitcher sessions={[session()]} {...props} />);
+    await user.click(screen.getByRole("button", { name: "History" }));
+    await user.type(screen.getByRole("searchbox", { name: "Search sessions" }), "harbor");
+    expect(screen.getByText("No conversations match ‘harbor’." )).toBeInTheDocument();
+    expect(screen.queryByText("No saved conversations yet.")).not.toBeInTheDocument();
   });
 });
 
